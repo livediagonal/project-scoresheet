@@ -73,29 +73,40 @@ subIntoLineup :: LineupSlot -> Int -> Lineup -> Lineup
 subIntoLineup _ 0 lineup = lineup
 
 processEvent :: GameState -> EventFileLine -> GameState
-processEvent prevState (StartLine RawStart{..}) =
+processEvent prevState (StartLine rawStart) = processStartLine prevState rawStart
+processEvent prevState (SubLine rawSub) = processSubLine prevState rawSub
+processEvent prevState (PlayLine rawPlay) = processPlayLine prevState rawPlay
+processEvent prevState _ = prevState
+
+processStartLine :: GameState -> RawStart -> GameState
+processStartLine prevState RawStart{..} =
   let
     slot = LineupSlot rawStartPlayer $ parseFieldingPosition rawStartFieldingPosition
   in
     case rawStartPlayerHome of
       0 -> prevState { gameStateAwayLineup = addToLineup slot rawStartBattingPosition $ gameStateAwayLineup prevState }
       1 -> prevState { gameStateHomeLineup = addToLineup slot rawStartBattingPosition $ gameStateHomeLineup prevState }
-processEvent prevState (SubLine RawSub{..}) =
+
+
+processPlayLine :: GameState -> RawPlay -> GameState
+processPlayLine prevState RawPlay{..} =
+  let
+    isNewInning = rawPlayInning /= gameStateInning prevState
+  in
+    prevState
+     { gameStateOuts = rawPlayOuts
+     , gameStateInning = rawPlayInning
+     }
+
+processSubLine :: GameState -> RawSub -> GameState
+processSubLine prevState RawSub{..} =
   let
     slot = LineupSlot rawSubPlayer $ parseFieldingPosition rawSubFieldingPosition
   in
     case rawSubPlayerHome of
       0 -> prevState { gameStateAwayLineup = addToLineup slot rawSubBattingPosition $ gameStateAwayLineup prevState }
       1 -> prevState { gameStateHomeLineup = addToLineup slot rawSubBattingPosition $ gameStateHomeLineup prevState }
-processEvent prevEvent (PlayLine RawPlay{..}) =
-  let
-    isNewInning = rawPlayInning /= gameStateInning prevEvent
-  in
-    prevEvent
-     { gameStateOuts = rawPlayOuts
-     , gameStateInning = rawPlayInning
-     }
-processEvent prevEvent _ = prevEvent
+
 
 main :: IO ()
 main = do
