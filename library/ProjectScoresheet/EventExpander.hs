@@ -59,10 +59,32 @@ data GameState
   , gameStateRunnerThirdBaseId :: !(Maybe Text)
   } deriving (Eq, Show)
 
+
+prettyPrintLineupSlot :: Maybe LineupSlot -> Text
+prettyPrintLineupSlot (Just LineupSlot{..}) = tshow lineupSlotPlayerId <> ", " <> tshow lineupSlotFieldPosition
+prettyPrintLineupSlot Nothing = "Player not loaded."
+
+prettyPrintLineup :: Lineup -> Text
+prettyPrintLineup Lineup{..} =
+  unlines $ [ "1: " <> prettyPrintLineupSlot lineupSlotOne 
+            , "2: " <> prettyPrintLineupSlot lineupSlotTwo
+            , "3: " <> prettyPrintLineupSlot lineupSlotThree
+            , "4: " <> prettyPrintLineupSlot lineupSlotFour
+            , "5: " <> prettyPrintLineupSlot lineupSlotFive
+            , "6: " <> prettyPrintLineupSlot lineupSlotSix
+            , "7: " <> prettyPrintLineupSlot lineupSlotSeven
+            , "8: " <> prettyPrintLineupSlot lineupSlotEight
+            , "9: " <> prettyPrintLineupSlot lineupSlotNine ]
+
+
 prettyPrintGameState :: GameState -> Text
 prettyPrintGameState GameState{..} =
-    "Outs: " <> tshow gameStateOuts <>
-    ", Inning: " <> tshow gameStateInning
+    unlines $ [ "Inning: " <> tshow gameStateInning <> ", Outs: " <> tshow gameStateOuts,
+                "",
+                "Away: ",
+                prettyPrintLineup gameStateAwayLineup,
+                "Home: ",
+                prettyPrintLineup gameStateHomeLineup ]
 
 unstartedGame :: GameState
 unstartedGame = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing
