@@ -59,6 +59,11 @@ data GameState
   , gameStateRunnerThirdBaseId :: !(Maybe Text)
   } deriving (Eq, Show)
 
+prettyPrintGameState :: GameState -> Text
+prettyPrintGameState GameState{..} =
+    "Outs: " <> tshow gameStateOuts <>
+    ", Inning: " <> tshow gameStateInning
+
 unstartedGame :: GameState
 unstartedGame = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing
 
@@ -109,4 +114,4 @@ main = do
   csvEvents <- BL.readFile "testgame.txt"
   case (decode NoHeader csvEvents :: Either String (Vector EventFileLine)) of
     Left err -> print err
-    Right v -> V.mapM_ print $ V.tail $ V.scanl processEvent unstartedGame v
+    Right v -> V.mapM_ (putStrLn . prettyPrintGameState) $ V.tail $ V.scanl processEvent unstartedGame v
