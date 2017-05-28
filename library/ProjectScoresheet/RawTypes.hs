@@ -2,22 +2,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecordWildCards #-}
 
-module EventExpander where
+module ProjectScoresheet.RawTypes where
 
 import ClassyPrelude
 import Data.Csv
-import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
 
-data Event
-  = Event
-  { eventNumber :: !Int
-  , numOuts :: !Int
-  , inning :: !Int
-  , isLeadOff :: !Bool
-  } deriving (Eq, Show, Generic)
+data EventFileLine
+  = GameLine RawGameId
+  | SchemaLine RawSchemaVersion
+  | InfoLine RawInfo
+  | CommentLine RawComment
+  | StartLine RawStart
+  | SubLine RawSub
+  | PlayLine RawPlay
+  | DataLine RawData
+  deriving (Eq, Show, Generic)
 
 data RawGameId
   = RawGameId
@@ -45,7 +46,7 @@ data RawStart
   { rawStartPlayer :: !Text
   , rawStartPlayerName :: !Text
   , rawStartPlayerHome :: !Int
-  , rawStartBattingOrderPosition :: !Int
+  , rawStartBattingPosition :: !Int
   , rawStartFieldingPosition :: !Int
   } deriving (Eq, Show, Generic)
 
@@ -75,17 +76,6 @@ data RawData
   , rawDataValue :: !Int
   } deriving (Eq, Show, Generic)
 
-data EventFileLine
-  = GameLine RawGameId
-  | SchemaLine RawSchemaVersion
-  | InfoLine RawInfo
-  | CommentLine RawComment
-  | StartLine RawStart
-  | SubLine RawSub
-  | PlayLine RawPlay
-  | DataLine RawData
-  deriving (Eq, Show, Generic)
-
 instance FromRecord RawGameId
 instance FromRecord RawSchemaVersion
 instance FromRecord RawComment
@@ -109,25 +99,3 @@ instance FromRecord EventFileLine where
      "com" -> CommentLine <$> parseRecord args
      "data" -> DataLine <$> parseRecord args
      _ -> fail "Unrecognized key"
-
-processEvent :: Event -> EventFileLine -> Event
-processEvent prevEvent (PlayLine RawPlay{..}) =
-  let
-    evNumber = eventNumber prevEvent + 1
-    isNewInning = rawPlayInning /= inning prevEvent
-    isOutsReset = rawPlayOuts /= numOuts prevEvent && rawPlayOuts == 0
-  in
-    prevEvent
-     { eventNumber = evNumber
-     , numOuts = rawPlayOuts
-     , inning = rawPlayInning
-     , isLeadOff = isOutsReset || isNewInning
-     }
-processEvent prevEvent _ = prevEvent
-
-main :: IO ()
-main = do
-  csvEvents <- BL.readFile "testgame.txt"
-  case (decode NoHeader csvEvents :: Either String (Vector EventFileLine)) of
-    Left err -> print err
-    Right v -> V.mapM_ print $ V.tail $ V.scanl processEvent (Event 0 0 0 False) $ V.filter (\e -> case e of PlayLine RawPlay{..} -> True; _ -> False) v
