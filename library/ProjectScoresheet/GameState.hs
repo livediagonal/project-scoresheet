@@ -17,6 +17,8 @@ data FieldPosition
   | CenterFielder
   | RightFielder
   | DesignatedHitter
+  | PinchHitter
+  | PinchRunner
   deriving (Eq, Show)
 
 data LineupSlot

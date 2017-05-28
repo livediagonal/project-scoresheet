@@ -41,6 +41,7 @@ prettyPrintGameState GameState{..} =
 unstartedGame :: GameState
 unstartedGame = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing Nothing
 
+-- todo improve type sig w/ finite
 parseFieldingPosition :: Int -> FieldPosition
 parseFieldingPosition 1 = Pitcher
 parseFieldingPosition 2 = Catcher
@@ -52,6 +53,8 @@ parseFieldingPosition 7 = LeftFielder
 parseFieldingPosition 8 = CenterFielder
 parseFieldingPosition 9 = RightFielder
 parseFieldingPosition 10 = DesignatedHitter
+parseFieldingPosition 11 = PinchHitter
+parseFieldingPosition 12 = PinchRunner
 
 addToLineup :: LineupSlot -> Int -> Lineup -> Lineup
 addToLineup _ 0 lineup = lineup
@@ -65,6 +68,10 @@ addToLineup slot 7 lineup = lineup { lineupSlotSeven = Just slot }
 addToLineup slot 8 lineup = lineup { lineupSlotEight = Just slot }
 addToLineup slot 9 lineup = lineup { lineupSlotNine = Just slot }
 
+
+subIntoLineup :: LineupSlot -> Int -> Lineup -> Lineup
+subIntoLineup _ 0 lineup = lineup
+
 processEvent :: GameState -> EventFileLine -> GameState
 processEvent prevState (StartLine RawStart{..}) =
   let
@@ -73,6 +80,13 @@ processEvent prevState (StartLine RawStart{..}) =
     case rawStartPlayerHome of
       0 -> prevState { gameStateAwayLineup = addToLineup slot rawStartBattingPosition $ gameStateAwayLineup prevState }
       1 -> prevState { gameStateHomeLineup = addToLineup slot rawStartBattingPosition $ gameStateHomeLineup prevState }
+processEvent prevState (SubLine RawSub{..}) =
+  let
+    slot = LineupSlot rawSubPlayer $ parseFieldingPosition rawSubFieldingPosition
+  in
+    case rawSubPlayerHome of
+      0 -> prevState { gameStateAwayLineup = addToLineup slot rawSubBattingPosition $ gameStateAwayLineup prevState }
+      1 -> prevState { gameStateHomeLineup = addToLineup slot rawSubBattingPosition $ gameStateHomeLineup prevState }
 processEvent prevEvent (PlayLine RawPlay{..}) =
   let
     isNewInning = rawPlayInning /= gameStateInning prevEvent

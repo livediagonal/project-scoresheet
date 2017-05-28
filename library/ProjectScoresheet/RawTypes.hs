@@ -55,7 +55,7 @@ data RawSub
   { rawSubPlayer :: !Text
   , rawSubPlayerName :: !Text
   , rawSubPlayerHome :: !Int
-  , rawSubBattingOrderPosition :: !Int
+  , rawSubBattingPosition :: !Int
   , rawSubFieldingPosition :: !Int
   } deriving (Eq, Show, Generic)
 
