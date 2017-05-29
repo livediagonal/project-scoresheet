@@ -38,7 +38,7 @@ data RawComment
 data RawInfo
   = RawInfo
   { rawInfoKey :: !Text
-  , rawInfoVal :: !Text
+  , rawInfoValue :: !Text
   } deriving (Eq, Show, Generic)
 
 data RawStart

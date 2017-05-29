@@ -43,6 +43,20 @@ data Lineup
 emptyLineup :: Lineup
 emptyLineup = Lineup Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
+
+data Game
+  = Game
+  { gameHomeTeam :: !(Maybe Text)
+  , gameAwayTeam :: !(Maybe Text)
+  , gameDate :: !(Maybe Text)
+  , gameStartTime :: !(Maybe Text)
+  , gameState :: GameState
+  }
+
+unstartedGame :: Game
+unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState
+
+
 data GameState
   = GameState
   { gameStateOuts :: !Int
@@ -56,5 +70,9 @@ data GameState
   , gameStateRunnerSecondBaseId :: !(Maybe Text)
   , gameStateRunnerThirdBaseId :: !(Maybe Text)
   } deriving (Eq, Show)
+
+unstartedGameState :: GameState
+unstartedGameState = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing Nothing
+
 
 

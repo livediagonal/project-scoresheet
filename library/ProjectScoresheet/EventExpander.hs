@@ -30,7 +30,6 @@ prettyPrintLineup Lineup{..} =
     , "9: " <> prettyPrintLineupSlot lineupSlotNine 
     ]
 
-
 prettyPrintGameState :: GameState -> Text
 prettyPrintGameState GameState{..} =
   unlines $ 
@@ -42,8 +41,13 @@ prettyPrintGameState GameState{..} =
     , prettyPrintLineup gameStateHomeLineup 
     ]
 
-unstartedGame :: GameState
-unstartedGame = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing Nothing
+prettyPrintGame :: Game -> Text
+prettyPrintGame Game{..} =
+  unlines $ 
+    [ tshow gameAwayTeam <> "@" <> tshow gameHomeTeam
+    , ""
+    , prettyPrintGameState gameState 
+    ]
 
 -- todo improve type sig w/ finite
 parseFieldingPosition :: Int -> FieldPosition
@@ -73,39 +77,57 @@ addToLineup slot 8 lineup = lineup { lineupSlotEight = Just slot }
 addToLineup slot 9 lineup = lineup { lineupSlotNine = Just slot }
 
 
-processEvent :: GameState -> EventFileLine -> GameState
-processEvent prevState (StartLine rawStart) = processStartLine prevState rawStart
-processEvent prevState (SubLine rawSub) = processSubLine prevState rawSub
-processEvent prevState (PlayLine rawPlay) = processPlayLine prevState rawPlay
-processEvent prevState _ = prevState
+processEvent :: Game -> EventFileLine -> Game
+processEvent game (InfoLine rawInfo) = processInfoLine game rawInfo
+processEvent game (StartLine rawStart) = processStartLine game rawStart
+processEvent game (SubLine rawSub) = processSubLine game rawSub
+processEvent game (PlayLine rawPlay) = processPlayLine game rawPlay
+processEvent game _ = game
 
-processStartLine :: GameState -> RawStart -> GameState
-processStartLine prevState RawStart{..} =
+processInfoLine :: Game -> RawInfo -> Game
+processInfoLine game RawInfo{..} =
+  case rawInfoKey of
+    "visteam" -> game { gameAwayTeam = Just rawInfoValue }
+    "hometeam" -> game { gameHomeTeam = Just rawInfoValue }
+    "date" -> game { gameDate = Just rawInfoValue }
+    "starttime" -> game { gameStartTime = Just rawInfoValue }
+    _ -> game
+
+processStartLine :: Game -> RawStart -> Game
+processStartLine game RawStart{..} =
   let
+    prevState = gameState game
     slot = LineupSlot rawStartPlayer $ parseFieldingPosition rawStartFieldingPosition
   in
-    case rawStartPlayerHome of
-      0 -> prevState { gameStateAwayLineup = addToLineup slot rawStartBattingPosition $ gameStateAwayLineup prevState }
-      1 -> prevState { gameStateHomeLineup = addToLineup slot rawStartBattingPosition $ gameStateHomeLineup prevState }
+    game 
+      { gameState = case rawStartPlayerHome of
+          0 -> prevState { gameStateAwayLineup = addToLineup slot rawStartBattingPosition $ gameStateAwayLineup prevState }
+          1 -> prevState { gameStateHomeLineup = addToLineup slot rawStartBattingPosition $ gameStateHomeLineup prevState } 
+      }
 
-processPlayLine :: GameState -> RawPlay -> GameState
-processPlayLine prevState RawPlay{..} =
+processPlayLine :: Game -> RawPlay -> Game
+processPlayLine game RawPlay{..} =
   let
-    isNewInning = rawPlayInning /= gameStateInning prevState
+    prevState = gameState game
   in
-    prevState
-     { gameStateOuts = rawPlayOuts
-     , gameStateInning = rawPlayInning
-     }
+    game 
+      { gameState = prevState
+        { gameStateOuts = rawPlayOuts
+        , gameStateInning = rawPlayInning
+        } 
+      }
 
-processSubLine :: GameState -> RawSub -> GameState
-processSubLine prevState RawSub{..} =
+processSubLine :: Game -> RawSub -> Game
+processSubLine game RawSub{..} =
   let
+    prevState = gameState game
     slot = LineupSlot rawSubPlayer $ parseFieldingPosition rawSubFieldingPosition
   in
-    case rawSubPlayerHome of
-      0 -> prevState { gameStateAwayLineup = addToLineup slot rawSubBattingPosition $ gameStateAwayLineup prevState }
-      1 -> prevState { gameStateHomeLineup = addToLineup slot rawSubBattingPosition $ gameStateHomeLineup prevState }
+    game 
+      { gameState = case rawSubPlayerHome of
+        0 -> prevState { gameStateAwayLineup = addToLineup slot rawSubBattingPosition $ gameStateAwayLineup prevState }
+        1 -> prevState { gameStateHomeLineup = addToLineup slot rawSubBattingPosition $ gameStateHomeLineup prevState } 
+      }
 
 
 main :: IO ()
@@ -113,4 +135,4 @@ main = do
   csvEvents <- BL.readFile "testgame.txt"
   case (decode NoHeader csvEvents :: Either String (Vector EventFileLine)) of
     Left err -> print err
-    Right v -> V.mapM_ (putStrLn . prettyPrintGameState) $ V.tail $ V.scanl processEvent unstartedGame v
+    Right v -> V.mapM_ (putStrLn . prettyPrintGame) $ V.tail $ V.scanl processEvent unstartedGame v
