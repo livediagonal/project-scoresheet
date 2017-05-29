@@ -13,6 +13,16 @@ import Data.Csv
 import Data.Finite
 import qualified Data.Vector as V
 
+data PlayResult
+  = PlayResult
+  { playResultIsHit :: !Bool
+  , playResultIsStrikeout :: !Bool
+  , playResultInfo :: !Text
+  } deriving (Eq, Show, Generic)
+
+instance FromField PlayResult where
+  parseField info = pure $ PlayResult False False $ tshow info
+
 data HomeOrAway = Away | Home deriving (Eq, Show)
 
 instance FromField HomeOrAway where
@@ -95,7 +105,7 @@ data RawPlay
   , rawPlayPlayerId :: !Text
   , rawPlayCount :: !Int
   , rawPlayPitchSequence :: !Text
-  , rawPlayResult :: !Text
+  , rawPlayResult :: !PlayResult
   } deriving (Eq, Show, Generic)
 
 data RawData
