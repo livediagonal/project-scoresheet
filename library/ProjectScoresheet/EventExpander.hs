@@ -7,6 +7,7 @@ module ProjectScoresheet.EventExpander where
 
 import ClassyPrelude
 import Data.Csv
+import Data.Maybe
 import ProjectScoresheet.GameState
 import ProjectScoresheet.RawTypes
 import qualified Data.ByteString.Lazy as BL
@@ -44,7 +45,7 @@ prettyPrintGameState GameState{..} =
 prettyPrintGame :: Game -> Text
 prettyPrintGame Game{..} =
   unlines $ 
-    [ tshow gameAwayTeam <> "@" <> tshow gameHomeTeam
+    [ tshow (fromMaybe "" gameAwayTeam) <> "@" <> tshow (fromMaybe "" gameHomeTeam)
     , ""
     , prettyPrintGameState gameState 
     ]
@@ -128,6 +129,15 @@ processSubLine game RawSub{..} =
         0 -> prevState { gameStateAwayLineup = addToLineup slot rawSubBattingPosition $ gameStateAwayLineup prevState }
         1 -> prevState { gameStateHomeLineup = addToLineup slot rawSubBattingPosition $ gameStateHomeLineup prevState } 
       }
+
+
+-- achta001,Achter,A.J.,R,R,ANA,P
+-- loadRoster :: Text -> Text -> Text
+-- loadRoster team year = 
+--   let 
+--     fileName = "./data/" <> year <> "eve/" toUpper team <> year <> ".ROS"
+--     rosterCsv = BL.readFile fileName
+--   in
 
 
 main :: IO ()
