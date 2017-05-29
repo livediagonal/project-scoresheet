@@ -2,12 +2,41 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module ProjectScoresheet.RawTypes where
 
 import ClassyPrelude
 import Data.Csv
+import Data.Finite
 import qualified Data.Vector as V
+
+data HomeOrAway = Away | Home deriving (Eq, Show)
+
+instance FromField HomeOrAway where
+  parseField "0" = pure Away
+  parseField "1" = pure Home
+  parseField val = fail $ "Unrecognized value: " ++ show val
+
+newtype BattingPosition
+  = BattingPosition
+  { battingPosition :: Finite 10
+  } deriving (Eq, Show)
+
+instance FromField BattingPosition where
+  parseField "0" = pure $ BattingPosition 0
+  parseField "1" = pure $ BattingPosition 1
+  parseField "2" = pure $ BattingPosition 2
+  parseField "3" = pure $ BattingPosition 3
+  parseField "4" = pure $ BattingPosition 4
+  parseField "5" = pure $ BattingPosition 5
+  parseField "6" = pure $ BattingPosition 6
+  parseField "7" = pure $ BattingPosition 7
+  parseField "8" = pure $ BattingPosition 8
+  parseField "9" = pure $ BattingPosition 9
+  parseField val = fail $ "Unrecognized value: " ++ show val
 
 data EventFileLine
   = GameLine RawGameId
@@ -45,8 +74,8 @@ data RawStart
   = RawStart
   { rawStartPlayer :: !Text
   , rawStartPlayerName :: !Text
-  , rawStartPlayerHome :: !Int
-  , rawStartBattingPosition :: !Int
+  , rawStartPlayerHome :: !HomeOrAway
+  , rawStartBattingPosition :: !BattingPosition
   , rawStartFieldingPosition :: !Int
   } deriving (Eq, Show, Generic)
 
@@ -54,8 +83,8 @@ data RawSub
   = RawSub
   { rawSubPlayer :: !Text
   , rawSubPlayerName :: !Text
-  , rawSubPlayerHome :: !Int
-  , rawSubBattingPosition :: !Int
+  , rawSubPlayerHome :: !HomeOrAway
+  , rawSubBattingPosition :: !BattingPosition
   , rawSubFieldingPosition :: !Int
   } deriving (Eq, Show, Generic)
 

@@ -19,7 +19,10 @@ data FieldPosition
   | DesignatedHitter
   | PinchHitter
   | PinchRunner
-  deriving (Eq, Show)
+  deriving (Eq, Show, Enum)
+
+fieldPositionFromId :: Int -> FieldPosition
+fieldPositionFromId fpId = toEnum (fpId - 1)
 
 data LineupSlot
   = LineupSlot
@@ -43,7 +46,6 @@ data Lineup
 emptyLineup :: Lineup
 emptyLineup = Lineup Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
-
 data Game
   = Game
   { gameHomeTeam :: !(Maybe Text)
@@ -55,7 +57,6 @@ data Game
 
 unstartedGame :: Game
 unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState
-
 
 data GameState
   = GameState
@@ -73,6 +74,3 @@ data GameState
 
 unstartedGameState :: GameState
 unstartedGameState = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing Nothing
-
-
-
