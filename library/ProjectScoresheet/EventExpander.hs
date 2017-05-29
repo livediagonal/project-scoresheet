@@ -18,25 +18,29 @@ prettyPrintLineupSlot Nothing = "Player not loaded."
 
 prettyPrintLineup :: Lineup -> Text
 prettyPrintLineup Lineup{..} =
-  unlines $ [ "1: " <> prettyPrintLineupSlot lineupSlotOne 
-            , "2: " <> prettyPrintLineupSlot lineupSlotTwo
-            , "3: " <> prettyPrintLineupSlot lineupSlotThree
-            , "4: " <> prettyPrintLineupSlot lineupSlotFour
-            , "5: " <> prettyPrintLineupSlot lineupSlotFive
-            , "6: " <> prettyPrintLineupSlot lineupSlotSix
-            , "7: " <> prettyPrintLineupSlot lineupSlotSeven
-            , "8: " <> prettyPrintLineupSlot lineupSlotEight
-            , "9: " <> prettyPrintLineupSlot lineupSlotNine ]
+  unlines $ 
+    [ "1: " <> prettyPrintLineupSlot lineupSlotOne 
+    , "2: " <> prettyPrintLineupSlot lineupSlotTwo
+    , "3: " <> prettyPrintLineupSlot lineupSlotThree
+    , "4: " <> prettyPrintLineupSlot lineupSlotFour
+    , "5: " <> prettyPrintLineupSlot lineupSlotFive
+    , "6: " <> prettyPrintLineupSlot lineupSlotSix
+    , "7: " <> prettyPrintLineupSlot lineupSlotSeven
+    , "8: " <> prettyPrintLineupSlot lineupSlotEight
+    , "9: " <> prettyPrintLineupSlot lineupSlotNine 
+    ]
 
 
 prettyPrintGameState :: GameState -> Text
 prettyPrintGameState GameState{..} =
-    unlines $ [ "Inning: " <> tshow gameStateInning <> ", Outs: " <> tshow gameStateOuts,
-                "",
-                "Away: ",
-                prettyPrintLineup gameStateAwayLineup,
-                "Home: ",
-                prettyPrintLineup gameStateHomeLineup ]
+  unlines $ 
+    [ "Inning: " <> tshow gameStateInning <> ", Outs: " <> tshow gameStateOuts
+    , ""
+    , "Away: "
+    , prettyPrintLineup gameStateAwayLineup
+    , "Home: "
+    , prettyPrintLineup gameStateHomeLineup 
+    ]
 
 unstartedGame :: GameState
 unstartedGame = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing Nothing
@@ -83,7 +87,6 @@ processStartLine prevState RawStart{..} =
     case rawStartPlayerHome of
       0 -> prevState { gameStateAwayLineup = addToLineup slot rawStartBattingPosition $ gameStateAwayLineup prevState }
       1 -> prevState { gameStateHomeLineup = addToLineup slot rawStartBattingPosition $ gameStateHomeLineup prevState }
-
 
 processPlayLine :: GameState -> RawPlay -> GameState
 processPlayLine prevState RawPlay{..} =
