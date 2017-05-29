@@ -69,9 +69,6 @@ addToLineup slot 8 lineup = lineup { lineupSlotEight = Just slot }
 addToLineup slot 9 lineup = lineup { lineupSlotNine = Just slot }
 
 
-subIntoLineup :: LineupSlot -> Int -> Lineup -> Lineup
-subIntoLineup _ 0 lineup = lineup
-
 processEvent :: GameState -> EventFileLine -> GameState
 processEvent prevState (StartLine rawStart) = processStartLine prevState rawStart
 processEvent prevState (SubLine rawSub) = processSubLine prevState rawSub
