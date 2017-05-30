@@ -5,7 +5,7 @@
 module ProjectScoresheet.GameState where
 
 import ClassyPrelude
-import ProjectScoresheet.RawTypes
+import ProjectScoresheet.PlayResult
 
 data FieldPosition
   = Pitcher
