@@ -8,11 +8,10 @@
 
 module ProjectScoresheet.RawTypes where
 
-import ClassyPrelude
+import ClassyPrelude hiding (try)
 import Data.Attoparsec.Text
 import Data.Csv hiding (Parser)
 import Data.Finite
-import Data.Text (splitOn)
 import qualified Data.Vector as V
 
 data PlayResult
@@ -32,9 +31,23 @@ instance FromField PlayResult where
 
 parsePlayResult :: Parser PlayResult
 parsePlayResult = do
-  playAction <- many1 (satisfy (not . \c -> c == '/' || c == '.'))
-  playDescriptors <- (splitOn "/" . pack) <$> many (satisfy (not . \c -> c == '.'))
-  return $ PlayResult False False (pack playAction) playDescriptors []
+  playAction <- parsePlayAction
+  playDescriptors <- many parsePlayDescriptor
+  playMovements <- many parsePlayMovement
+  return $ PlayResult False False playAction playDescriptors playMovements
+
+parsePlayAction :: Parser Text
+parsePlayAction = pack <$> many1 (satisfy (not . \c -> c == '/' || c == '.'))
+
+parsePlayDescriptor :: Parser Text
+parsePlayDescriptor = do
+  void $ char '/'
+  pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
+
+parsePlayMovement :: Parser Text
+parsePlayMovement = do
+  void $ (char '.' <|> char ';')
+  pack <$> many (satisfy (not . \c -> c == ';'))
 
 data HomeOrAway = Away | Home deriving (Eq, Show)
 
