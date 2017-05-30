@@ -9,19 +9,32 @@
 module ProjectScoresheet.RawTypes where
 
 import ClassyPrelude
-import Data.Csv
+import Data.Attoparsec.Text
+import Data.Csv hiding (Parser)
 import Data.Finite
+import Data.Text (splitOn)
 import qualified Data.Vector as V
 
 data PlayResult
   = PlayResult
   { playResultIsHit :: !Bool
   , playResultIsStrikeout :: !Bool
-  , playResultInfo :: !Text
+  , playResultAction :: !Text
+  , playResultDescriptors :: ![Text]
+  , playResultMovements :: ![Text]
   } deriving (Eq, Show, Generic)
 
 instance FromField PlayResult where
-  parseField info = pure $ PlayResult False False $ tshow info
+  parseField info =
+    case parseOnly parsePlayResult (decodeUtf8 info) of
+      Left e -> fail e
+      Right r -> pure r
+
+parsePlayResult :: Parser PlayResult
+parsePlayResult = do
+  playAction <- many1 (satisfy (not . \c -> c == '/' || c == '.'))
+  playDescriptors <- (splitOn "/" . pack) <$> many (satisfy (not . \c -> c == '.'))
+  return $ PlayResult False False (pack playAction) playDescriptors []
 
 data HomeOrAway = Away | Home deriving (Eq, Show)
 

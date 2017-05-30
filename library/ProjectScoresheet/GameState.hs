@@ -5,6 +5,7 @@
 module ProjectScoresheet.GameState where
 
 import ClassyPrelude
+import ProjectScoresheet.RawTypes
 
 data FieldPosition
   = Pitcher
@@ -53,10 +54,11 @@ data Game
   , gameDate :: !(Maybe Text)
   , gameStartTime :: !(Maybe Text)
   , gameState :: GameState
+  , gameLastPlay :: !(Maybe PlayResult)
   }
 
 unstartedGame :: Game
-unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState
+unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState Nothing
 
 data GameState
   = GameState

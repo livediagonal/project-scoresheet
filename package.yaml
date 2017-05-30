@@ -17,6 +17,7 @@ executables:
 
 library:
   dependencies:
+    - attoparsec
     - base
     - bytestring
     - cassava

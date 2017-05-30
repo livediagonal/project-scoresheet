@@ -99,6 +99,7 @@ processPlayLine game RawPlay{..} =
         { gameStateOuts = rawPlayOuts
         , gameStateInning = rawPlayInning
         }
+      , gameLastPlay = Just rawPlayResult
       }
 
 processSubLine :: Game -> RawSub -> Game
@@ -126,4 +127,6 @@ main = do
   csvEvents <- BL.readFile "testgame.txt"
   case (decode NoHeader csvEvents :: Either String (Vector EventFileLine)) of
     Left err -> print err
-    Right v -> V.mapM_ (putStrLn . prettyPrintGame) $ V.tail $ V.scanl processEvent unstartedGame v
+    Right v -> do
+      let gameStates = V.tail $ V.scanl processEvent unstartedGame v
+      mapM_ print $ mapMaybe gameLastPlay $ toList gameStates
