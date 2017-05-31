@@ -7,6 +7,7 @@ module ProjectScoresheet.GameState where
 import ClassyPrelude
 import ProjectScoresheet.PlayResult
 import ProjectScoresheet.BoxScore
+import ProjectScoresheet.RawTypes
 
 data InningHalf = TopInningHalf | BottomInningHalf deriving (Eq, Show)
 
@@ -28,27 +29,33 @@ data FieldPosition
 fieldPositionFromId :: Int -> FieldPosition
 fieldPositionFromId fpId = toEnum (fpId - 1)
 
-data LineupSlot
-  = LineupSlot
-  { lineupSlotPlayerId :: !Text
-  , lineupSlotFieldPosition :: FieldPosition
+data BattingOrder
+  = BattingOrder
+  { battingOrderSpotOnePlayerId :: !(Maybe Text)
+  , battingOrderSpotTwoPlayerId :: !(Maybe Text)
+  , battingOrderSpotThreePlayerId :: !(Maybe Text)
+  , battingOrderSpotFourPlayerId :: !(Maybe Text)
+  , battingOrderSpotFivePlayerId :: !(Maybe Text)
+  , battingOrderSpotSixPlayerId :: !(Maybe Text)
+  , battingOrderSpotSevenPlayerId :: !(Maybe Text)
+  , battingOrderSpotEightPlayerId :: !(Maybe Text)
+  , battingOrderSpotNinePlayerId :: !(Maybe Text)
   } deriving (Eq, Show)
 
-data Lineup
-  = Lineup
-  { lineupSlotOne :: Maybe LineupSlot
-  , lineupSlotTwo :: Maybe LineupSlot
-  , lineupSlotThree :: Maybe LineupSlot
-  , lineupSlotFour :: Maybe LineupSlot
-  , lineupSlotFive :: Maybe LineupSlot
-  , lineupSlotSix :: Maybe LineupSlot
-  , lineupSlotSeven :: Maybe LineupSlot
-  , lineupSlotEight :: Maybe LineupSlot
-  , lineupSlotNine :: Maybe LineupSlot
-  } deriving (Eq, Show)
+emptyBattingOrder :: BattingOrder
+emptyBattingOrder = BattingOrder Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
-emptyLineup :: Lineup
-emptyLineup = Lineup Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+addToBattingOrder :: Text -> BattingPosition -> BattingOrder -> BattingOrder
+addToBattingOrder playedId (BattingPosition 1) battingOrder = battingOrder { battingOrderSpotOnePlayerId = Just playedId }
+addToBattingOrder playedId (BattingPosition 2) battingOrder = battingOrder { battingOrderSpotTwoPlayerId = Just playedId }
+addToBattingOrder playedId (BattingPosition 3) battingOrder = battingOrder { battingOrderSpotThreePlayerId = Just playedId }
+addToBattingOrder playedId (BattingPosition 4) battingOrder = battingOrder { battingOrderSpotFourPlayerId = Just playedId }
+addToBattingOrder playedId (BattingPosition 5) battingOrder = battingOrder { battingOrderSpotFivePlayerId = Just playedId }
+addToBattingOrder playedId (BattingPosition 6) battingOrder = battingOrder { battingOrderSpotSixPlayerId = Just playedId }
+addToBattingOrder playedId (BattingPosition 7) battingOrder = battingOrder { battingOrderSpotSevenPlayerId = Just playedId }
+addToBattingOrder playedId (BattingPosition 8) battingOrder = battingOrder { battingOrderSpotEightPlayerId = Just playedId }
+addToBattingOrder playedId (BattingPosition 9) battingOrder = battingOrder { battingOrderSpotNinePlayerId = Just playedId }
+addToBattingOrder _ _ battingOrder = battingOrder
 
 data Game
   = Game
@@ -66,8 +73,8 @@ unstartedGame = Game Nothing Nothing Nothing Nothing initialBoxScore unstartedGa
 
 data GameState
   = GameState
-  { gameStateHomeLineup :: Lineup
-  , gameStateAwayLineup :: Lineup
+  { gameStateHomeBattingOrder :: BattingOrder
+  , gameStateAwayBattingOrder:: BattingOrder
   , gameStateInning :: !Int
   , gameStateInningHalf :: InningHalf
   , gameStateHomeRuns :: !Int
@@ -87,4 +94,4 @@ data GameState
   , gameStateRunnerOnThirdResponsiblePitcherId :: !(Maybe Text)
   } deriving (Eq, Show)
 unstartedGameState :: GameState
-unstartedGameState = GameState emptyLineup emptyLineup 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+unstartedGameState = GameState emptyBattingOrder emptyBattingOrder 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing

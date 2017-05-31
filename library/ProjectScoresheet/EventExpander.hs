@@ -12,22 +12,22 @@ import ProjectScoresheet.RawTypes
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
 
-prettyPrintLineupSlot :: Maybe LineupSlot -> Text
-prettyPrintLineupSlot (Just LineupSlot{..}) = tshow lineupSlotPlayerId <> ", " <> tshow lineupSlotFieldPosition
+prettyPrintLineupSlot :: Maybe Text -> Text
+prettyPrintLineupSlot (Just playerId) = playerId
 prettyPrintLineupSlot Nothing = "Player not loaded."
 
-prettyPrintLineup :: Lineup -> Text
-prettyPrintLineup Lineup{..} =
+prettyPrintLineup :: BattingOrder -> Text
+prettyPrintLineup BattingOrder{..} =
   unlines
-    [ "1: " <> prettyPrintLineupSlot lineupSlotOne
-    , "2: " <> prettyPrintLineupSlot lineupSlotTwo
-    , "3: " <> prettyPrintLineupSlot lineupSlotThree
-    , "4: " <> prettyPrintLineupSlot lineupSlotFour
-    , "5: " <> prettyPrintLineupSlot lineupSlotFive
-    , "6: " <> prettyPrintLineupSlot lineupSlotSix
-    , "7: " <> prettyPrintLineupSlot lineupSlotSeven
-    , "8: " <> prettyPrintLineupSlot lineupSlotEight
-    , "9: " <> prettyPrintLineupSlot lineupSlotNine
+    [ "1: " <> prettyPrintLineupSlot battingOrderSpotOnePlayerId
+    , "2: " <> prettyPrintLineupSlot battingOrderSpotTwoPlayerId
+    , "3: " <> prettyPrintLineupSlot battingOrderSpotThreePlayerId
+    , "4: " <> prettyPrintLineupSlot battingOrderSpotFourPlayerId
+    , "5: " <> prettyPrintLineupSlot battingOrderSpotFivePlayerId
+    , "6: " <> prettyPrintLineupSlot battingOrderSpotSixPlayerId
+    , "7: " <> prettyPrintLineupSlot battingOrderSpotSevenPlayerId
+    , "8: " <> prettyPrintLineupSlot battingOrderSpotEightPlayerId
+    , "9: " <> prettyPrintLineupSlot battingOrderSpotNinePlayerId
     ]
 
 prettyPrintGameState :: GameState -> Text
@@ -36,9 +36,9 @@ prettyPrintGameState GameState{..} =
     [ "Inning: " <> tshow gameStateInning <> ", Outs: " <> tshow gameStateOuts
     , ""
     , "Away: "
-    , prettyPrintLineup gameStateAwayLineup
+    , prettyPrintLineup gameStateAwayBattingOrder
     , "Home: "
-    , prettyPrintLineup gameStateHomeLineup
+    , prettyPrintLineup gameStateAwayBattingOrder
     ]
 
 prettyPrintGame :: Game -> Text
@@ -48,18 +48,6 @@ prettyPrintGame Game{..} =
     , ""
     , prettyPrintGameState gameState
     ]
-
-addToLineup :: LineupSlot -> BattingPosition -> Lineup -> Lineup
-addToLineup slot (BattingPosition 1) lineup = lineup { lineupSlotOne = Just slot }
-addToLineup slot (BattingPosition 2) lineup = lineup { lineupSlotTwo = Just slot }
-addToLineup slot (BattingPosition 3) lineup = lineup { lineupSlotThree = Just slot }
-addToLineup slot (BattingPosition 4) lineup = lineup { lineupSlotFour = Just slot }
-addToLineup slot (BattingPosition 5) lineup = lineup { lineupSlotFive = Just slot }
-addToLineup slot (BattingPosition 6) lineup = lineup { lineupSlotSix = Just slot }
-addToLineup slot (BattingPosition 7) lineup = lineup { lineupSlotSeven = Just slot }
-addToLineup slot (BattingPosition 8) lineup = lineup { lineupSlotEight = Just slot }
-addToLineup slot (BattingPosition 9) lineup = lineup { lineupSlotNine = Just slot }
-addToLineup _ _ lineup = lineup
 
 processEvent :: Game -> EventFileLine -> Game
 processEvent game (InfoLine rawInfo) = processInfoLine game rawInfo
@@ -74,25 +62,26 @@ processInfoLine game RawInfo{..} =
     "visteam" -> game { gameAwayTeam = Just rawInfoValue }
     "hometeam" -> game { gameHomeTeam = Just rawInfoValue }
     "date" -> game { gameDate = Just rawInfoValue }
+
     "starttime" -> game { gameStartTime = Just rawInfoValue }
     _ -> game
 
 processStartLine :: Game -> RawStart -> Game
 processStartLine game RawStart{..} =
-  let
+  let 
     prevState = gameState game
-    slot = LineupSlot rawStartPlayer $ fieldPositionFromId rawStartFieldingPosition
   in
     game
       { gameState = case rawStartPlayerHome of
-          Away -> prevState { gameStateAwayLineup = addToLineup slot rawStartBattingPosition $ gameStateAwayLineup prevState }
-          Home -> prevState { gameStateHomeLineup = addToLineup slot rawStartBattingPosition $ gameStateHomeLineup prevState }
+          Away -> prevState { gameStateAwayBattingOrder = addToBattingOrder rawStartPlayer rawStartBattingPosition $ gameStateAwayBattingOrder prevState }
+          Home -> prevState { gameStateHomeBattingOrder = addToBattingOrder rawStartPlayer rawStartBattingPosition $ gameStateHomeBattingOrder prevState }
       }
 
 processPlayLine :: Game -> RawPlay -> Game
 processPlayLine game RawPlay{..} =
   let
     prevState = gameState game
+    -- boxScore = addPitchSequenceToBoxScore boxScore rawPlayPitchSequence
   in
     game
       { gameState = prevState
@@ -106,13 +95,12 @@ processSubLine :: Game -> RawSub -> Game
 processSubLine game RawSub{..} =
   let
     prevState = gameState game
-    slot = LineupSlot rawSubPlayer $ fieldPositionFromId rawSubFieldingPosition
   in
     game
-      { gameState = case rawSubPlayerHome of
-        Away -> prevState { gameStateAwayLineup = addToLineup slot rawSubBattingPosition $ gameStateAwayLineup prevState }
-        Home -> prevState { gameStateHomeLineup = addToLineup slot rawSubBattingPosition $ gameStateHomeLineup prevState }
-      }
+    { gameState = case rawSubPlayerHome of
+        Away -> prevState { gameStateAwayBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateAwayBattingOrder prevState }
+        Home -> prevState { gameStateHomeBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateHomeBattingOrder prevState }
+    }
 
 -- achta001,Achter,A.J.,R,R,ANA,P
 -- loadRoster :: Text -> Text -> Text
