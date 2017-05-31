@@ -47,6 +47,8 @@ data PlayAction
   | Walk Bool
   | NoPlay (Maybe Text)
   | Other Text
+  | HitByPitch
+  | Error FieldPosition
   deriving (Eq, Show)
 
 parsePlayResult :: Parser PlayResult
@@ -62,6 +64,8 @@ parsePlayAction =
   try parseOuts <|>
   try parseWalk <|>
   try parseNoPlay <|>
+  try parseHitByPitch <|>
+  try parseError <|>
   try parseOther
 
 parseHit :: Parser PlayAction
@@ -121,6 +125,14 @@ parseStrikeout = parsePlayActionTokenWithQualifier "K" Strikeout
 
 parseNoPlay :: Parser PlayAction
 parseNoPlay = parsePlayActionTokenWithQualifier "NP" NoPlay
+
+parseHitByPitch :: Parser PlayAction
+parseHitByPitch = string "HP" *> pure HitByPitch
+
+parseError :: Parser PlayAction
+parseError = do
+  void $ char 'E'
+  Error <$> parseFieldPosition
 
 parseOther :: Parser PlayAction
 parseOther = Other . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
