@@ -11,23 +11,35 @@ import ProjectScoresheet.RawTypes
 
 data InningHalf = TopInningHalf | BottomInningHalf deriving (Eq, Show)
 
-data FieldPosition
-  = Pitcher
-  | Catcher
-  | FirstBaseman
-  | SecondBaseman
-  | ThirdBaseman
-  | ShortStop
-  | LeftFielder
-  | CenterFielder
-  | RightFielder
-  | DesignatedHitter
-  | PinchHitter
-  | PinchRunner
-  deriving (Eq, Show, Enum)
+data FieldingLineup
+  = FieldingLineup
+  { fieldingLineupPitcher :: !(Maybe Text)
+  , fieldingLineupCatcher :: !(Maybe Text)
+  , fieldingLineupFirstBaseman :: !(Maybe Text)
+  , fieldingLineupSecondBaseman :: !(Maybe Text)
+  , fieldingLineupThirdBaseman :: !(Maybe Text)
+  , fieldingLineupShortstop :: !(Maybe Text)
+  , fieldingLineupLeftFielder :: !(Maybe Text)
+  , fieldingLineupCenterFielder :: !(Maybe Text)
+  , fieldingLineupRightFielder :: !(Maybe Text)
+  , fieldingLineupDesignatedHitter :: !(Maybe Text)
+  } deriving (Eq, Show)
 
-fieldPositionFromId :: Int -> FieldPosition
-fieldPositionFromId fpId = toEnum (fpId - 1)
+emptyFieldingLineup :: FieldingLineup
+emptyFieldingLineup = FieldingLineup Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
+addToFieldingLineup :: Text -> FieldPosition -> FieldingLineup -> FieldingLineup
+addToFieldingLineup playedId Pitcher fieldingLineup = fieldingLineup { fieldingLineupPitcher = Just playedId }
+addToFieldingLineup playedId Catcher fieldingLineup = fieldingLineup { fieldingLineupCatcher = Just playedId }
+addToFieldingLineup playedId FirstBaseman fieldingLineup = fieldingLineup { fieldingLineupFirstBaseman = Just playedId }
+addToFieldingLineup playedId SecondBaseman fieldingLineup = fieldingLineup { fieldingLineupSecondBaseman = Just playedId }
+addToFieldingLineup playedId ThirdBaseman fieldingLineup = fieldingLineup { fieldingLineupThirdBaseman = Just playedId }
+addToFieldingLineup playedId ShortStop fieldingLineup = fieldingLineup { fieldingLineupShortstop = Just playedId }
+addToFieldingLineup playedId LeftFielder fieldingLineup = fieldingLineup { fieldingLineupLeftFielder = Just playedId }
+addToFieldingLineup playedId CenterFielder fieldingLineup = fieldingLineup { fieldingLineupCenterFielder = Just playedId }
+addToFieldingLineup playedId RightFielder fieldingLineup = fieldingLineup { fieldingLineupRightFielder = Just playedId }
+addToFieldingLineup playedId DesignatedHitter fieldingLineup = fieldingLineup { fieldingLineupDesignatedHitter = Just playedId }
+addToFieldingLineup _ _ fieldingLineup = fieldingLineup
 
 data BattingOrder
   = BattingOrder
@@ -66,7 +78,7 @@ data Game
   , gameBoxScore :: BoxScore
   , gameState :: GameState
   , gameLastPlay :: !(Maybe PlayResult)
-  }
+  } deriving (Eq, Show)
 
 unstartedGame :: Game
 unstartedGame = Game Nothing Nothing Nothing Nothing initialBoxScore unstartedGameState Nothing
@@ -75,6 +87,8 @@ data GameState
   = GameState
   { gameStateHomeBattingOrder :: BattingOrder
   , gameStateAwayBattingOrder:: BattingOrder
+  , gameStateHomeFieldingLineup :: FieldingLineup
+  , gameStateAwayFieldingLineup :: FieldingLineup
   , gameStateInning :: !Int
   , gameStateInningHalf :: InningHalf
   , gameStateHomeRuns :: !Int
@@ -94,4 +108,4 @@ data GameState
   , gameStateRunnerOnThirdResponsiblePitcherId :: !(Maybe Text)
   } deriving (Eq, Show)
 unstartedGameState :: GameState
-unstartedGameState = GameState emptyBattingOrder emptyBattingOrder 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+unstartedGameState = GameState emptyBattingOrder emptyBattingOrder emptyFieldingLineup emptyFieldingLineup 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing

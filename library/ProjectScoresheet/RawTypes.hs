@@ -40,6 +40,41 @@ instance FromField BattingPosition where
   parseField "9" = pure $ BattingPosition 9
   parseField val = fail $ "Unrecognized value: " ++ show val
 
+
+data FieldPosition
+  = Pitcher
+  | Catcher
+  | FirstBaseman
+  | SecondBaseman
+  | ThirdBaseman
+  | ShortStop
+  | LeftFielder
+  | CenterFielder
+  | RightFielder
+  | DesignatedHitter
+  | PinchHitter
+  | PinchRunner
+  deriving (Eq, Show, Enum)
+
+instance FromField FieldPosition where
+  parseField "1" = pure $ Pitcher
+  parseField "2" = pure $ Catcher
+  parseField "3" = pure $ FirstBaseman
+  parseField "4" = pure $ SecondBaseman
+  parseField "5" = pure $ ThirdBaseman
+  parseField "6" = pure $ ShortStop
+  parseField "7" = pure $ LeftFielder
+  parseField "8" = pure $ CenterFielder
+  parseField "9" = pure $ RightFielder
+  parseField "10" = pure $ DesignatedHitter
+  parseField "11" = pure $ PinchHitter
+  parseField "12" = pure $ PinchRunner
+  parseField val = fail $ "Unrecognized value: " ++ show val
+
+fieldPositionFromId :: Int -> FieldPosition
+fieldPositionFromId fpId = toEnum (fpId - 1)
+
+
 data EventFileLine
   = GameLine RawGameId
   | SchemaLine RawSchemaVersion
@@ -78,7 +113,7 @@ data RawStart
   , rawStartPlayerName :: !Text
   , rawStartPlayerHome :: !HomeOrAway
   , rawStartBattingPosition :: !BattingPosition
-  , rawStartFieldingPosition :: !Int
+  , rawStartFieldingPosition :: !FieldPosition
   } deriving (Eq, Show, Generic)
 
 data RawSub
@@ -87,7 +122,7 @@ data RawSub
   , rawSubPlayerName :: !Text
   , rawSubPlayerHome :: !HomeOrAway
   , rawSubBattingPosition :: !BattingPosition
-  , rawSubFieldingPosition :: !Int
+  , rawSubFieldingPosition :: !FieldPosition
   } deriving (Eq, Show, Generic)
 
 data RawPlay

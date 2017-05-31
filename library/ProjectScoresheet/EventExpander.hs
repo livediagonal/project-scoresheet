@@ -73,8 +73,14 @@ processStartLine game RawStart{..} =
   in
     game
       { gameState = case rawStartPlayerHome of
-          Away -> prevState { gameStateAwayBattingOrder = addToBattingOrder rawStartPlayer rawStartBattingPosition $ gameStateAwayBattingOrder prevState }
-          Home -> prevState { gameStateHomeBattingOrder = addToBattingOrder rawStartPlayer rawStartBattingPosition $ gameStateHomeBattingOrder prevState }
+          Away -> prevState 
+            { gameStateAwayBattingOrder = addToBattingOrder rawStartPlayer rawStartBattingPosition $ gameStateAwayBattingOrder prevState 
+            , gameStateAwayFieldingLineup =  addToFieldingLineup rawStartPlayer rawStartFieldingPosition $ gameStateAwayFieldingLineup prevState
+            }
+          Home -> prevState 
+            { gameStateHomeBattingOrder = addToBattingOrder rawStartPlayer rawStartBattingPosition $ gameStateHomeBattingOrder prevState 
+            , gameStateHomeFieldingLineup =  addToFieldingLineup rawStartPlayer rawStartFieldingPosition $ gameStateHomeFieldingLineup prevState
+            }
       }
 
 processPlayLine :: Game -> RawPlay -> Game
@@ -98,8 +104,14 @@ processSubLine game RawSub{..} =
   in
     game
     { gameState = case rawSubPlayerHome of
-        Away -> prevState { gameStateAwayBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateAwayBattingOrder prevState }
-        Home -> prevState { gameStateHomeBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateHomeBattingOrder prevState }
+        Away -> prevState 
+          { gameStateAwayBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateAwayBattingOrder prevState 
+          , gameStateAwayFieldingLineup = addToFieldingLineup rawSubPlayer rawSubFieldingPosition $ gameStateAwayFieldingLineup prevState
+          }
+        Home -> prevState 
+          { gameStateHomeBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateHomeBattingOrder prevState 
+          , gameStateHomeFieldingLineup = addToFieldingLineup rawSubPlayer rawSubFieldingPosition $ gameStateHomeFieldingLineup prevState
+          }
     }
 
 -- achta001,Achter,A.J.,R,R,ANA,P
@@ -117,4 +129,4 @@ main = do
     Left err -> print err
     Right v -> do
       let gameStates = V.tail $ V.scanl processEvent unstartedGame v
-      mapM_ print $ mapMaybe gameLastPlay $ toList gameStates
+      mapM_ print $ toList gameStates

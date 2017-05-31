@@ -9,7 +9,7 @@ import ClassyPrelude
 
 data BoxScore
   = BoxScore
-  { battingOrder :: [[BattingLine]] }
+  { battingOrder :: [[BattingLine]] } deriving (Eq, Show)
 
 initialBoxScore :: BoxScore
 initialBoxScore = BoxScore [[initialBattingLine "placeholder"]]
@@ -41,7 +41,7 @@ data BattingLine
   , battingLineStolenBases :: !Int
   , battingLineCaughtStealing :: !Int
   , battingLineReachedOnErrors :: !Int
-  }
+  } deriving (Eq, Show)
 
 initialBattingLine :: Text -> BattingLine
 initialBattingLine playedId = BattingLine playedId 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
