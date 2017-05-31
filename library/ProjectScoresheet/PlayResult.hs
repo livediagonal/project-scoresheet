@@ -10,8 +10,10 @@
 module ProjectScoresheet.PlayResult where
 
 import ClassyPrelude hiding (try)
+import Data.Char (digitToInt, isDigit)
 import Data.Attoparsec.Text
 import Data.Csv hiding (Parser)
+import ProjectScoresheet.BaseballTypes
 
 data PlayResult
   = PlayResult
@@ -26,12 +28,19 @@ instance FromField PlayResult where
       Left e -> fail e
       Right r -> pure r
 
+data Base
+  = FirstBase
+  | SecondBase
+  | ThirdBase
+  | HomePlate
+  deriving (Eq, Show, Enum)
+
 data PlayAction
-  = Strikeout
-  | Outs
-  | Hit Int Int
+  = Strikeout (Maybe Text)
+  | Outs [[FieldPosition]]
+  | Hit Base (Maybe FieldPosition)
   | Walk Bool
-  | NoPlay
+  | NoPlay (Maybe Text)
   | Other Text
   deriving (Eq, Show)
 
@@ -43,19 +52,60 @@ parsePlayResult = do
   return $ PlayResult playAction playDescriptors playMovements
 
 parsePlayAction :: Parser PlayAction
-parsePlayAction = try parseStrikeout <|> try parseNoPlay <|> try parseOther
+parsePlayAction =
+  try parseHit <|>
+  try parseOuts <|>
+  try parseStrikeout <|>
+  try parseWalk <|>
+  try parseNoPlay <|>
+  try parseOther
 
-parsePlayActionToken :: Text -> PlayAction -> Parser PlayAction
-parsePlayActionToken token result = do
+parseHit :: Parser PlayAction
+parseHit = do
+  base <- parseBase
+  fieldedBy <- try (Just <$> parseFieldPosition) <|> pure Nothing
+  pure $ Hit base fieldedBy
+
+parseFieldPosition :: Parser FieldPosition
+parseFieldPosition = fieldPositionFromId . digitToInt <$> digit
+
+parseOuts :: Parser PlayAction
+parseOuts = Outs <$> some parseOut
+
+parseOut :: Parser [FieldPosition]
+parseOut = do
+  positions <- some parseFieldPosition
+  void $ many (satisfy (not . \c -> c == '(' || c == ')' || isDigit c))
+  return positions
+
+parseBase :: Parser Base
+parseBase =
+  try (char 'S' *> pure FirstBase) <|>
+  try (char 'D' *> pure SecondBase) <|>
+  try (char 'T' *> pure ThirdBase) <|>
+  try (string "HR" *> pure HomePlate)
+
+parseWalk :: Parser PlayAction
+parseWalk =
+  try (char 'W' *> pure (Walk False)) <|>
+  try (string "IW" *> pure (Walk True))
+
+parsePlayActionTokenWithQualifier :: Text -> (Maybe Text -> PlayAction) -> Parser PlayAction
+parsePlayActionTokenWithQualifier token result = do
   void $ string token
-  void $ many (satisfy (not . \c -> c == '/' || c == '.'))
-  pure result
+  qualifier <- try parseQualifier <|> pure Nothing
+  pure $ result qualifier
+
+parseQualifier :: Parser (Maybe Text)
+parseQualifier = do
+  void $ char '+'
+  Just . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 
 parseStrikeout :: Parser PlayAction
-parseStrikeout = parsePlayActionToken "K" Strikeout
+parseStrikeout = parsePlayActionTokenWithQualifier "K" Strikeout
 
 parseNoPlay :: Parser PlayAction
-parseNoPlay = parsePlayActionToken "NP" NoPlay
+parseNoPlay = parsePlayActionTokenWithQualifier "NP" NoPlay
 
 parseOther :: Parser PlayAction
 parseOther = Other . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))

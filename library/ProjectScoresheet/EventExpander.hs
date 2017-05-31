@@ -7,6 +7,7 @@ module ProjectScoresheet.EventExpander where
 
 import ClassyPrelude
 import Data.Csv
+import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.GameState
 import ProjectScoresheet.RawTypes
 import qualified Data.ByteString.Lazy as BL
