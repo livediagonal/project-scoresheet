@@ -8,7 +8,6 @@ module ProjectScoresheet.EventExpander where
 import ClassyPrelude
 import Data.Csv
 import ProjectScoresheet.GameState
-import ProjectScoresheet.PlayResult
 import ProjectScoresheet.RawTypes
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V

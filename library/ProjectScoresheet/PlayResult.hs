@@ -16,7 +16,7 @@ data PlayResult
   = PlayResult
   { playResultIsHit :: !Bool
   , playResultIsStrikeout :: !Bool
-  , playResultAction :: !Text
+  , playResultAction :: !PlayAction
   , playResultDescriptors :: ![Text]
   , playResultMovements :: ![Text]
   } deriving (Eq, Show, Generic)
@@ -27,6 +27,15 @@ instance FromField PlayResult where
       Left e -> fail e
       Right r -> pure r
 
+data PlayAction
+  = Strikeout
+  | Outs
+  | Hit Int Int
+  | Walk Bool
+  | NoPlay
+  | Other Text
+  deriving (Eq, Show)
+
 parsePlayResult :: Parser PlayResult
 parsePlayResult = do
   playAction <- parsePlayAction
@@ -34,8 +43,23 @@ parsePlayResult = do
   playMovements <- many parsePlayMovement
   return $ PlayResult False False playAction playDescriptors playMovements
 
-parsePlayAction :: Parser Text
-parsePlayAction = pack <$> many1 (satisfy (not . \c -> c == '/' || c == '.'))
+parsePlayAction :: Parser PlayAction
+parsePlayAction = try parseStrikeout <|> try parseNoPlay <|> try parseOther
+
+parsePlayActionToken :: Text -> PlayAction -> Parser PlayAction
+parsePlayActionToken token result = do
+  void $ string token
+  void $ many (satisfy (not . \c -> c == '/' || c == '.'))
+  pure result
+
+parseStrikeout :: Parser PlayAction
+parseStrikeout = parsePlayActionToken "K" Strikeout
+
+parseNoPlay :: Parser PlayAction
+parseNoPlay = parsePlayActionToken "NP" NoPlay
+
+parseOther :: Parser PlayAction
+parseOther = Other . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 
 parsePlayDescriptor :: Parser Text
 parsePlayDescriptor = do
