@@ -26,3 +26,19 @@ library:
     - text
     - vector
   source-dirs: library
+
+tests:
+  test:
+    dependencies:
+    - base
+    - classy-prelude
+    - event-expander
+    - hspec-attoparsec
+    - tasty
+    - tasty-hspec
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: Test.hs
+    source-dirs: tests
