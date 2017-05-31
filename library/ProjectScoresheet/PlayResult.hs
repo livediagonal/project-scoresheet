@@ -35,9 +35,14 @@ data Base
   | HomePlate
   deriving (Eq, Show, Enum)
 
+data Out
+  = RoutinePlay [FieldPosition]
+  | FieldersChoice [FieldPosition]
+  | Strikeout (Maybe Text)
+  deriving (Eq, Show)
+
 data PlayAction
-  = Strikeout (Maybe Text)
-  | Outs [[FieldPosition]]
+  = Outs [Out]
   | Hit Base (Maybe FieldPosition)
   | Walk Bool
   | NoPlay (Maybe Text)
@@ -55,7 +60,6 @@ parsePlayAction :: Parser PlayAction
 parsePlayAction =
   try parseHit <|>
   try parseOuts <|>
-  try parseStrikeout <|>
   try parseWalk <|>
   try parseNoPlay <|>
   try parseOther
@@ -72,10 +76,21 @@ parseFieldPosition = fieldPositionFromId . digitToInt <$> digit
 parseOuts :: Parser PlayAction
 parseOuts = Outs <$> some parseOut
 
-parseOut :: Parser [FieldPosition]
-parseOut = do
+parseOut :: Parser Out
+parseOut =
+  try parseStrikeout <|>
+  try parseFieldersChoice <|>
+  try (RoutinePlay <$> parseFieldPositions)
+
+parseFieldersChoice :: Parser Out
+parseFieldersChoice = do
+  void $ string "FC"
+  FieldersChoice <$> parseFieldPositions
+
+parseFieldPositions :: Parser [FieldPosition]
+parseFieldPositions = do
   positions <- some parseFieldPosition
-  void $ many (satisfy (not . \c -> c == '(' || c == ')' || isDigit c))
+  void $ many (satisfy (\c -> c == '(' || c == ')' || isDigit c))
   return positions
 
 parseBase :: Parser Base
@@ -90,7 +105,7 @@ parseWalk =
   try (char 'W' *> pure (Walk False)) <|>
   try (string "IW" *> pure (Walk True))
 
-parsePlayActionTokenWithQualifier :: Text -> (Maybe Text -> PlayAction) -> Parser PlayAction
+parsePlayActionTokenWithQualifier :: Text -> (Maybe Text -> a) -> Parser a
 parsePlayActionTokenWithQualifier token result = do
   void $ string token
   qualifier <- try parseQualifier <|> pure Nothing
@@ -101,7 +116,7 @@ parseQualifier = do
   void $ char '+'
   Just . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 
-parseStrikeout :: Parser PlayAction
+parseStrikeout :: Parser Out
 parseStrikeout = parsePlayActionTokenWithQualifier "K" Strikeout
 
 parseNoPlay :: Parser PlayAction
