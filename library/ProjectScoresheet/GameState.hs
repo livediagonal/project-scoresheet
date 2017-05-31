@@ -6,6 +6,9 @@ module ProjectScoresheet.GameState where
 
 import ClassyPrelude
 import ProjectScoresheet.PlayResult
+import ProjectScoresheet.BoxScore
+
+data InningHalf = TopInningHalf | BottomInningHalf deriving (Eq, Show)
 
 data FieldPosition
   = Pitcher
@@ -53,36 +56,35 @@ data Game
   , gameAwayTeam :: !(Maybe Text)
   , gameDate :: !(Maybe Text)
   , gameStartTime :: !(Maybe Text)
+  , gameBoxScore :: BoxScore
   , gameState :: GameState
   , gameLastPlay :: !(Maybe PlayResult)
   }
 
 unstartedGame :: Game
-unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState Nothing
+unstartedGame = Game Nothing Nothing Nothing Nothing initialBoxScore unstartedGameState Nothing
 
 data GameState
   = GameState
-  { gameStateHomeRuns :: !Int
-  , gameStateAwayRuns :: !Int
-  , gameStateCurrentBatterId :: !(Maybe Text)
-  , gameStateCurrentPitcherId :: !(Maybe Text)
-  , gameStateOuts :: !Int
+  { gameStateHomeLineup :: Lineup
+  , gameStateAwayLineup :: Lineup
   , gameStateInning :: !Int
   , gameStateInningHalf :: InningHalf
-  , gameStateIsBottom :: !Int
+  , gameStateHomeRuns :: !Int
+  , gameStateAwayRuns :: !Int
+  , gameStateOuts :: !Int
   , gameStateIsLeadOff :: !Bool
   , gameStateIsPinchHit :: !Bool
-  , gameStateIsAtBat :: !Bool
-  , gameStateHomeLineup :: Lineup
-  , gameStateAwayLineup :: Lineup
   , gameStateBatterId :: !(Maybe Text)
   , gameStatePitcherId :: !(Maybe Text)
   , gameStateRunnerOnFirstId :: !(Maybe Text)
   , gameStateRunnerOnSecondId :: !(Maybe Text)
   , gameStateRunnerOnThirdId :: !(Maybe Text)
+  , gameStateCurrentBatterId :: !(Maybe Text)
+  , gameStateCurrentPitcherId :: !(Maybe Text)
   , gameStateRunnerOnFirstResponsiblePitcherId :: !(Maybe Text)
   , gameStateRunnerOnSeocndResponsiblePitcherId :: !(Maybe Text)
   , gameStateRunnerOnThirdResponsiblePitcherId :: !(Maybe Text)
   } deriving (Eq, Show)
 unstartedGameState :: GameState
-unstartedGameState = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing Nothing
+unstartedGameState = GameState emptyLineup emptyLineup 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
