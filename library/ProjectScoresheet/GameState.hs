@@ -62,17 +62,27 @@ unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState Nothing
 
 data GameState
   = GameState
-  { gameStateOuts :: !Int
+  { gameStateHomeRuns :: !Int
+  , gameStateAwayRuns :: !Int
+  , gameStateCurrentBatterId :: !(Maybe Text)
+  , gameStateCurrentPitcherId :: !(Maybe Text)
+  , gameStateOuts :: !Int
   , gameStateInning :: !Int
+  , gameStateInningHalf :: InningHalf
+  , gameStateIsBottom :: !Int
   , gameStateIsLeadOff :: !Bool
+  , gameStateIsPinchHit :: !Bool
+  , gameStateIsAtBat :: !Bool
   , gameStateHomeLineup :: Lineup
   , gameStateAwayLineup :: Lineup
   , gameStateBatterId :: !(Maybe Text)
   , gameStatePitcherId :: !(Maybe Text)
-  , gameStateRunnerFirstBaseId :: !(Maybe Text)
-  , gameStateRunnerSecondBaseId :: !(Maybe Text)
-  , gameStateRunnerThirdBaseId :: !(Maybe Text)
+  , gameStateRunnerOnFirstId :: !(Maybe Text)
+  , gameStateRunnerOnSecondId :: !(Maybe Text)
+  , gameStateRunnerOnThirdId :: !(Maybe Text)
+  , gameStateRunnerOnFirstResponsiblePitcherId :: !(Maybe Text)
+  , gameStateRunnerOnSeocndResponsiblePitcherId :: !(Maybe Text)
+  , gameStateRunnerOnThirdResponsiblePitcherId :: !(Maybe Text)
   } deriving (Eq, Show)
-
 unstartedGameState :: GameState
 unstartedGameState = GameState 0 0 False emptyLineup emptyLineup Nothing Nothing Nothing Nothing Nothing
