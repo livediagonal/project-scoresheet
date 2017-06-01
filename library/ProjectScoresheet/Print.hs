@@ -55,7 +55,7 @@ prettyPrintBoxScore BoxScore{..} =
 prettyPrintTeamBoxScore :: TeamBoxScore -> Text
 prettyPrintTeamBoxScore TeamBoxScore{..} =
   unlines 
-    [ "Batting:"
+    [ "Batting: H"
     , prettyPrintBattingLines batting
     -- , prettyPrintPitching pitching
     ]
@@ -80,6 +80,6 @@ prettyPrintBattingLineList battingLines =
   unlines $ map (prettyPrintBattingLine) battingLines
 
 prettyPrintBattingLine :: BattingLine -> Text
-prettyPrintBattingLine BattingLine{..} = tshow battingLinePlayedId <> " " <> tshow battingLineHits 
+prettyPrintBattingLine BattingLine{..} = battingLinePlayedId <> " " <> tshow battingLineHits 
 
 
