@@ -33,7 +33,7 @@ prettyPrintGameState GameState{..} =
 
 prettyPrintBattingOrder :: BattingOrder -> Text
 prettyPrintBattingOrder battingOrder =
-  unlines $ map (\i -> tshow i <> ": " <> battingOrder HashMap.! i) $ tail [(minBound :: BattingPositionId) ..]
+  unlines $ map (\i -> tshow i <> ": " <> battingOrder HashMap.! i) $ tail [(minBound :: BattingOrderPosition) ..]
 
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =
@@ -54,7 +54,7 @@ prettyPrintTeamBoxScore TeamBoxScore{..} =
 
 prettyPrintBattingLines :: BattingLines -> Text
 prettyPrintBattingLines battingLines =
-  unlines $ map (\i -> tshow i <> ": " <> prettyPrintBattingLineList (battingLines HashMap.! i)) $ tail [(minBound :: BattingPositionId) ..]
+  unlines $ map (\i -> tshow i <> ": " <> prettyPrintBattingLineList (battingLines HashMap.! i)) $ tail [(minBound :: BattingOrderPosition) ..]
 
 prettyPrintBattingLineList :: [BattingLine] -> Text
 prettyPrintBattingLineList battingLines =

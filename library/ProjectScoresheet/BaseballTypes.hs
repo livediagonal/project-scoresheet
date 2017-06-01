@@ -8,19 +8,17 @@ module ProjectScoresheet.BaseballTypes where
 import ClassyPrelude
 import Closed
 import Data.Csv
-import Data.Finite
 import qualified Data.HashMap.Strict as HashMap
 
 data InningHalf = TopInningHalf | BottomInningHalf deriving (Eq, Show)
 
 data HomeOrAway = Away | Home deriving (Eq, Show)
-
 instance FromField HomeOrAway where
   parseField "0" = pure Away
   parseField "1" = pure Home
   parseField val = fail $ "Unrecognized value: " ++ show val
 
-data FieldPosition
+data FieldingPosition
   = Pitcher
   | Catcher
   | FirstBaseman
@@ -35,80 +33,24 @@ data FieldPosition
   | PinchRunner
   deriving (Eq, Show, Enum)
 
-fieldPositionFromId :: Int -> FieldPosition
+fieldPositionFromId :: Int -> FieldingPosition
 fieldPositionFromId fpId = toEnum (fpId - 1)
 
-instance FromField FieldPosition where
-  parseField "1" = pure Pitcher
-  parseField "2" = pure Catcher
-  parseField "3" = pure FirstBaseman
-  parseField "4" = pure SecondBaseman
-  parseField "5" = pure ThirdBaseman
-  parseField "6" = pure ShortStop
-  parseField "7" = pure LeftFielder
-  parseField "8" = pure CenterFielder
-  parseField "9" = pure RightFielder
-  parseField "10" = pure DesignatedHitter
-  parseField "11" = pure PinchHitter
-  parseField "12" = pure PinchRunner
-  parseField val = fail $ "Unrecognized value: " ++ show val
-
-newtype BattingPosition
-  = BattingPosition
-  { battingPosition :: Finite 10
-  } deriving (Eq, Show)
-
-instance FromField BattingPosition where
-  parseField "0" = pure $ BattingPosition 0
-  parseField "1" = pure $ BattingPosition 1
-  parseField "2" = pure $ BattingPosition 2
-  parseField "3" = pure $ BattingPosition 3
-  parseField "4" = pure $ BattingPosition 4
-  parseField "5" = pure $ BattingPosition 5
-  parseField "6" = pure $ BattingPosition 6
-  parseField "7" = pure $ BattingPosition 7
-  parseField "8" = pure $ BattingPosition 8
-  parseField "9" = pure $ BattingPosition 9
-  parseField val = fail $ "Unrecognized value: " ++ show val
-
-data LineupSlot
-  = LineupSlot
-  { lineupSlotPlayerId :: !Text
-  , lineupSlotFieldPosition :: FieldPosition
-  } deriving (Eq, Show)
-
-data Lineup
-  = Lineup
-  { lineupSlotOne :: Maybe LineupSlot
-  , lineupSlotTwo :: Maybe LineupSlot
-  , lineupSlotThree :: Maybe LineupSlot
-  , lineupSlotFour :: Maybe LineupSlot
-  , lineupSlotFive :: Maybe LineupSlot
-  , lineupSlotSix :: Maybe LineupSlot
-  , lineupSlotSeven :: Maybe LineupSlot
-  , lineupSlotEight :: Maybe LineupSlot
-  , lineupSlotNine :: Maybe LineupSlot
-  } deriving (Eq, Show)
-
-emptyLineup :: Lineup
-emptyLineup = Lineup Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-
-type FieldingId = Closed 1 11
-type FieldingLineup = HashMap FieldingId Text
+type FieldingPositionId = Closed 1 11
+type FieldingLineup = HashMap FieldingPositionId Text
 
 emptyFieldingLineup :: FieldingLineup
 emptyFieldingLineup = HashMap.empty
 
-addToFieldingLineup :: Text -> FieldingId -> FieldingLineup -> FieldingLineup
+addToFieldingLineup :: Text -> FieldingPositionId -> FieldingLineup -> FieldingLineup
 addToFieldingLineup playerId fieldingId fieldingLineup = HashMap.insert fieldingId playerId fieldingLineup
 
-type BattingOrder = HashMap BattingPositionId Text
+type BattingOrderPosition = Closed 0 9
+type BattingOrder = HashMap BattingOrderPosition Text
 
 emptyBattingOrder :: BattingOrder
 emptyBattingOrder = HashMap.empty
 
-addToBattingOrder :: Text -> BattingPositionId -> BattingOrder -> BattingOrder
+addToBattingOrder :: Text -> BattingOrderPosition -> BattingOrder -> BattingOrder
 addToBattingOrder _ 0 battingOrder = battingOrder
-addToBattingOrder playedId battingPositionId battingOrder = HashMap.insert battingPositionId playedId battingOrder
-
-type BattingPositionId = Closed 0 9
+addToBattingOrder playedId battingOrderPosition battingOrder = HashMap.insert battingOrderPosition playedId battingOrder

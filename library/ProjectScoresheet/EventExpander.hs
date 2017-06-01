@@ -73,14 +73,6 @@ processSubLine game@Game{..} RawSub{..} =
       , gameBoxScore = addPlayerToBoxScore rawSubPlayerHome rawSubPlayer rawSubBattingPosition rawSubFieldingPosition gameBoxScore
     }
 
--- achta001,Achter,A.J.,R,R,ANA,P
--- loadRoster :: Text -> Text -> Text
--- loadRoster team year = 
---   let 
---     fileName = "./data/" <> year <> "eve/" toUpper team <> year <> ".ROS"
---     rosterCsv = BL.readFile fileName
---   in
-
 main :: IO ()
 main = do
   csvEvents <- BL.readFile "testgame.txt"

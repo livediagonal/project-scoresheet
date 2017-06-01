@@ -36,19 +36,19 @@ data Base
   deriving (Eq, Show, Enum)
 
 data Out
-  = RoutinePlay [FieldPosition]
-  | FieldersChoice [FieldPosition]
+  = RoutinePlay [FieldingPosition]
+  | FieldersChoice [FieldingPosition]
   | Strikeout (Maybe Text)
   deriving (Eq, Show)
 
 data PlayAction
   = Outs [Out]
-  | Hit Base (Maybe FieldPosition)
+  | Hit Base (Maybe FieldingPosition)
   | Walk Bool
   | NoPlay (Maybe Text)
   | Other Text
   | HitByPitch
-  | Error FieldPosition
+  | Error FieldingPosition
   deriving (Eq, Show)
 
 parsePlayResult :: Parser PlayResult
@@ -69,7 +69,7 @@ parsePlayAction =
   try parseOther
 
 parseHit :: Parser PlayAction
-parseHit = Hit <$> parseBase <*> optional parseFieldPosition
+parseHit = Hit <$> parseBase <*> optional parseFieldingPosition
 
 parseOuts :: Parser PlayAction
 parseOuts = Outs <$> some parseOut
@@ -78,16 +78,16 @@ parseOut :: Parser Out
 parseOut =
   try parseStrikeout <|>
   try parseFieldersChoice <|>
-  try (RoutinePlay <$> parseFieldPositions)
+  try (RoutinePlay <$> parseFieldingPositions)
 
 parseFieldersChoice :: Parser Out
-parseFieldersChoice = string "FC" *> map FieldersChoice parseFieldPositions
+parseFieldersChoice = string "FC" *> map FieldersChoice parseFieldingPositions
 
-parseFieldPositions :: Parser [FieldPosition]
-parseFieldPositions = some parseFieldPosition <* skipMany (satisfy (\c -> c == '(' || c == ')' || isDigit c))
+parseFieldingPositions :: Parser [FieldingPosition]
+parseFieldingPositions = some parseFieldingPosition <* skipMany (satisfy (\c -> c == '(' || c == ')' || isDigit c))
 
-parseFieldPosition :: Parser FieldPosition
-parseFieldPosition = fieldPositionFromId . digitToInt <$> digit
+parseFieldingPosition :: Parser FieldingPosition
+parseFieldingPosition = fieldPositionFromId . digitToInt <$> digit
 
 parseBase :: Parser Base
 parseBase =
@@ -120,7 +120,7 @@ parseHitByPitch = string "HP" *> pure HitByPitch
 parseError :: Parser PlayAction
 parseError = do
   void $ char 'E'
-  Error <$> try parseFieldPosition
+  Error <$> try parseFieldingPosition
 
 parseOther :: Parser PlayAction
 parseOther = Other . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))

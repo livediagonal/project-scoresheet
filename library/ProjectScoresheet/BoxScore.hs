@@ -23,7 +23,7 @@ initialBoxScore = BoxScore initialTeamBoxScore initialTeamBoxScore
 addPlayToBoxScore :: Text -> Text -> PlayResult -> BoxScore -> BoxScore
 addPlayToBoxScore _ _ _ boxScore = boxScore
 
-addPlayerToBoxScore :: HomeOrAway -> Text -> BattingPositionId -> FieldingId -> BoxScore -> BoxScore
+addPlayerToBoxScore :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> BoxScore -> BoxScore
 addPlayerToBoxScore homeOrAway playerId battingPosition fieldingPosition boxScore@BoxScore{..} =
   case homeOrAway of
     Away -> boxScore { awayBoxScore = addPlayerToTeamBoxScore playerId battingPosition fieldingPosition awayBoxScore }
@@ -39,14 +39,14 @@ data TeamBoxScore
 initialTeamBoxScore :: TeamBoxScore
 initialTeamBoxScore = TeamBoxScore [] initialBattingLines []
 
-addPlayerToTeamBoxScore :: Text -> BattingPositionId -> FieldingId -> TeamBoxScore -> TeamBoxScore
+addPlayerToTeamBoxScore :: Text -> BattingOrderPosition -> FieldingPositionId -> TeamBoxScore -> TeamBoxScore
 addPlayerToTeamBoxScore playerId battingLineId fieldingPosition teamBoxScore@TeamBoxScore{..} =
     teamBoxScore
     { batting = addPlayerToBatting playerId battingLineId batting
     , pitching = addPlayerToPitching playerId fieldingPosition pitching
     }
 
-addPlayerToBatting :: Text -> BattingPositionId -> BattingLines -> BattingLines
+addPlayerToBatting :: Text -> BattingOrderPosition -> BattingLines -> BattingLines
 addPlayerToBatting _ 0 battingLines = battingLines
 addPlayerToBatting playerId battingLineId battingLines =
   let
@@ -57,7 +57,7 @@ addPlayerToBatting playerId battingLineId battingLines =
       Just battingLineList ->
         HashMap.insert battingLineId (battingLineList ++ [initialPlayerBattingLine]) battingLines
 
-type BattingLines = HashMap BattingPositionId [BattingLine]
+type BattingLines = HashMap BattingOrderPosition [BattingLine]
 
 initialBattingLines :: BattingLines
 initialBattingLines = HashMap.fromList $ zip [minBound ..] $ repeat []
@@ -111,22 +111,7 @@ data PitchingLine
 initialPitchingLine :: Text -> PitchingLine
 initialPitchingLine playerId = PitchingLine playerId 0
 
-addPlayerToPitching :: Text -> FieldingId -> [PitchingLine] -> [PitchingLine]
+addPlayerToPitching :: Text -> FieldingPositionId -> [PitchingLine] -> [PitchingLine]
 addPlayerToPitching playerId 1 pitching =
   pitching ++ [initialPitchingLine playerId]
 addPlayerToPitching _ _ pitching = pitching
-
-
--- data FieldingSummary
---   = FieldingSummary
---   { fieldingSummaryOuts :: !Int
---   , fieldingSummaryPutOuts :: !Int
---   , fieldingSummaryAssists :: !Int
---   , fieldingSummaryOutfieldAssists :: !Int
---   , fieldingSummaryErrors :: !Int
---   , fieldingSummaryDoublePlays :: !Int
---   , fieldingSummaryTriplePlays :: !Int
---   , fieldingSummaryPassedBalls :: !Int
---   , fieldingSummaryInningsPlayed :: !Int
---   , fieldingSummaryTotalChanges :: !Int
---   }
