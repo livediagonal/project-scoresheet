@@ -6,15 +6,139 @@
 module ProjectScoresheet.BoxScore where
 
 import ClassyPrelude
+import ProjectScoresheet.BaseballTypes
+import ProjectScoresheet.PlayResult
 
 data BoxScore
   = BoxScore
-  { battingOrder :: [[BattingLine]] } deriving (Eq, Show)
+  { homeBoxScore :: TeamBoxScore
+  , awayBoxScore :: TeamBoxScore
+  } deriving (Eq, Show)
 
 initialBoxScore :: BoxScore
-initialBoxScore = BoxScore [[initialBattingLine "placeholder"]]
+initialBoxScore = BoxScore initialTeamBoxScore initialTeamBoxScore
 
---   int g, pa, ab, r, h, b2, b3, hr, hrslam, bi, bi2out, bb, ibb, so, gdp, hp, sh, sf, sb, cs, xi;
+addPlayToBoxScore :: Text -> Text -> PlayResult -> BoxScore -> BoxScore
+addPlayToBoxScore _ _ _ boxScore = boxScore
+
+addPlayerToBoxScore :: HomeOrAway -> Text -> BattingPosition -> FieldPosition -> BoxScore -> BoxScore
+addPlayerToBoxScore homeOrAway playerId battingPosition fieldingPosition boxScore@BoxScore{..} = 
+  case homeOrAway of
+    Away -> boxScore { awayBoxScore = addPlayerToTeamBoxScore playerId battingPosition fieldingPosition awayBoxScore }
+    Home -> boxScore { homeBoxScore = addPlayerToTeamBoxScore playerId battingPosition fieldingPosition homeBoxScore }
+
+data TeamBoxScore
+  = TeamBoxScore
+  { innings :: [InningLine]
+  , batting :: BattingLines
+  , pitching :: [PitchingLine]
+  } deriving (Eq, Show)
+
+initialTeamBoxScore :: TeamBoxScore
+initialTeamBoxScore = TeamBoxScore [] initialBattingLines []
+
+addPlayerToTeamBoxScore :: Text -> BattingPosition -> FieldPosition -> TeamBoxScore -> TeamBoxScore
+addPlayerToTeamBoxScore playerId battingPosition fieldingPosition teamBoxScore@TeamBoxScore{..} = 
+    teamBoxScore 
+    { batting = addPlayerToBatting playerId battingPosition batting
+    , pitching = addPlayerToPitching playerId fieldingPosition pitching
+    }
+
+addPlayerToBatting :: Text -> BattingPosition -> BattingLines -> BattingLines
+addPlayerToBatting playerId (BattingPosition 1) battingLines = 
+    let
+      battingLineList = battingLinesSpotOne battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotOne = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting playerId (BattingPosition 2) battingLines = 
+    let
+      battingLineList = battingLinesSpotTwo battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotTwo = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting playerId (BattingPosition 3) battingLines = 
+    let
+      battingLineList = battingLinesSpotThree battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotThree = battingLineList ++ [initialBattingLine playerId] }
+
+addPlayerToBatting playerId (BattingPosition 4) battingLines = 
+    let
+      battingLineList = battingLinesSpotFour battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotFour = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting playerId (BattingPosition 5) battingLines = 
+    let
+      battingLineList = battingLinesSpotFive battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotFive = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting playerId (BattingPosition 6) battingLines = 
+    let
+      battingLineList = battingLinesSpotSix battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotSix = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting playerId (BattingPosition 7) battingLines = 
+    let
+      battingLineList = battingLinesSpotSeven battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotSeven = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting playerId (BattingPosition 8) battingLines = 
+    let
+      battingLineList = battingLinesSpotEight battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotEight = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting playerId (BattingPosition 9) battingLines = 
+    let
+      battingLineList = battingLinesSpotNine battingLines
+    in
+      if battingLineExistsForPlayer playerId battingLineList
+        then battingLines
+        else battingLines { battingLinesSpotNine = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting _ _ battingLines = battingLines
+
+battingLineExistsForPlayer :: Text -> [BattingLine] -> Bool
+battingLineExistsForPlayer playerId battingLineList = any (\p -> battingLinePlayedId p == playerId) battingLineList
+
+data BattingLines
+  = BattingLines
+  { battingLinesSpotOne :: [BattingLine]
+  , battingLinesSpotTwo :: [BattingLine]
+  , battingLinesSpotThree :: [BattingLine]
+  , battingLinesSpotFour :: [BattingLine]
+  , battingLinesSpotFive :: [BattingLine]
+  , battingLinesSpotSix :: [BattingLine]
+  , battingLinesSpotSeven :: [BattingLine]
+  , battingLinesSpotEight :: [BattingLine]
+  , battingLinesSpotNine :: [BattingLine]
+  } deriving (Eq, Show)
+
+initialBattingLines :: BattingLines
+initialBattingLines = BattingLines [] [] [] [] [] [] [] [] []
+
+data InningLine
+  = InningLine
+  { hits :: !Int
+  , runs :: !Int
+  , errors :: !Int
+  } deriving (Eq, Show)
+
+initialInningLine :: InningLine
+initialInningLine = InningLine 0 0 0
 
 data BattingLine
   = BattingLine
@@ -44,47 +168,33 @@ data BattingLine
   } deriving (Eq, Show)
 
 initialBattingLine :: Text -> BattingLine
-initialBattingLine playedId = BattingLine playedId 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+initialBattingLine playerId = BattingLine playerId 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
-battingLineTotalBases :: BattingLine -> Int
-battingLineTotalBases BattingLine{..} = battingLineSingles + 2 * battingLineDoubles + 3 * battingLineTriples + 4 * battingLineHomeRuns
+data PitchingLine
+  = PitchingLine
+  { playerId :: !Text
+  , strikes :: !Int
+  } deriving (Eq, Show)
 
--- updateBoxScore :: GameState -> BoxScore
--- updateBoxScore gameState BoxScore{..} = 
---   boxScore
---     { battingOrder = updateBattingOrder gameState battingOrder }
+initialPitchingLine :: Text -> PitchingLine
+initialPitchingLine playerId = PitchingLine playerId 0
 
-
--- updateBattingOrder :: GameState -> BattingOrder -> BattingOrder
--- updateBattingOrder GameState{..} battingOrder = 
---   let
---     battingLine = findOrCreatebattingLine gameStateBatterId battingOrder
---   in
---     battingOrder
+addPlayerToPitching :: Text -> FieldPosition -> [PitchingLine] -> [PitchingLine]
+addPlayerToPitching playerId Pitcher pitching = 
+  pitching ++ [initialPitchingLine playerId]
+addPlayerToPitching _ _ pitching = pitching
 
 
--- findOrCreatebattingLine :: Text -> BattingOrder -> battingLine
--- findOrCreatebattingLine battedId battingOrder = 
---   let
---     battingLine = find (\battingLine{..} -> playedId == battingLinePlayedId) battingOrder
---   in
---     if isNothing battingLine
---       then initialbattingLine
---       else battingLine
-
-
-
--- possibly add: caught stealing, stolen base attempts
-data FieldingSummary
-  = FieldingSummary
-  { fieldingSummaryOuts :: !Int
-  , fieldingSummaryPutOuts :: !Int
-  , fieldingSummaryAssists :: !Int
-  , fieldingSummaryOutfieldAssists :: !Int
-  , fieldingSummaryErrors :: !Int
-  , fieldingSummaryDoublePlays :: !Int
-  , fieldingSummaryTriplePlays :: !Int
-  , fieldingSummaryPassedBalls :: !Int
-  , fieldingSummaryInningsPlayed :: !Int
-  , fieldingSummaryTotalChanges :: !Int
-  }
+-- data FieldingSummary
+--   = FieldingSummary
+--   { fieldingSummaryOuts :: !Int
+--   , fieldingSummaryPutOuts :: !Int
+--   , fieldingSummaryAssists :: !Int
+--   , fieldingSummaryOutfieldAssists :: !Int
+--   , fieldingSummaryErrors :: !Int
+--   , fieldingSummaryDoublePlays :: !Int
+--   , fieldingSummaryTriplePlays :: !Int
+--   , fieldingSummaryPassedBalls :: !Int
+--   , fieldingSummaryInningsPlayed :: !Int
+--   , fieldingSummaryTotalChanges :: !Int
+--   }

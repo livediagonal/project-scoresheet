@@ -8,6 +8,7 @@ module ProjectScoresheet.Print where
 import ClassyPrelude
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.GameState
+import ProjectScoresheet.BoxScore
 
 prettyPrintGame :: Game -> Text
 prettyPrintGame Game{..} =
@@ -41,3 +42,44 @@ prettyPrintBattingOrder BattingOrder{..} =
     , "8: " <> maybe "" tshow battingOrderSpotEightPlayerId
     , "9: " <> maybe "" tshow battingOrderSpotNinePlayerId
     ]
+
+prettyPrintBoxScore :: BoxScore -> Text
+prettyPrintBoxScore BoxScore{..} =
+  unlines
+    [ "Home:"
+    , prettyPrintTeamBoxScore homeBoxScore
+    , "Away:"
+    , prettyPrintTeamBoxScore awayBoxScore
+    ]
+
+prettyPrintTeamBoxScore :: TeamBoxScore -> Text
+prettyPrintTeamBoxScore TeamBoxScore{..} =
+  unlines 
+    [ "Batting:"
+    , prettyPrintBattingLines batting
+    -- , prettyPrintPitching pitching
+    ]
+
+prettyPrintBattingLines :: BattingLines -> Text
+prettyPrintBattingLines BattingLines{..} =
+  unlines
+    [ "1: " <> prettyPrintBattingLineList battingLinesSpotOne
+    , "2: " <> prettyPrintBattingLineList battingLinesSpotTwo
+    , "3: " <> prettyPrintBattingLineList battingLinesSpotThree
+    , "4: " <> prettyPrintBattingLineList battingLinesSpotFour
+    , "5: " <> prettyPrintBattingLineList battingLinesSpotFive
+    , "6: " <> prettyPrintBattingLineList battingLinesSpotSix
+    , "7: " <> prettyPrintBattingLineList battingLinesSpotSeven
+    , "8: " <> prettyPrintBattingLineList battingLinesSpotEight
+    , "9: " <> prettyPrintBattingLineList battingLinesSpotNine
+    ]
+
+
+prettyPrintBattingLineList :: [BattingLine] -> Text
+prettyPrintBattingLineList battingLines =
+  unlines $ map (prettyPrintBattingLine) battingLines
+
+prettyPrintBattingLine :: BattingLine -> Text
+prettyPrintBattingLine BattingLine{..} = tshow battingLinePlayedId <> " " <> tshow battingLineHits 
+
+
