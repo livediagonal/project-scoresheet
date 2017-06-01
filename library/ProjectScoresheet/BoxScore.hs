@@ -55,7 +55,12 @@ addPlayerToBatting playerId battingLineId battingLines =
     case HashMap.lookup battingLineId battingLines of
       Nothing -> HashMap.insert battingLineId [initialPlayerBattingLine] battingLines
       Just battingLineList ->
-        HashMap.insert battingLineId (battingLineList ++ [initialPlayerBattingLine]) battingLines
+        case battingLineContains playerId battingLineList of
+          True -> battingLines
+          False -> HashMap.insert battingLineId (battingLineList ++ [initialPlayerBattingLine]) battingLines
+
+battingLineContains :: Text -> [BattingLine] -> Bool
+battingLineContains playerId = any (\bl -> battingLinePlayerId bl == playerId)
 
 type BattingLines = HashMap BattingOrderPosition [BattingLine]
 
@@ -74,7 +79,7 @@ initialInningLine = InningLine 0 0 0
 
 data BattingLine
   = BattingLine
-  { battingLinePlayedId :: !Text
+  { battingLinePlayerId :: !Text
   , battingLineAtBats :: !Int
   , battingLinePlateAppearances :: !Int
   , battingLineHits :: !Int

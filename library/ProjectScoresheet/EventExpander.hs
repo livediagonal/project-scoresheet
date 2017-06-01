@@ -80,4 +80,4 @@ main = do
     Left err -> print err
     Right v -> do
       let gameStates = V.tail $ V.scanl processEvent unstartedGame v
-      mapM_ (putStrLn . prettyPrintBoxScore . gameBoxScore) $ toList gameStates
+      putStrLn $ prettyPrintBoxScore $ gameBoxScore $ V.last gameStates

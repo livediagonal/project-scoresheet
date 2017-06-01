@@ -6,6 +6,7 @@
 module ProjectScoresheet.Print where
 
 import ClassyPrelude hiding (tail)
+import Closed
 import Data.List (tail)
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.GameState
@@ -46,7 +47,7 @@ prettyPrintBoxScore BoxScore{..} =
 
 prettyPrintTeamBoxScore :: TeamBoxScore -> Text
 prettyPrintTeamBoxScore TeamBoxScore{..} =
-  unlines 
+  unlines
     [ "Batting: H"
     , prettyPrintBattingLines batting
     -- , prettyPrintPitching pitching
@@ -54,13 +55,13 @@ prettyPrintTeamBoxScore TeamBoxScore{..} =
 
 prettyPrintBattingLines :: BattingLines -> Text
 prettyPrintBattingLines battingLines =
-  unlines $ map (\i -> tshow i <> ": " <> prettyPrintBattingLineList (battingLines HashMap.! i)) $ tail [(minBound :: BattingOrderPosition) ..]
+  unlines $ map (\i -> tshow (getClosed i) <> ": " <> prettyPrintBattingLineList (battingLines HashMap.! i)) $ tail [(minBound :: BattingOrderPosition) ..]
 
 prettyPrintBattingLineList :: [BattingLine] -> Text
 prettyPrintBattingLineList battingLines =
   unlines $ map prettyPrintBattingLine battingLines
 
 prettyPrintBattingLine :: BattingLine -> Text
-prettyPrintBattingLine BattingLine{..} = battingLinePlayedId <> " " <> tshow battingLineHits
+prettyPrintBattingLine BattingLine{..} = battingLinePlayerId <> " " <> tshow battingLineHits
 
 
