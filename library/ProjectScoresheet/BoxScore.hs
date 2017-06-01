@@ -2,12 +2,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DataKinds #-}
 
 module ProjectScoresheet.BoxScore where
 
 import ClassyPrelude
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.PlayResult
+import qualified Data.HashMap.Strict as HashMap
 
 data BoxScore
   = BoxScore
@@ -21,8 +23,8 @@ initialBoxScore = BoxScore initialTeamBoxScore initialTeamBoxScore
 addPlayToBoxScore :: Text -> Text -> PlayResult -> BoxScore -> BoxScore
 addPlayToBoxScore _ _ _ boxScore = boxScore
 
-addPlayerToBoxScore :: HomeOrAway -> Text -> BattingPosition -> FieldPosition -> BoxScore -> BoxScore
-addPlayerToBoxScore homeOrAway playerId battingPosition fieldingPosition boxScore@BoxScore{..} = 
+addPlayerToBoxScore :: HomeOrAway -> Text -> BattingPositionId -> FieldingId -> BoxScore -> BoxScore
+addPlayerToBoxScore homeOrAway playerId battingPosition fieldingPosition boxScore@BoxScore{..} =
   case homeOrAway of
     Away -> boxScore { awayBoxScore = addPlayerToTeamBoxScore playerId battingPosition fieldingPosition awayBoxScore }
     Home -> boxScore { homeBoxScore = addPlayerToTeamBoxScore playerId battingPosition fieldingPosition homeBoxScore }
@@ -37,98 +39,28 @@ data TeamBoxScore
 initialTeamBoxScore :: TeamBoxScore
 initialTeamBoxScore = TeamBoxScore [] initialBattingLines []
 
-addPlayerToTeamBoxScore :: Text -> BattingPosition -> FieldPosition -> TeamBoxScore -> TeamBoxScore
-addPlayerToTeamBoxScore playerId battingPosition fieldingPosition teamBoxScore@TeamBoxScore{..} = 
-    teamBoxScore 
-    { batting = addPlayerToBatting playerId battingPosition batting
+addPlayerToTeamBoxScore :: Text -> BattingPositionId -> FieldingId -> TeamBoxScore -> TeamBoxScore
+addPlayerToTeamBoxScore playerId battingLineId fieldingPosition teamBoxScore@TeamBoxScore{..} =
+    teamBoxScore
+    { batting = addPlayerToBatting playerId battingLineId batting
     , pitching = addPlayerToPitching playerId fieldingPosition pitching
     }
 
-addPlayerToBatting :: Text -> BattingPosition -> BattingLines -> BattingLines
-addPlayerToBatting playerId (BattingPosition 1) battingLines = 
-    let
-      battingLineList = battingLinesSpotOne battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotOne = battingLineList ++ [initialBattingLine playerId] }
-addPlayerToBatting playerId (BattingPosition 2) battingLines = 
-    let
-      battingLineList = battingLinesSpotTwo battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotTwo = battingLineList ++ [initialBattingLine playerId] }
-addPlayerToBatting playerId (BattingPosition 3) battingLines = 
-    let
-      battingLineList = battingLinesSpotThree battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotThree = battingLineList ++ [initialBattingLine playerId] }
+addPlayerToBatting :: Text -> BattingPositionId -> BattingLines -> BattingLines
+addPlayerToBatting _ 0 battingLines = battingLines
+addPlayerToBatting playerId battingLineId battingLines =
+  let
+    initialPlayerBattingLine = initialBattingLine playerId
+  in
+    case HashMap.lookup battingLineId battingLines of
+      Nothing -> HashMap.insert battingLineId [initialPlayerBattingLine] battingLines
+      Just battingLineList ->
+        HashMap.insert battingLineId (battingLineList ++ [initialPlayerBattingLine]) battingLines
 
-addPlayerToBatting playerId (BattingPosition 4) battingLines = 
-    let
-      battingLineList = battingLinesSpotFour battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotFour = battingLineList ++ [initialBattingLine playerId] }
-addPlayerToBatting playerId (BattingPosition 5) battingLines = 
-    let
-      battingLineList = battingLinesSpotFive battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotFive = battingLineList ++ [initialBattingLine playerId] }
-addPlayerToBatting playerId (BattingPosition 6) battingLines = 
-    let
-      battingLineList = battingLinesSpotSix battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotSix = battingLineList ++ [initialBattingLine playerId] }
-addPlayerToBatting playerId (BattingPosition 7) battingLines = 
-    let
-      battingLineList = battingLinesSpotSeven battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotSeven = battingLineList ++ [initialBattingLine playerId] }
-addPlayerToBatting playerId (BattingPosition 8) battingLines = 
-    let
-      battingLineList = battingLinesSpotEight battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotEight = battingLineList ++ [initialBattingLine playerId] }
-addPlayerToBatting playerId (BattingPosition 9) battingLines = 
-    let
-      battingLineList = battingLinesSpotNine battingLines
-    in
-      if battingLineExistsForPlayer playerId battingLineList
-        then battingLines
-        else battingLines { battingLinesSpotNine = battingLineList ++ [initialBattingLine playerId] }
-addPlayerToBatting _ _ battingLines = battingLines
-
-battingLineExistsForPlayer :: Text -> [BattingLine] -> Bool
-battingLineExistsForPlayer playerId battingLineList = any (\p -> battingLinePlayedId p == playerId) battingLineList
-
-data BattingLines
-  = BattingLines
-  { battingLinesSpotOne :: [BattingLine]
-  , battingLinesSpotTwo :: [BattingLine]
-  , battingLinesSpotThree :: [BattingLine]
-  , battingLinesSpotFour :: [BattingLine]
-  , battingLinesSpotFive :: [BattingLine]
-  , battingLinesSpotSix :: [BattingLine]
-  , battingLinesSpotSeven :: [BattingLine]
-  , battingLinesSpotEight :: [BattingLine]
-  , battingLinesSpotNine :: [BattingLine]
-  } deriving (Eq, Show)
+type BattingLines = HashMap BattingPositionId [BattingLine]
 
 initialBattingLines :: BattingLines
-initialBattingLines = BattingLines [] [] [] [] [] [] [] [] []
+initialBattingLines = HashMap.fromList $ zip [minBound ..] $ repeat []
 
 data InningLine
   = InningLine
@@ -179,8 +111,8 @@ data PitchingLine
 initialPitchingLine :: Text -> PitchingLine
 initialPitchingLine playerId = PitchingLine playerId 0
 
-addPlayerToPitching :: Text -> FieldPosition -> [PitchingLine] -> [PitchingLine]
-addPlayerToPitching playerId Pitcher pitching = 
+addPlayerToPitching :: Text -> FieldingId -> [PitchingLine] -> [PitchingLine]
+addPlayerToPitching playerId 1 pitching =
   pitching ++ [initialPitchingLine playerId]
 addPlayerToPitching _ _ pitching = pitching
 

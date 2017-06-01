@@ -6,8 +6,10 @@
 module ProjectScoresheet.BaseballTypes where
 
 import ClassyPrelude
-import Data.Finite
+import Closed
 import Data.Csv
+import Data.Finite
+import qualified Data.HashMap.Strict as HashMap
 
 data InningHalf = TopInningHalf | BottomInningHalf deriving (Eq, Show)
 
@@ -69,62 +71,44 @@ instance FromField BattingPosition where
   parseField "9" = pure $ BattingPosition 9
   parseField val = fail $ "Unrecognized value: " ++ show val
 
-data FieldingLineup
-  = FieldingLineup
-  { fieldingLineupPitcher :: !(Maybe Text)
-  , fieldingLineupCatcher :: !(Maybe Text)
-  , fieldingLineupFirstBaseman :: !(Maybe Text)
-  , fieldingLineupSecondBaseman :: !(Maybe Text)
-  , fieldingLineupThirdBaseman :: !(Maybe Text)
-  , fieldingLineupShortstop :: !(Maybe Text)
-  , fieldingLineupLeftFielder :: !(Maybe Text)
-  , fieldingLineupCenterFielder :: !(Maybe Text)
-  , fieldingLineupRightFielder :: !(Maybe Text)
-  , fieldingLineupDesignatedHitter :: !(Maybe Text)
+data LineupSlot
+  = LineupSlot
+  { lineupSlotPlayerId :: !Text
+  , lineupSlotFieldPosition :: FieldPosition
   } deriving (Eq, Show)
+
+data Lineup
+  = Lineup
+  { lineupSlotOne :: Maybe LineupSlot
+  , lineupSlotTwo :: Maybe LineupSlot
+  , lineupSlotThree :: Maybe LineupSlot
+  , lineupSlotFour :: Maybe LineupSlot
+  , lineupSlotFive :: Maybe LineupSlot
+  , lineupSlotSix :: Maybe LineupSlot
+  , lineupSlotSeven :: Maybe LineupSlot
+  , lineupSlotEight :: Maybe LineupSlot
+  , lineupSlotNine :: Maybe LineupSlot
+  } deriving (Eq, Show)
+
+emptyLineup :: Lineup
+emptyLineup = Lineup Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
+type FieldingId = Closed 1 11
+type FieldingLineup = HashMap FieldingId Text
 
 emptyFieldingLineup :: FieldingLineup
-emptyFieldingLineup = FieldingLineup Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+emptyFieldingLineup = HashMap.empty
 
-addToFieldingLineup :: Text -> FieldPosition -> FieldingLineup -> FieldingLineup
-addToFieldingLineup playedId Pitcher fieldingLineup = fieldingLineup { fieldingLineupPitcher = Just playedId }
-addToFieldingLineup playedId Catcher fieldingLineup = fieldingLineup { fieldingLineupCatcher = Just playedId }
-addToFieldingLineup playedId FirstBaseman fieldingLineup = fieldingLineup { fieldingLineupFirstBaseman = Just playedId }
-addToFieldingLineup playedId SecondBaseman fieldingLineup = fieldingLineup { fieldingLineupSecondBaseman = Just playedId }
-addToFieldingLineup playedId ThirdBaseman fieldingLineup = fieldingLineup { fieldingLineupThirdBaseman = Just playedId }
-addToFieldingLineup playedId ShortStop fieldingLineup = fieldingLineup { fieldingLineupShortstop = Just playedId }
-addToFieldingLineup playedId LeftFielder fieldingLineup = fieldingLineup { fieldingLineupLeftFielder = Just playedId }
-addToFieldingLineup playedId CenterFielder fieldingLineup = fieldingLineup { fieldingLineupCenterFielder = Just playedId }
-addToFieldingLineup playedId RightFielder fieldingLineup = fieldingLineup { fieldingLineupRightFielder = Just playedId }
-addToFieldingLineup playedId DesignatedHitter fieldingLineup = fieldingLineup { fieldingLineupDesignatedHitter = Just playedId }
-addToFieldingLineup _ _ fieldingLineup = fieldingLineup
+addToFieldingLineup :: Text -> FieldingId -> FieldingLineup -> FieldingLineup
+addToFieldingLineup playerId fieldingId fieldingLineup = HashMap.insert fieldingId playerId fieldingLineup
 
-data BattingOrder
-  = BattingOrder
-  { battingOrderSpotOnePlayerId :: !(Maybe Text)
-  , battingOrderSpotTwoPlayerId :: !(Maybe Text)
-  , battingOrderSpotThreePlayerId :: !(Maybe Text)
-  , battingOrderSpotFourPlayerId :: !(Maybe Text)
-  , battingOrderSpotFivePlayerId :: !(Maybe Text)
-  , battingOrderSpotSixPlayerId :: !(Maybe Text)
-  , battingOrderSpotSevenPlayerId :: !(Maybe Text)
-  , battingOrderSpotEightPlayerId :: !(Maybe Text)
-  , battingOrderSpotNinePlayerId :: !(Maybe Text)
-  } deriving (Eq, Show)
+type BattingOrder = HashMap BattingPositionId Text
 
 emptyBattingOrder :: BattingOrder
-emptyBattingOrder = BattingOrder Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+emptyBattingOrder = HashMap.empty
 
-addToBattingOrder :: Text -> BattingPosition -> BattingOrder -> BattingOrder
-addToBattingOrder playedId (BattingPosition 1) battingOrder = battingOrder { battingOrderSpotOnePlayerId = Just playedId }
-addToBattingOrder playedId (BattingPosition 2) battingOrder = battingOrder { battingOrderSpotTwoPlayerId = Just playedId }
-addToBattingOrder playedId (BattingPosition 3) battingOrder = battingOrder { battingOrderSpotThreePlayerId = Just playedId }
-addToBattingOrder playedId (BattingPosition 4) battingOrder = battingOrder { battingOrderSpotFourPlayerId = Just playedId }
-addToBattingOrder playedId (BattingPosition 5) battingOrder = battingOrder { battingOrderSpotFivePlayerId = Just playedId }
-addToBattingOrder playedId (BattingPosition 6) battingOrder = battingOrder { battingOrderSpotSixPlayerId = Just playedId }
-addToBattingOrder playedId (BattingPosition 7) battingOrder = battingOrder { battingOrderSpotSevenPlayerId = Just playedId }
-addToBattingOrder playedId (BattingPosition 8) battingOrder = battingOrder { battingOrderSpotEightPlayerId = Just playedId }
-addToBattingOrder playedId (BattingPosition 9) battingOrder = battingOrder { battingOrderSpotNinePlayerId = Just playedId }
-addToBattingOrder _ _ battingOrder = battingOrder
+addToBattingOrder :: Text -> BattingPositionId -> BattingOrder -> BattingOrder
+addToBattingOrder _ 0 battingOrder = battingOrder
+addToBattingOrder playedId battingPositionId battingOrder = HashMap.insert battingPositionId playedId battingOrder
 
-
+type BattingPositionId = Closed 0 9

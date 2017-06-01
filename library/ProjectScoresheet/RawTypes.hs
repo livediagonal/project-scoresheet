@@ -51,8 +51,8 @@ data RawStart
   { rawStartPlayer :: !Text
   , rawStartPlayerName :: !Text
   , rawStartPlayerHome :: !HomeOrAway
-  , rawStartBattingPosition :: !BattingPosition
-  , rawStartFieldingPosition :: !FieldPosition
+  , rawStartBattingPosition :: !BattingPositionId
+  , rawStartFieldingPosition :: !FieldingId
   } deriving (Eq, Show, Generic)
 
 data RawSub
@@ -60,8 +60,8 @@ data RawSub
   { rawSubPlayer :: !Text
   , rawSubPlayerName :: !Text
   , rawSubPlayerHome :: !HomeOrAway
-  , rawSubBattingPosition :: !BattingPosition
-  , rawSubFieldingPosition :: !FieldPosition
+  , rawSubBattingPosition :: !BattingPositionId
+  , rawSubFieldingPosition :: !FieldingId
   } deriving (Eq, Show, Generic)
 
 data RawPlay

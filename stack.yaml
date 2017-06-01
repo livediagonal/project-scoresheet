@@ -37,6 +37,11 @@ resolver: lts-8.15
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
+- extra-dep: true
+  location:
+    git: git@github.com:frontrowed/closed
+    commit: 93126afd01736274cdd80a920209db72b1c8bf1e
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: []

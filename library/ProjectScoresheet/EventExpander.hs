@@ -36,11 +36,11 @@ processStartLine :: Game -> RawStart -> Game
 processStartLine game@Game{..} RawStart{..} =
   game
     { gameState = case rawStartPlayerHome of
-        Away -> gameState 
+        Away -> gameState
           { gameStateAwayBattingOrder = addToBattingOrder rawStartPlayer rawStartBattingPosition $ gameStateAwayBattingOrder gameState
           , gameStateAwayFieldingLineup =  addToFieldingLineup rawStartPlayer rawStartFieldingPosition $ gameStateAwayFieldingLineup gameState
           }
-        Home -> gameState 
+        Home -> gameState
           { gameStateHomeBattingOrder = addToBattingOrder rawStartPlayer rawStartBattingPosition $ gameStateHomeBattingOrder gameState
           , gameStateHomeFieldingLineup =  addToFieldingLineup rawStartPlayer rawStartFieldingPosition $ gameStateHomeFieldingLineup gameState
           }
@@ -62,12 +62,12 @@ processSubLine :: Game -> RawSub -> Game
 processSubLine game@Game{..} RawSub{..} =
   game
     { gameState = case rawSubPlayerHome of
-      Away -> gameState 
-        { gameStateAwayBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateAwayBattingOrder gameState 
+      Away -> gameState
+        { gameStateAwayBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateAwayBattingOrder gameState
         , gameStateAwayFieldingLineup = addToFieldingLineup rawSubPlayer rawSubFieldingPosition $ gameStateAwayFieldingLineup gameState
         }
-      Home -> gameState 
-        { gameStateHomeBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateHomeBattingOrder gameState 
+      Home -> gameState
+        { gameStateHomeBattingOrder = addToBattingOrder rawSubPlayer rawSubBattingPosition $ gameStateHomeBattingOrder gameState
         , gameStateHomeFieldingLineup = addToFieldingLineup rawSubPlayer rawSubFieldingPosition $ gameStateHomeFieldingLineup gameState
         }
       , gameBoxScore = addPlayerToBoxScore rawSubPlayerHome rawSubPlayer rawSubBattingPosition rawSubFieldingPosition gameBoxScore

@@ -5,10 +5,12 @@
 
 module ProjectScoresheet.Print where
 
-import ClassyPrelude
+import ClassyPrelude hiding (tail)
+import Data.List (tail)
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.GameState
 import ProjectScoresheet.BoxScore
+import qualified Data.HashMap.Strict as HashMap
 
 prettyPrintGame :: Game -> Text
 prettyPrintGame Game{..} =
@@ -30,18 +32,8 @@ prettyPrintGameState GameState{..} =
     ]
 
 prettyPrintBattingOrder :: BattingOrder -> Text
-prettyPrintBattingOrder BattingOrder{..} =
-  unlines
-    [ "1: " <> maybe "" tshow battingOrderSpotOnePlayerId
-    , "2: " <> maybe "" tshow battingOrderSpotTwoPlayerId
-    , "3: " <> maybe "" tshow battingOrderSpotThreePlayerId
-    , "4: " <> maybe "" tshow battingOrderSpotFourPlayerId
-    , "5: " <> maybe "" tshow battingOrderSpotFivePlayerId
-    , "6: " <> maybe "" tshow battingOrderSpotSixPlayerId
-    , "7: " <> maybe "" tshow battingOrderSpotSevenPlayerId
-    , "8: " <> maybe "" tshow battingOrderSpotEightPlayerId
-    , "9: " <> maybe "" tshow battingOrderSpotNinePlayerId
-    ]
+prettyPrintBattingOrder battingOrder =
+  unlines $ map (\i -> tshow i <> ": " <> battingOrder HashMap.! i) $ tail [(minBound :: BattingPositionId) ..]
 
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =
@@ -61,25 +53,14 @@ prettyPrintTeamBoxScore TeamBoxScore{..} =
     ]
 
 prettyPrintBattingLines :: BattingLines -> Text
-prettyPrintBattingLines BattingLines{..} =
-  unlines
-    [ "1: " <> prettyPrintBattingLineList battingLinesSpotOne
-    , "2: " <> prettyPrintBattingLineList battingLinesSpotTwo
-    , "3: " <> prettyPrintBattingLineList battingLinesSpotThree
-    , "4: " <> prettyPrintBattingLineList battingLinesSpotFour
-    , "5: " <> prettyPrintBattingLineList battingLinesSpotFive
-    , "6: " <> prettyPrintBattingLineList battingLinesSpotSix
-    , "7: " <> prettyPrintBattingLineList battingLinesSpotSeven
-    , "8: " <> prettyPrintBattingLineList battingLinesSpotEight
-    , "9: " <> prettyPrintBattingLineList battingLinesSpotNine
-    ]
-
+prettyPrintBattingLines battingLines =
+  unlines $ map (\i -> tshow i <> ": " <> prettyPrintBattingLineList (battingLines HashMap.! i)) $ tail [(minBound :: BattingPositionId) ..]
 
 prettyPrintBattingLineList :: [BattingLine] -> Text
 prettyPrintBattingLineList battingLines =
-  unlines $ map (prettyPrintBattingLine) battingLines
+  unlines $ map prettyPrintBattingLine battingLines
 
 prettyPrintBattingLine :: BattingLine -> Text
-prettyPrintBattingLine BattingLine{..} = battingLinePlayedId <> " " <> tshow battingLineHits 
+prettyPrintBattingLine BattingLine{..} = battingLinePlayedId <> " " <> tshow battingLineHits
 
 

@@ -22,8 +22,10 @@ library:
     - bytestring
     - cassava
     - classy-prelude
+    - closed
     - finite-typelits
     - text
+    - unordered-containers
     - vector
   source-dirs: library
 
