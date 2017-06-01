@@ -69,28 +69,6 @@ instance FromField BattingPosition where
   parseField "9" = pure $ BattingPosition 9
   parseField val = fail $ "Unrecognized value: " ++ show val
 
-data LineupSlot
-  = LineupSlot
-  { lineupSlotPlayerId :: !Text
-  , lineupSlotFieldPosition :: FieldPosition
-  } deriving (Eq, Show)
-
-data Lineup
-  = Lineup
-  { lineupSlotOne :: Maybe LineupSlot
-  , lineupSlotTwo :: Maybe LineupSlot
-  , lineupSlotThree :: Maybe LineupSlot
-  , lineupSlotFour :: Maybe LineupSlot
-  , lineupSlotFive :: Maybe LineupSlot
-  , lineupSlotSix :: Maybe LineupSlot
-  , lineupSlotSeven :: Maybe LineupSlot
-  , lineupSlotEight :: Maybe LineupSlot
-  , lineupSlotNine :: Maybe LineupSlot
-  } deriving (Eq, Show)
-
-emptyLineup :: Lineup
-emptyLineup = Lineup Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-
 data FieldingLineup
   = FieldingLineup
   { fieldingLineupPitcher :: !(Maybe Text)
