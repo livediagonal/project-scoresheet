@@ -18,20 +18,26 @@ spec = describe "PlayResult" $
 
   describe "parsePlayAction" $ do
 
+    let
+      shouldParseAsPlay :: Text -> PlayAction -> Expectation
+      shouldParseAsPlay t pa = do
+        t ~> parsePlayAction `shouldParse` pa
+        leftover (t ~?> parsePlayAction) `shouldSatisfy` \str -> fromMaybe "" str == ""
+
     it "should successfully parse Strikeout" $
-      ("K" :: Text) ~> parsePlayAction `shouldParse` Outs [Strikeout Nothing]
+      "K" `shouldParseAsPlay` Outs [Strikeout Nothing]
 
     it "should successfully parse basic Single" $
-      ("S7" :: Text) ~> parsePlayAction `shouldParse` Hit FirstBase (Just LeftFielder)
+      "S7" `shouldParseAsPlay` Hit FirstBase (Just LeftFielder)
 
     it "should successfully parse basic Double" $
-      ("D8" :: Text) ~> parsePlayAction `shouldParse` Hit SecondBase (Just CenterFielder)
+      "D8" `shouldParseAsPlay` Hit SecondBase (Just CenterFielder)
 
     it "should successfully parse basic Triple" $
-      ("T9" :: Text) ~> parsePlayAction `shouldParse` Hit ThirdBase (Just RightFielder)
+      "T9" `shouldParseAsPlay` Hit ThirdBase (Just RightFielder)
 
     it "should successfully parse basic HomeRun" $
-      ("HR" :: Text) ~> parsePlayAction `shouldParse` Hit HomePlate Nothing
+      "HR" `shouldParseAsPlay` Hit HomePlate Nothing
 
     it "should successfully parse basic inside-the-park HomeRun" $
-      ("HR7" :: Text) ~> parsePlayAction `shouldParse` Hit HomePlate (Just LeftFielder)
+      "HR7" `shouldParseAsPlay` Hit HomePlate (Just LeftFielder)

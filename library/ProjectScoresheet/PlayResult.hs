@@ -56,7 +56,7 @@ parsePlayResult = do
   playAction <- parsePlayAction
   playDescriptors <- many parsePlayDescriptor
   playMovements <- many parsePlayMovement
-  return $ PlayResult playAction playDescriptors playMovements
+  pure $ PlayResult playAction playDescriptors playMovements
 
 parsePlayAction :: Parser PlayAction
 parsePlayAction =
@@ -69,13 +69,7 @@ parsePlayAction =
   try parseOther
 
 parseHit :: Parser PlayAction
-parseHit = do
-  base <- parseBase
-  fieldedBy <- try (Just <$> parseFieldPosition) <|> pure Nothing
-  pure $ Hit base fieldedBy
-
-parseFieldPosition :: Parser FieldPosition
-parseFieldPosition = fieldPositionFromId . digitToInt <$> digit
+parseHit = Hit <$> parseBase <*> optional parseFieldPosition
 
 parseOuts :: Parser PlayAction
 parseOuts = Outs <$> some parseOut
@@ -87,15 +81,13 @@ parseOut =
   try (RoutinePlay <$> parseFieldPositions)
 
 parseFieldersChoice :: Parser Out
-parseFieldersChoice = do
-  void $ string "FC"
-  FieldersChoice <$> parseFieldPositions
+parseFieldersChoice = string "FC" *> map FieldersChoice parseFieldPositions
 
 parseFieldPositions :: Parser [FieldPosition]
-parseFieldPositions = do
-  positions <- some parseFieldPosition
-  void $ many (satisfy (\c -> c == '(' || c == ')' || isDigit c))
-  return positions
+parseFieldPositions = some parseFieldPosition <* skipMany (satisfy (\c -> c == '(' || c == ')' || isDigit c))
+
+parseFieldPosition :: Parser FieldPosition
+parseFieldPosition = fieldPositionFromId . digitToInt <$> digit
 
 parseBase :: Parser Base
 parseBase =
@@ -107,18 +99,14 @@ parseBase =
 parseWalk :: Parser PlayAction
 parseWalk =
   try (char 'W' *> pure (Walk False)) <|>
-  try (string "IW" *> pure (Walk True))
+  try (string "IW" *> pure (Walk True)) <|>
+  try (char 'I' *> pure (Walk True))
 
 parsePlayActionTokenWithQualifier :: Text -> (Maybe Text -> a) -> Parser a
-parsePlayActionTokenWithQualifier token result = do
-  void $ string token
-  qualifier <- try parseQualifier <|> pure Nothing
-  pure $ result qualifier
+parsePlayActionTokenWithQualifier token result = string token *> (result <$> optional parseQualifier)
 
-parseQualifier :: Parser (Maybe Text)
-parseQualifier = do
-  void $ char '+'
-  Just . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
+parseQualifier :: Parser Text
+parseQualifier = char '+' *> (pack <$> many (satisfy (not . \c -> c == '/' || c == '.')))
 
 parseStrikeout :: Parser Out
 parseStrikeout = parsePlayActionTokenWithQualifier "K" Strikeout
@@ -132,7 +120,7 @@ parseHitByPitch = string "HP" *> pure HitByPitch
 parseError :: Parser PlayAction
 parseError = do
   void $ char 'E'
-  Error <$> parseFieldPosition
+  Error <$> try parseFieldPosition
 
 parseOther :: Parser PlayAction
 parseOther = Other . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
@@ -144,7 +132,7 @@ parsePlayDescriptor = do
 
 parsePlayMovement :: Parser Text
 parsePlayMovement = do
-  void (char '.' <|> char ';')
+  void (try (char '.') <|> char ';')
   pack <$> many (satisfy (not . \c -> c == ';'))
 
 
