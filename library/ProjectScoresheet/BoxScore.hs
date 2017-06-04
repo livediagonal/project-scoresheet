@@ -85,16 +85,27 @@ makeClassy_ ''TeamBoxScore
 initialTeamBoxScore :: TeamBoxScore
 initialTeamBoxScore = TeamBoxScore [] initialBattingLines []
 
+data BoxScoreCounts
+  = BoxScoreCounts
+  { boxScoreCountsHits :: HashMap Text Int
+  } deriving (Eq, Show)
+
+makeClassy_ ''BoxScoreCounts
+
+initialBoxScoreCount :: BoxScoreCounts
+initialBoxScoreCount = BoxScoreCounts HashMap.empty
+
 data BoxScore
   = BoxScore
   { boxScoreAway :: TeamBoxScore
   , boxScoreHome :: TeamBoxScore
+  , boxScoreStats :: BoxScoreCounts
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScore
 
 initialBoxScore :: BoxScore
-initialBoxScore = BoxScore initialTeamBoxScore initialTeamBoxScore
+initialBoxScore = BoxScore initialTeamBoxScore initialTeamBoxScore initialBoxScoreCount
 
 generateBoxScore :: [EventWithContext] -> BoxScore
 generateBoxScore events = foldr updateBoxScore initialBoxScore events
@@ -119,6 +130,10 @@ processStartEvent :: StartEvent -> BoxScore -> BoxScore
 processStartEvent StartEvent{..} =
   addPlayerToBoxScore startEventPlayerHome startEventPlayer startEventBattingPosition startEventFieldingPosition
 
+processSubEvent :: SubEvent -> BoxScore -> BoxScore
+processSubEvent SubEvent{..} =
+  addPlayerToBoxScore subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
+
 processPlayEvent :: PlayEvent -> BoxScore -> BoxScore
 processPlayEvent PlayEvent{..} =
   case isHit playEventResult of
@@ -126,14 +141,7 @@ processPlayEvent PlayEvent{..} =
     False -> id
 
 addHitToPlayer :: Text -> BoxScore -> BoxScore
-addHitToPlayer player boxScore = boxScore
-
-processSubEvent :: SubEvent -> BoxScore -> BoxScore
-processSubEvent SubEvent{..} =
-  addPlayerToBoxScore subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
-
-addPlayToBoxScore :: Text -> Text -> PlayResult -> BoxScore -> BoxScore
-addPlayToBoxScore _ _ _ boxScore = boxScore
+addHitToPlayer player = over _boxScoreStats (over _boxScoreCountsHits (HashMap.insertWith (+) player 1))
 
 addPlayerToBoxScore :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> BoxScore -> BoxScore
 addPlayerToBoxScore homeOrAway playerId battingPosition fieldingPosition = do
@@ -169,3 +177,7 @@ addPlayerToPitching :: Text -> FieldingPositionId -> [PitchingLine] -> [Pitching
 addPlayerToPitching playerId 1 pitching =
   pitching ++ [initialPitchingLine playerId]
 addPlayerToPitching _ _ pitching = pitching
+
+findBattingOrderPosition :: Text -> BattingOrder -> Maybe BattingOrderPosition
+findBattingOrderPosition playerId battingOrder =
+  map fst $ find (\x -> snd x == playerId) $ HashMap.toList battingOrder

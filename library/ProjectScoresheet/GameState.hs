@@ -2,6 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module ProjectScoresheet.GameState where
 
@@ -59,3 +60,21 @@ data EventWithContext = EventWithContext Event GameState
 
 initialContext :: EventWithContext
 initialContext = EventWithContext EmptyEvent unstartedGameState
+
+updateOrders :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> GameState -> GameState
+updateOrders hoa player battingPosition fieldingPosition =
+  case hoa of
+    Away ->
+      over _gameStateAwayBattingOrder (addToBattingOrder player battingPosition)
+      . over _gameStateAwayFieldingLineup (addToFieldingLineup player fieldingPosition)
+    Home ->
+      over _gameStateHomeBattingOrder (addToBattingOrder player battingPosition)
+      . over _gameStateHomeFieldingLineup (addToFieldingLineup player fieldingPosition)
+
+updateGameState :: Event -> GameState -> GameState
+updateGameState (StartEventType StartEvent{..}) =
+  updateOrders startEventPlayerHome startEventPlayer startEventBattingPosition startEventFieldingPosition
+updateGameState (SubEventType SubEvent{..}) =
+  updateOrders subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
+updateGameState _ = id
+

@@ -3,17 +3,14 @@
 
 module ProjectScoresheet.EventExpander where
 
-import ClassyPrelude
+import ClassyPrelude hiding (zipWith)
+import Data.List (zipWith)
 import Data.Csv
 import ProjectScoresheet.BoxScore
 import ProjectScoresheet.EventTypes
 import ProjectScoresheet.GameState
 import ProjectScoresheet.Print
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Vector as V
-
-addEventContext :: Event -> EventWithContext -> EventWithContext
-addEventContext event (EventWithContext _ context) = EventWithContext event context
 
 main :: IO ()
 main = do
@@ -21,4 +18,9 @@ main = do
   case (decode NoHeader csvEvents :: Either String (Vector Event)) of
     Left err -> print err
     Right v ->
-      putStrLn $ prettyPrintBoxScore $ generateBoxScore $ toList $ V.scanl (flip addEventContext) initialContext  v
+      let
+        events = toList v
+        gameStates = unstartedGameState : zipWith updateGameState events gameStates
+        eventsWithContext = zipWith EventWithContext events gameStates
+      in
+        putStrLn $ prettyPrintBoxScore $ generateBoxScore $ toList eventsWithContext

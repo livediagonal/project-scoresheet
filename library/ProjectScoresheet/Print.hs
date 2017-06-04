@@ -40,27 +40,27 @@ prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =
   unlines
     [ "Home:"
-    , prettyPrintTeamBoxScore boxScoreHome
+    , prettyPrintTeamBoxScore boxScoreStats boxScoreHome
     , "Away:"
-    , prettyPrintTeamBoxScore boxScoreAway
+    , prettyPrintTeamBoxScore boxScoreStats boxScoreAway
     ]
 
-prettyPrintTeamBoxScore :: TeamBoxScore -> Text
-prettyPrintTeamBoxScore TeamBoxScore{..} =
+prettyPrintTeamBoxScore :: BoxScoreCounts -> TeamBoxScore -> Text
+prettyPrintTeamBoxScore counts TeamBoxScore{..} =
   unlines
     [ "Batting: H"
-    , prettyPrintBattingLines batting
+    , prettyPrintBattingLines counts batting
     ]
 
-prettyPrintBattingLines :: BattingLines -> Text
-prettyPrintBattingLines battingLines =
-  unlines $ map (\i -> tshow (getClosed i) <> ": " <> prettyPrintBattingLineList (battingLines HashMap.! i)) $ tail [(minBound :: BattingOrderPosition) ..]
+prettyPrintBattingLines :: BoxScoreCounts -> BattingLines -> Text
+prettyPrintBattingLines counts battingLines =
+  unlines $ map (\i -> tshow (getClosed i) <> ": " <> prettyPrintBattingLineList counts (battingLines HashMap.! i)) $ tail [(minBound :: BattingOrderPosition) ..]
 
-prettyPrintBattingLineList :: [BattingLine] -> Text
-prettyPrintBattingLineList battingLines =
-  unlines $ map prettyPrintBattingLine battingLines
+prettyPrintBattingLineList :: BoxScoreCounts -> [BattingLine] -> Text
+prettyPrintBattingLineList counts battingLines =
+  unlines $ map (prettyPrintBattingLine counts) battingLines
 
-prettyPrintBattingLine :: BattingLine -> Text
-prettyPrintBattingLine BattingLine{..} = battingLinePlayerId <> " " <> tshow battingLineHits
+prettyPrintBattingLine :: BoxScoreCounts -> BattingLine -> Text
+prettyPrintBattingLine (BoxScoreCounts counts) BattingLine{..} = battingLinePlayerId <> " " <> tshow (HashMap.lookupDefault 0 battingLinePlayerId counts)
 
 
