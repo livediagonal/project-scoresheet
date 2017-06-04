@@ -8,7 +8,7 @@ module ProjectScoresheet.GameState where
 import ClassyPrelude hiding (toLower)
 import Control.Lens
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.BoxScore
+import ProjectScoresheet.EventTypes
 import ProjectScoresheet.PlayResult
 
 data GameState
@@ -42,7 +42,6 @@ data Game
   , gameAwayTeam :: !(Maybe Text)
   , gameDate :: !(Maybe Text)
   , gameStartTime :: !(Maybe Text)
-  , gameBoxScore :: BoxScore
   , gameGameState :: GameState
   , gameLastPlay :: !(Maybe PlayResult)
   } deriving (Eq, Show)
@@ -54,4 +53,9 @@ unstartedGameState :: GameState
 unstartedGameState = GameState emptyBattingOrder emptyBattingOrder emptyFieldingLineup emptyFieldingLineup 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 unstartedGame :: Game
-unstartedGame = Game Nothing Nothing Nothing Nothing initialBoxScore unstartedGameState Nothing
+unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState Nothing
+
+data EventWithContext = EventWithContext Event GameState
+
+initialContext :: EventWithContext
+initialContext = EventWithContext EmptyEvent unstartedGameState

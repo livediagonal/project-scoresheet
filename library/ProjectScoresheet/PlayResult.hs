@@ -135,6 +135,35 @@ parsePlayMovement = do
   void (try (char '.') <|> char ';')
   pack <$> many (satisfy (not . \c -> c == ';'))
 
+isBatterEvent :: PlayResult -> Bool
+isBatterEvent PlayResult{..} = False
+
+isHit :: PlayResult -> Bool
+isHit PlayResult{..} =
+  case playResultAction of
+    Hit _ _ -> True
+    _ -> False
+
+isAtBat :: PlayResult -> Bool
+isAtBat PlayResult{..} = False
+
+isBattedBall :: PlayResult -> Bool
+isBattedBall PlayResult{..} = False
+
+isStrikeout :: PlayResult -> Bool
+isStrikeout PlayResult{..} = False
+
+isDoublePlay :: PlayResult -> Bool
+isDoublePlay PlayResult{..} = False
+
+isTriplePlay :: PlayResult -> Bool
+isTriplePlay PlayResult{..} = False
+
+isWildPitch :: PlayResult -> Bool
+isWildPitch PlayResult{..} = False
+
+isPassedBall :: PlayResult -> Bool
+isPassedBall PlayResult{..} = False
 
 --   { playResultIsBatterEvent :: !Bool
 --   , playResultIsAtBat :: !Bool
@@ -159,29 +188,3 @@ parsePlayMovement = do
 --   , playResultDescriptors :: ![Text]
 --   , playResultMovements :: ![Text]
 
-isBatterEvent :: PlayResult -> Bool
-isBatterEvent PlayResult{..} = False
-
-isHit :: PlayResult -> Bool
-isHit PlayResult{..} = False
-
-isAtBat :: PlayResult -> Bool
-isAtBat PlayResult{..} = False
-
-isBattedBall :: PlayResult -> Bool
-isBattedBall PlayResult{..} = False
-
-isStrikeout :: PlayResult -> Bool
-isStrikeout PlayResult{..} = False
-
-isDoublePlay :: PlayResult -> Bool
-isDoublePlay PlayResult{..} = False
-
-isTriplePlay :: PlayResult -> Bool
-isTriplePlay PlayResult{..} = False
-
-isWildPitch :: PlayResult -> Bool
-isWildPitch PlayResult{..} = False
-
-isPassedBall :: PlayResult -> Bool
-isPassedBall PlayResult{..} = False

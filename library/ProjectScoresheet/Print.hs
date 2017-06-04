@@ -40,9 +40,9 @@ prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =
   unlines
     [ "Home:"
-    , prettyPrintTeamBoxScore homeBoxScore
+    , prettyPrintTeamBoxScore boxScoreHome
     , "Away:"
-    , prettyPrintTeamBoxScore awayBoxScore
+    , prettyPrintTeamBoxScore boxScoreAway
     ]
 
 prettyPrintTeamBoxScore :: TeamBoxScore -> Text
@@ -50,7 +50,6 @@ prettyPrintTeamBoxScore TeamBoxScore{..} =
   unlines
     [ "Batting: H"
     , prettyPrintBattingLines batting
-    -- , prettyPrintPitching pitching
     ]
 
 prettyPrintBattingLines :: BattingLines -> Text
