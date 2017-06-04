@@ -57,33 +57,30 @@ data BattingLine
 initialBattingLine :: Text -> BattingLine
 initialBattingLine playerId = BattingLine playerId 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
-type BattingLines = HashMap BattingOrderPosition [BattingLine]
+type BattingOrderMap = HashMap BattingOrderPosition [Text]
 
-initialBattingLines :: BattingLines
-initialBattingLines = HashMap.fromList $ zip [minBound ..] $ repeat []
+initialBattingOrderMap :: BattingOrderMap
+initialBattingOrderMap = HashMap.fromList $ zip [minBound ..] $ repeat []
 
 data PitchingLine
   = PitchingLine
-  { playerId :: !Text
-  , strikes :: !Int
+  { strikes :: !Int
   } deriving (Eq, Show)
 
 makeClassy_ ''PitchingLine
 
-initialPitchingLine :: Text -> PitchingLine
-initialPitchingLine playerId = PitchingLine playerId 0
+initialPitchingLine :: PitchingLine
+initialPitchingLine = PitchingLine 0
 
 data TeamBoxScore
   = TeamBoxScore
   { innings :: [InningLine]
-  , batting :: BattingLines
-  , pitching :: [PitchingLine]
   } deriving (Eq, Show)
 
 makeClassy_ ''TeamBoxScore
 
 initialTeamBoxScore :: TeamBoxScore
-initialTeamBoxScore = TeamBoxScore [] initialBattingLines []
+initialTeamBoxScore = TeamBoxScore []
 
 data BoxScoreCounts
   = BoxScoreCounts
@@ -98,15 +95,16 @@ initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty
 
 data BoxScore
   = BoxScore
-  { boxScoreAway :: TeamBoxScore
-  , boxScoreHome :: TeamBoxScore
-  , boxScoreStats :: BoxScoreCounts
+  { boxScoreStats :: BoxScoreCounts
+  -- , boxScorePitchingLines :: HashMap Text PitchingLine
+  , boxScoreHomeBattingOrderMap :: BattingOrderMap
+  , boxScoreAwayBattingOrderMap :: BattingOrderMap
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScore
 
 initialBoxScore :: BoxScore
-initialBoxScore = BoxScore initialTeamBoxScore initialTeamBoxScore initialBoxScoreCount
+initialBoxScore = BoxScore initialBoxScoreCount initialBattingOrderMap initialBattingOrderMap 
 
 generateBoxScore :: [EventWithContext] -> BoxScore
 generateBoxScore events = foldr updateBoxScore initialBoxScore events
@@ -148,40 +146,24 @@ addRBIToPlayer :: Text -> Int -> BoxScore -> BoxScore
 addRBIToPlayer player rbi = over _boxScoreStats (over _boxScoreCountsRBI (HashMap.insertWith (+) player rbi))
 
 addPlayerToBoxScore :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> BoxScore -> BoxScore
-addPlayerToBoxScore homeOrAway playerId battingPosition fieldingPosition = do
-  let addPlayer = addPlayerToTeamBoxScore playerId battingPosition fieldingPosition
-  case homeOrAway of
-    Away -> over _boxScoreAway addPlayer
-    Home -> over _boxScoreHome addPlayer
-
-addPlayerToTeamBoxScore :: Text -> BattingOrderPosition -> FieldingPositionId -> TeamBoxScore -> TeamBoxScore
-addPlayerToTeamBoxScore playerId battingLineId fieldingPosition tbs@TeamBoxScore{..} =
-    tbs
-    { batting = addPlayerToBatting playerId battingLineId batting
-    , pitching = addPlayerToPitching playerId fieldingPosition pitching
-    }
-
-addPlayerToBatting :: Text -> BattingOrderPosition -> BattingLines -> BattingLines
-addPlayerToBatting _ 0 battingLines = battingLines
-addPlayerToBatting playerId battingLineId battingLines =
-  let
-    initialPlayerBattingLine = initialBattingLine playerId
+addPlayerToBoxScore homeOrAway player battingPosition fieldingPosition =
+  let 
+    addPlayer = addPlayerToBattingOrderMap battingPosition player
   in
-    case HashMap.lookup battingLineId battingLines of
-      Nothing -> HashMap.insert battingLineId [initialPlayerBattingLine] battingLines
-      Just battingLineList ->
-        case battingLineContains playerId battingLineList of
-          True -> battingLines
-          False -> HashMap.insert battingLineId (battingLineList ++ [initialPlayerBattingLine]) battingLines
+    case homeOrAway of
+      Away -> over _boxScoreAwayBattingOrderMap addPlayer
+      Home -> over _boxScoreHomeBattingOrderMap addPlayer
 
-battingLineContains :: Text -> [BattingLine] -> Bool
-battingLineContains playerId = any (\bl -> battingLinePlayerId bl == playerId)
+addPlayerToBattingOrderMap :: BattingOrderPosition -> Text -> BattingOrderMap -> BattingOrderMap
+addPlayerToBattingOrderMap position player battingOrderMap = 
+  let
+    players = battingOrderMap HashMap.! position
+  in 
+    case any (==player) players of
+      True -> battingOrderMap
+      False -> HashMap.insertWith (++) position [player] battingOrderMap
 
-addPlayerToPitching :: Text -> FieldingPositionId -> [PitchingLine] -> [PitchingLine]
-addPlayerToPitching playerId 1 pitching =
-  pitching ++ [initialPitchingLine playerId]
-addPlayerToPitching _ _ pitching = pitching
-
-findBattingOrderPosition :: Text -> BattingOrder -> Maybe BattingOrderPosition
-findBattingOrderPosition playerId battingOrder =
-  map fst $ find (\x -> snd x == playerId) $ HashMap.toList battingOrder
+-- addPlayerToPitching :: Text -> FieldingPositionId -> [PitchingLine] -> [PitchingLine]
+-- addPlayerToPitching playerId 1 pitching =
+--   pitching ++ [initialPitchingLine]
+-- addPlayerToPitching _ _ pitching = pitching
