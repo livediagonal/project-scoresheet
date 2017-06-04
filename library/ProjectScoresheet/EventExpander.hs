@@ -23,4 +23,4 @@ main = do
         gameStates = unstartedGameState : zipWith updateGameState events gameStates
         eventsWithContext = zipWith EventWithContext events gameStates
       in
-        putStrLn $ prettyPrintBoxScore $ generateBoxScore $ toList eventsWithContext
+        putStrLn $ prettyPrintBoxScore $ generateBoxScore eventsWithContext

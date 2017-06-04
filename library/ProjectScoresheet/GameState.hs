@@ -56,7 +56,7 @@ unstartedGameState = GameState emptyBattingOrder emptyBattingOrder emptyFielding
 unstartedGame :: Game
 unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState Nothing
 
-data EventWithContext = EventWithContext Event GameState
+data EventWithContext = EventWithContext Event GameState deriving (Eq, Show)
 
 initialContext :: EventWithContext
 initialContext = EventWithContext EmptyEvent unstartedGameState

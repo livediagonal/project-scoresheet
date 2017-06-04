@@ -61,6 +61,8 @@ prettyPrintBattingLineList counts battingLines =
   unlines $ map (prettyPrintBattingLine counts) battingLines
 
 prettyPrintBattingLine :: BoxScoreCounts -> BattingLine -> Text
-prettyPrintBattingLine (BoxScoreCounts counts) BattingLine{..} = battingLinePlayerId <> " " <> tshow (HashMap.lookupDefault 0 battingLinePlayerId counts)
+prettyPrintBattingLine (BoxScoreCounts hits rbis) BattingLine{..} = battingLinePlayerId
+  <> " " <> tshow (HashMap.lookupDefault 0 battingLinePlayerId hits)
+  <> " " <> tshow (HashMap.lookupDefault 0 battingLinePlayerId rbis)
 
 

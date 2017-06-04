@@ -88,12 +88,13 @@ initialTeamBoxScore = TeamBoxScore [] initialBattingLines []
 data BoxScoreCounts
   = BoxScoreCounts
   { boxScoreCountsHits :: HashMap Text Int
+  , boxScoreCountsRBI :: HashMap Text Int
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScoreCounts
 
 initialBoxScoreCount :: BoxScoreCounts
-initialBoxScoreCount = BoxScoreCounts HashMap.empty
+initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty
 
 data BoxScore
   = BoxScore
@@ -136,12 +137,15 @@ processSubEvent SubEvent{..} =
 
 processPlayEvent :: PlayEvent -> BoxScore -> BoxScore
 processPlayEvent PlayEvent{..} =
-  case isHit playEventResult of
-    True -> addHitToPlayer playEventPlayerId
-    False -> id
+  over boxScore (addHitsToPlayer playEventPlayerId (if isHit playEventResult then 1 else 0))
+  . over boxScore (addRBIToPlayer playEventPlayerId (numRBI playEventResult))
 
-addHitToPlayer :: Text -> BoxScore -> BoxScore
-addHitToPlayer player = over _boxScoreStats (over _boxScoreCountsHits (HashMap.insertWith (+) player 1))
+addHitsToPlayer :: Text -> Int -> BoxScore -> BoxScore
+addHitsToPlayer player numHits =
+  over _boxScoreStats (over _boxScoreCountsHits (HashMap.insertWith (+) player numHits))
+
+addRBIToPlayer :: Text -> Int -> BoxScore -> BoxScore
+addRBIToPlayer player rbi = over _boxScoreStats (over _boxScoreCountsRBI (HashMap.insertWith (+) player rbi))
 
 addPlayerToBoxScore :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> BoxScore -> BoxScore
 addPlayerToBoxScore homeOrAway playerId battingPosition fieldingPosition = do
@@ -151,8 +155,8 @@ addPlayerToBoxScore homeOrAway playerId battingPosition fieldingPosition = do
     Home -> over _boxScoreHome addPlayer
 
 addPlayerToTeamBoxScore :: Text -> BattingOrderPosition -> FieldingPositionId -> TeamBoxScore -> TeamBoxScore
-addPlayerToTeamBoxScore playerId battingLineId fieldingPosition teamBoxScore@TeamBoxScore{..} =
-    teamBoxScore
+addPlayerToTeamBoxScore playerId battingLineId fieldingPosition tbs@TeamBoxScore{..} =
+    tbs
     { batting = addPlayerToBatting playerId battingLineId batting
     , pitching = addPlayerToPitching playerId fieldingPosition pitching
     }

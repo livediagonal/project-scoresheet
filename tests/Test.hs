@@ -14,7 +14,7 @@ main = do
   defaultMain tests
 
 spec :: Spec
-spec = describe "PlayResult" $
+spec = describe "PlayResult" $ do
 
   describe "parsePlayAction" $ do
 
@@ -41,3 +41,15 @@ spec = describe "PlayResult" $
 
     it "should successfully parse basic inside-the-park HomeRun" $
       "HR7" `shouldParseAsPlay` Hit HomePlate (Just LeftFielder)
+
+  describe "parsePlayMovements" $ do
+    let
+      shouldParseAsMovement :: Text -> PlayMovement -> Expectation
+      shouldParseAsMovement t pm =
+        t ~> parsePlayMovement `shouldParse` pm
+
+    it "should successfully parse basic RBI" $
+      ".3-H" `shouldParseAsMovement` PlayMovement ThirdBase HomePlate True
+
+    it "should successfully parse out at home" $
+      ".3XH" `shouldParseAsMovement` PlayMovement ThirdBase HomePlate False

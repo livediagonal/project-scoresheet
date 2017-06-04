@@ -19,7 +19,7 @@ data PlayResult
   = PlayResult
   { playResultAction :: !PlayAction
   , playResultDescriptors :: ![Text]
-  , playResultMovements :: ![Text]
+  , playResultMovements :: ![PlayMovement]
   } deriving (Eq, Show, Generic)
 
 instance FromField PlayResult where
@@ -130,10 +130,23 @@ parsePlayDescriptor = do
   void $ char '/'
   pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 
-parsePlayMovement :: Parser Text
+parseNumericBase :: Parser Base
+parseNumericBase =
+  try (char 'B' *> pure HomePlate) <|>
+  try (char '1' *> pure FirstBase) <|>
+  try (char '2' *> pure SecondBase) <|>
+  try (char '3' *> pure ThirdBase) <|>
+  char 'H' *> pure HomePlate
+
+parsePlayMovement :: Parser PlayMovement
 parsePlayMovement = do
-  void (try (char '.') <|> char ';')
-  pack <$> many (satisfy (not . \c -> c == ';'))
+  void $ try (char '.') <|> char ';'
+  startBase <- parseNumericBase
+  isSuccess <- try (char 'X' *> pure False) <|> anyChar *> pure True
+  endBase <- parseNumericBase
+  pure $ PlayMovement startBase endBase isSuccess
+
+data PlayMovement = PlayMovement Base Base Bool deriving (Eq, Show)
 
 isBatterEvent :: PlayResult -> Bool
 isBatterEvent PlayResult{..} = False
@@ -143,6 +156,13 @@ isHit PlayResult{..} =
   case playResultAction of
     Hit _ _ -> True
     _ -> False
+
+isRBI :: PlayMovement -> Bool
+isRBI (PlayMovement _ HomePlate True) = True
+isRBI _ = False
+
+numRBI :: PlayResult -> Int
+numRBI PlayResult{..} = length $ filter isRBI playResultMovements
 
 isAtBat :: PlayResult -> Bool
 isAtBat PlayResult{..} = False
