@@ -44,6 +44,7 @@ data Out
 data PlayAction
   = Outs [Out]
   | Hit Base (Maybe FieldingPosition)
+  | StolenBase Base
   | Walk Bool
   | NoPlay (Maybe Text)
   | Other Text
@@ -60,6 +61,7 @@ parsePlayResult = do
 
 parsePlayAction :: Parser PlayAction
 parsePlayAction =
+  try parseStolenBase <|>
   try parseHit <|>
   try parseOuts <|>
   try parseWalk <|>
@@ -67,6 +69,9 @@ parsePlayAction =
   try parseHitByPitch <|>
   try parseError <|>
   try parseOther
+
+parseStolenBase :: Parser PlayAction
+parseStolenBase = string "SB" *> (StolenBase <$> parseNumericBase)
 
 parseHit :: Parser PlayAction
 parseHit = Hit <$> parseBase <*> optional parseFieldingPosition
@@ -92,6 +97,7 @@ parseFieldingPosition = fieldPositionFromId . digitToInt <$> digit
 parseBase :: Parser Base
 parseBase =
   try (char 'S' *> pure FirstBase) <|>
+  try (string "DGR" *> pure SecondBase) <|>
   try (char 'D' *> pure SecondBase) <|>
   try (char 'T' *> pure ThirdBase) <|>
   try (string "HR" *> pure HomePlate)
@@ -144,6 +150,7 @@ parsePlayMovement = do
   startBase <- parseNumericBase
   isSuccess <- try (char 'X' *> pure False) <|> anyChar *> pure True
   endBase <- parseNumericBase
+  void $ many (satisfy (\c -> c == '(' || c == ')' || isDigit c))
   pure $ PlayMovement startBase endBase isSuccess
 
 data PlayMovement = PlayMovement Base Base Bool deriving (Eq, Show)
@@ -161,8 +168,20 @@ isRBI :: PlayMovement -> Bool
 isRBI (PlayMovement _ HomePlate True) = True
 isRBI _ = False
 
+fromBool :: Bool -> Int
+fromBool False = 0
+fromBool True = 1
+
 numRBI :: PlayResult -> Int
-numRBI PlayResult{..} = length $ filter isRBI playResultMovements
+numRBI pr@PlayResult{..} =
+  fromBool (isHomeRun pr) +
+  length (filter isRBI playResultMovements)
+
+isHomeRun :: PlayResult -> Bool
+isHomeRun PlayResult{..} =
+  case playResultAction of
+    Hit HomePlate _ -> True
+    _ -> False
 
 isAtBat :: PlayResult -> Bool
 isAtBat PlayResult{..} = False
