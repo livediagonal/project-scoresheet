@@ -18,7 +18,7 @@ prettyPrintGame Game{..} =
   unlines
     [ tshow (fromMaybe "" gameAwayTeam) <> "@" <> tshow (fromMaybe "" gameHomeTeam)
     , ""
-    , prettyPrintGameState gameState
+    , prettyPrintGameState gameGameState
     ]
 
 prettyPrintGameState :: GameState -> Text

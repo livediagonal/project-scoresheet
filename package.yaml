@@ -24,6 +24,9 @@ library:
     - classy-prelude
     - closed
     - finite-typelits
+    - fixed-vector
+    - lens
+    - template-haskell
     - text
     - unordered-containers
     - vector
