@@ -18,7 +18,7 @@ import ProjectScoresheet.BaseballTypes
 data PlayResult
   = PlayResult
   { playResultAction :: !PlayAction
-  , playResultDescriptors :: ![Text]
+  , playResultDescriptors :: ![PlayDescriptor]
   , playResultMovements :: ![PlayMovement]
   } deriving (Eq, Show, Generic)
 
@@ -51,6 +51,14 @@ data PlayAction
   | HitByPitch
   | Error FieldingPosition
   deriving (Eq, Show)
+
+data PlayDescriptor
+  = SacrificeFly
+  | SacrificeBunt
+  | OtherDescriptor Text
+  deriving (Eq, Show)
+
+data PlayMovement = PlayMovement Base Base Bool deriving (Eq, Show)
 
 parsePlayResult :: Parser PlayResult
 parsePlayResult = do
@@ -131,10 +139,12 @@ parseError = do
 parseOther :: Parser PlayAction
 parseOther = Other . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 
-parsePlayDescriptor :: Parser Text
+parsePlayDescriptor :: Parser PlayDescriptor
 parsePlayDescriptor = do
   void $ char '/'
-  pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
+  try (string "SF" *> pure SacrificeFly) <|>
+    try (string "SH" *> pure SacrificeBunt) <|>
+    OtherDescriptor . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 
 parseNumericBase :: Parser Base
 parseNumericBase =
@@ -152,8 +162,6 @@ parsePlayMovement = do
   endBase <- parseNumericBase
   void $ many (satisfy (\c -> c == '(' || c == ')' || isDigit c))
   pure $ PlayMovement startBase endBase isSuccess
-
-data PlayMovement = PlayMovement Base Base Bool deriving (Eq, Show)
 
 isBatterEvent :: PlayResult -> Bool
 isBatterEvent PlayResult{..} = False
@@ -184,7 +192,23 @@ isHomeRun PlayResult{..} =
     _ -> False
 
 isAtBat :: PlayResult -> Bool
-isAtBat PlayResult{..} = False
+isAtBat pr@PlayResult{..} =
+  case playResultAction of
+    Walk _ -> False
+    HitByPitch -> False
+    NoPlay _ -> False
+    Other _ -> False
+    StolenBase _ -> False
+    Outs _ -> not $ isSacrifice pr
+    _ -> True
+
+isSacrifice :: PlayResult -> Bool
+isSacrifice (PlayResult _ descriptors _) = any isSacrificeDescriptor descriptors
+
+isSacrificeDescriptor :: PlayDescriptor -> Bool
+isSacrificeDescriptor SacrificeFly = True
+isSacrificeDescriptor SacrificeBunt = True
+isSacrificeDescriptor _ = False
 
 isBattedBall :: PlayResult -> Bool
 isBattedBall PlayResult{..} = False

@@ -84,14 +84,15 @@ initialTeamBoxScore = TeamBoxScore []
 
 data BoxScoreCounts
   = BoxScoreCounts
-  { boxScoreCountsHits :: HashMap Text Int
+  { boxScoreCountsAtBats :: HashMap Text Int
+  , boxScoreCountsHits :: HashMap Text Int
   , boxScoreCountsRBI :: HashMap Text Int
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScoreCounts
 
 initialBoxScoreCount :: BoxScoreCounts
-initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty
+initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty HashMap.empty
 
 data BoxScore
   = BoxScore
@@ -135,19 +136,22 @@ processSubEvent SubEvent{..} =
 
 processPlayEvent :: PlayEvent -> BoxScore -> BoxScore
 processPlayEvent PlayEvent{..} =
-  over boxScore (addHitsToPlayer playEventPlayerId (if isHit playEventResult then 1 else 0))
+  over boxScore (addAtBatsToPlayer playEventPlayerId (if isAtBat playEventResult then 1 else 0))
+  . over boxScore (addHitsToPlayer playEventPlayerId (if isHit playEventResult then 1 else 0))
   . over boxScore (addRBIToPlayer playEventPlayerId (numRBI playEventResult))
 
+addAtBatsToPlayer :: Text -> Int -> BoxScore -> BoxScore
+addAtBatsToPlayer player numAtBats = over _boxScoreStats (over _boxScoreCountsAtBats (HashMap.insertWith (+) player numAtBats))
+
 addHitsToPlayer :: Text -> Int -> BoxScore -> BoxScore
-addHitsToPlayer player numHits =
-  over _boxScoreStats (over _boxScoreCountsHits (HashMap.insertWith (+) player numHits))
+addHitsToPlayer player numHits = over _boxScoreStats (over _boxScoreCountsHits (HashMap.insertWith (+) player numHits))
 
 addRBIToPlayer :: Text -> Int -> BoxScore -> BoxScore
 addRBIToPlayer player rbi = over _boxScoreStats (over _boxScoreCountsRBI (HashMap.insertWith (+) player rbi))
 
 addPlayerToBoxScore :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> BoxScore -> BoxScore
 addPlayerToBoxScore homeOrAway player battingPosition fieldingPosition =
-  let 
+  let
     addPlayer = addPlayerToBattingOrderMap battingPosition player
   in
     case homeOrAway of
@@ -158,8 +162,8 @@ addPlayerToBattingOrderMap :: BattingOrderPosition -> Text -> BattingOrderMap ->
 addPlayerToBattingOrderMap position player battingOrderMap = 
   let
     players = battingOrderMap HashMap.! position
-  in 
-    case any (==player) players of
+  in
+    case player `elem` players of
       True -> battingOrderMap
       False -> HashMap.insertWith (++) position [player] battingOrderMap
 
