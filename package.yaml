@@ -41,6 +41,7 @@ tests:
     - hspec-attoparsec
     - tasty
     - tasty-hspec
+    - unordered-containers
     ghc-options:
     - -rtsopts
     - -threaded

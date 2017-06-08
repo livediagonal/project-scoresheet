@@ -12,15 +12,18 @@ import ProjectScoresheet.GameState
 import ProjectScoresheet.Print
 import qualified Data.ByteString.Lazy as BL
 
-main :: IO ()
-main = do
-  csvEvents <- BL.readFile "testgame.txt"
+boxScoreFromFile :: String -> IO BoxScore
+boxScoreFromFile file = do
+  csvEvents <- BL.readFile file
   case (decode NoHeader csvEvents :: Either String (Vector Event)) of
-    Left err -> print err
+    Left err -> fail err
     Right v ->
       let
         events = toList v
         gameStates = unstartedGameState : zipWith updateGameState events gameStates
         eventsWithContext = zipWith EventWithContext events gameStates
       in
-        putStrLn $ prettyPrintBoxScore $ generateBoxScore eventsWithContext
+        pure $ generateBoxScore eventsWithContext
+
+main :: IO ()
+main = prettyPrintBoxScore <$> boxScoreFromFile "testgame.txt" >>= putStrLn
