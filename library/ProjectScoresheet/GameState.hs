@@ -71,10 +71,44 @@ updateOrders hoa player battingPosition fieldingPosition =
       over _gameStateHomeBattingOrder (addToBattingOrder player battingPosition)
       . over _gameStateHomeFieldingLineup (addToFieldingLineup player fieldingPosition)
 
+removePlayerFromBase :: Base -> GameState -> GameState
+removePlayerFromBase base gs =
+  case base of
+    FirstBase -> gs { gameStateRunnerOnFirstId = Nothing }
+    SecondBase -> gs { gameStateRunnerOnSecondId = Nothing }
+    ThirdBase -> gs { gameStateRunnerOnThirdId = Nothing }
+    _ -> gs
+
+addPlayerToBase :: Maybe Text -> Base -> GameState -> GameState
+addPlayerToBase playerId base gs =
+  case base of
+    FirstBase -> gs { gameStateRunnerOnFirstId = playerId }
+    SecondBase -> gs { gameStateRunnerOnSecondId = playerId }
+    ThirdBase -> gs { gameStateRunnerOnThirdId = playerId }
+    _ -> gs
+
+playerOnBase :: Base -> GameState -> Maybe Text
+playerOnBase base GameState{..} =
+  case base of
+    FirstBase -> gameStateRunnerOnFirstId
+    SecondBase -> gameStateRunnerOnSecondId
+    ThirdBase -> gameStateRunnerOnThirdId
+    _ -> Nothing
+
+applyRunnerMovement :: PlayMovement -> GameState -> GameState
+applyRunnerMovement (PlayMovement startBase _ False) gs = removePlayerFromBase startBase gs
+applyRunnerMovement (PlayMovement startBase endBase True) gs =
+  let
+    playerId = playerOnBase startBase gs
+  in
+    addPlayerToBase playerId endBase $ removePlayerFromBase startBase gs
+
 updateGameState :: Event -> GameState -> GameState
 updateGameState (StartEventType StartEvent{..}) =
   updateOrders startEventPlayerHome startEventPlayer startEventBattingPosition startEventFieldingPosition
 updateGameState (SubEventType SubEvent{..}) =
   updateOrders subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
+updateGameState (PlayEventType (PlayEvent _ _ _ _ _ (PlayResult _ _ movements))) =
+  \state -> foldr applyRunnerMovement state movements
 updateGameState _ = id
 
