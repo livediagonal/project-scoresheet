@@ -5,9 +5,10 @@
 
 module ProjectScoresheet.Print where
 
-import ClassyPrelude hiding (tail)
+import ClassyPrelude hiding (tail, intercalate)
 import Closed
 import Data.List (tail)
+import Data.Text (intercalate)
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.GameState
 import ProjectScoresheet.BoxScore
@@ -39,9 +40,15 @@ prettyPrintBattingOrder battingOrder =
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =
   unlines
-    [ "Home:"
+    [ "Home"
+    , "-------------------"
+    , "Batters   AB H R W SO"
+    , "-------------------"
     , prettyPrintBattingLines boxScoreHomeBattingOrderMap boxScoreStats
-    , "Away:"
+    , "Away"
+    , "-------------------"
+    , "Batters   AB H R W SO"
+    , "-------------------"
     , prettyPrintBattingLines boxScoreAwayBattingOrderMap boxScoreStats
     ]
 
@@ -52,14 +59,13 @@ prettyPrintBattingLines bom counts =
       battingLineForSlot :: [Text]
       battingLineForSlot = bom HashMap.! i
     in
-      tshow (getClosed i) <> ": "
-      <> unlines (map (prettyPrintBattingLine counts) battingLineForSlot)
+      intercalate "\n " (map (prettyPrintBattingLine counts) battingLineForSlot)
   ) $ tail [(minBound :: BattingOrderPosition) ..]
 
 prettyPrintBattingLine :: BoxScoreCounts -> Text -> Text
-prettyPrintBattingLine (BoxScoreCounts atBats hits rbis) player = player
-  <> " " <> tshow (HashMap.lookupDefault 0 player atBats)
-  <> " " <> tshow (HashMap.lookupDefault 0 player hits)
+prettyPrintBattingLine (BoxScoreCounts atBats hits rbis walks strikeouts) player = player
+  <> "   " <> tshow (HashMap.lookupDefault 0 player atBats)
+  <> "  " <> tshow (HashMap.lookupDefault 0 player hits)
   <> " " <> tshow (HashMap.lookupDefault 0 player rbis)
-
-
+  <> " " <> tshow (HashMap.lookupDefault 0 player walks)
+  <> "  " <> tshow (HashMap.lookupDefault 0 player strikeouts)

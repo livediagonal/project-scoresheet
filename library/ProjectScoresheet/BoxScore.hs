@@ -27,36 +27,6 @@ makeClassy_ ''InningLine
 initialInningLine :: InningLine
 initialInningLine = InningLine 0 0 0
 
-data BattingLine
-  = BattingLine
-  { battingLinePlayerId :: !Text
-  , battingLineAtBats :: !Int
-  , battingLinePlateAppearances :: !Int
-  , battingLineHits :: !Int
-  , battingLineRuns :: !Int
-  , battingLineSingles :: !Int
-  , battingLineDoubles :: !Int
-  , battingLineTriples :: !Int
-  , battingLineHomeRuns :: !Int
-  , battingLineGrandSlams :: !Int
-  , battingLineRunsBattingIn :: !Int
-  , battingLineTwoOutRunsBattingIn :: !Int
-  , battingLineLeftOnBase :: !Int
-  , battingLineWalks :: !Int
-  , battingLineIntentionalWalks :: !Int
-  , battingLineStrikeOuts :: !Int
-  , battingLineGroundIntoDoublePlays :: !Int
-  , battingLineSacrificeBunts :: !Int
-  , battingLineSacrificeFlys :: !Int
-  , battingLineHitByPitches :: !Int
-  , battingLineStolenBases :: !Int
-  , battingLineCaughtStealing :: !Int
-  , battingLineReachedOnErrors :: !Int
-  } deriving (Eq, Show)
-
-initialBattingLine :: Text -> BattingLine
-initialBattingLine playerId = BattingLine playerId 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-
 type BattingOrderMap = HashMap BattingOrderPosition [Text]
 
 initialBattingOrderMap :: BattingOrderMap
@@ -87,12 +57,14 @@ data BoxScoreCounts
   { boxScoreCountsAtBats :: HashMap Text Int
   , boxScoreCountsHits :: HashMap Text Int
   , boxScoreCountsRBI :: HashMap Text Int
+  , boxScoreCountsBB :: HashMap Text Int
+  , boxScoreCountsStrikeouts :: HashMap Text Int
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScoreCounts
 
 initialBoxScoreCount :: BoxScoreCounts
-initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty HashMap.empty
+initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty
 
 data BoxScore
   = BoxScore
@@ -139,6 +111,8 @@ processPlayEvent PlayEvent{..} =
   over boxScore (addAtBatsToPlayer playEventPlayerId (if isAtBat playEventResult then 1 else 0))
   . over boxScore (addHitsToPlayer playEventPlayerId (if isHit playEventResult then 1 else 0))
   . over boxScore (addRBIToPlayer playEventPlayerId (numRBI playEventResult))
+  . over boxScore (addWalkToPlayer playEventPlayerId (isWalk playEventResult))
+  . over boxScore (addStrikeoutToPlayer playEventPlayerId (isStrikeout playEventResult))
 
 addAtBatsToPlayer :: Text -> Int -> BoxScore -> BoxScore
 addAtBatsToPlayer player numAtBats = over _boxScoreStats (over _boxScoreCountsAtBats (HashMap.insertWith (+) player numAtBats))
@@ -148,6 +122,12 @@ addHitsToPlayer player numHits = over _boxScoreStats (over _boxScoreCountsHits (
 
 addRBIToPlayer :: Text -> Int -> BoxScore -> BoxScore
 addRBIToPlayer player rbi = over _boxScoreStats (over _boxScoreCountsRBI (HashMap.insertWith (+) player rbi))
+
+addWalkToPlayer :: Text -> Bool -> BoxScore -> BoxScore
+addWalkToPlayer player bb = over _boxScoreStats (over _boxScoreCountsBB (HashMap.insertWith (+) player (if bb then 1 else 0)))
+
+addStrikeoutToPlayer :: Text -> Bool -> BoxScore -> BoxScore
+addStrikeoutToPlayer player strikeout = over _boxScoreStats (over _boxScoreCountsStrikeouts (HashMap.insertWith (+) player (if strikeout then 1 else 0)))
 
 addPlayerToBoxScore :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> BoxScore -> BoxScore
 addPlayerToBoxScore homeOrAway player battingPosition fieldingPosition =
