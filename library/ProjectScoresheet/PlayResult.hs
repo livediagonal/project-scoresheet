@@ -45,6 +45,7 @@ data PlayAction
   = Outs [Out]
   | Hit Base (Maybe FieldingPosition)
   | StolenBase Base
+  | WildPitch
   | Walk Bool
   | NoPlay (Maybe Text)
   | Other Text
@@ -72,6 +73,7 @@ parsePlayAction =
   try parseStolenBase <|>
   try parseHit <|>
   try parseOuts <|>
+  try parseWildPitch <|>
   try parseWalk <|>
   try parseNoPlay <|>
   try parseHitByPitch <|>
@@ -109,6 +111,10 @@ parseBase =
   try (char 'D' *> pure SecondBase) <|>
   try (char 'T' *> pure ThirdBase) <|>
   try (string "HR" *> pure HomePlate)
+
+parseWildPitch :: Parser PlayAction
+parseWildPitch =
+  try (string "WP" *> pure WildPitch)
 
 parseWalk :: Parser PlayAction
 parseWalk =
@@ -196,11 +202,30 @@ isAtBat pr@PlayResult{..} =
   case playResultAction of
     Walk _ -> False
     HitByPitch -> False
+    WildPitch -> False
     NoPlay _ -> False
     Other _ -> False
     StolenBase _ -> False
     Outs _ -> not $ isSacrifice pr
     _ -> True
+
+isWalk :: PlayResult -> Bool
+isWalk PlayResult{..} =
+  case playResultAction of
+    Walk _ -> True
+    _ -> False
+
+isStrikeout :: PlayResult -> Bool
+isStrikeout PlayResult{..} =
+  case playResultAction of
+    Outs outs -> any isStrikeoutOut outs
+    _ -> False
+
+isStrikeoutOut :: Out -> Bool
+isStrikeoutOut out =
+  case out of
+    Strikeout _ -> True
+    _ -> False
 
 isSacrifice :: PlayResult -> Bool
 isSacrifice (PlayResult _ descriptors _) = any isSacrificeDescriptor descriptors
@@ -213,9 +238,6 @@ isSacrificeDescriptor _ = False
 isBattedBall :: PlayResult -> Bool
 isBattedBall PlayResult{..} = False
 
-isStrikeout :: PlayResult -> Bool
-isStrikeout PlayResult{..} = False
-
 isDoublePlay :: PlayResult -> Bool
 isDoublePlay PlayResult{..} = False
 
@@ -227,27 +249,4 @@ isWildPitch PlayResult{..} = False
 
 isPassedBall :: PlayResult -> Bool
 isPassedBall PlayResult{..} = False
-
---   { playResultIsBatterEvent :: !Bool
---   , playResultIsAtBat :: !Bool
---   , playResultIsHit :: !Bool
---   , playResultIsBattedBall :: !Bool
---   , playResultIsBunt :: !Bool
---   , playResultHitLocation :: !(Maybe Text)
---   , playResultIsStrikeout :: !Bool
---   , playResultIsDoublePlay :: !Bool
---   , playResultIsTriplePlay :: !Bool
---   , playResultIsWildPitch :: !Bool
---   , playResultIsPassedBall :: !Bool
---   , playResultNumErrors :: !Int
---   , playResultFieldedById :: !(Maybe Text)
---   , playResultDidRunnerOnFirstSteal :: !Bool
---   , playResultDidRunnerOnSecondSteal :: !Bool
---   , playResultDidRunnerOnThirdSteal :: !Bool
---   , playResultWasRunnerOnFirstCaughtStealing :: !Bool
---   , playResultWasRunnerOnSecondCaughtStealing :: !Bool
---   , playResultWasRunnerOnThirdCaughtStealing :: !Bool
---   , playResultAction :: !Text
---   , playResultDescriptors :: ![Text]
---   , playResultMovements :: ![Text]
 
