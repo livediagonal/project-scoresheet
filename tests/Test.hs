@@ -28,6 +28,9 @@ spec = describe "PlayResult" $ do
         t ~> parsePlayAction `shouldParse` pa
         leftover (t ~?> parsePlayAction) `shouldSatisfy` \str -> fromMaybe "" str == ""
 
+    it "should successfully parse HitByPitch" $
+      "HP" `shouldParseAsPlay` HitByPitch
+
     it "should successfully parse Strikeout" $
       "K" `shouldParseAsPlay` Outs [Strikeout Nothing]
 

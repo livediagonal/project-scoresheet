@@ -17,13 +17,12 @@ boxScoreFromFile file = do
   csvEvents <- BL.readFile file
   case (decode NoHeader csvEvents :: Either String (Vector Event)) of
     Left err -> fail err
-    Right v ->
+    Right v -> do
       let
         events = toList v
         gameStates = unstartedGameState : zipWith updateGameState events gameStates
         eventsWithContext = zipWith EventWithContext events gameStates
-      in
-        pure $ generateBoxScore eventsWithContext
+      pure $ generateBoxScore eventsWithContext
 
 main :: IO ()
 main = prettyPrintBoxScore <$> boxScoreFromFile "testgame.txt" >>= putStrLn

@@ -57,9 +57,10 @@ prettyPrintBattingLines bom counts =
   ) $ tail [(minBound :: BattingOrderPosition) ..]
 
 prettyPrintBattingLine :: BoxScoreCounts -> Text -> Text
-prettyPrintBattingLine (BoxScoreCounts atBats hits rbis) player = player
+prettyPrintBattingLine (BoxScoreCounts atBats hits rbis runs) player = player
   <> " " <> tshow (HashMap.lookupDefault 0 player atBats)
   <> " " <> tshow (HashMap.lookupDefault 0 player hits)
   <> " " <> tshow (HashMap.lookupDefault 0 player rbis)
+  <> " " <> tshow (HashMap.lookupDefault 0 player runs)
 
 

@@ -26,6 +26,7 @@ data GameState
   , gameStateIsLeadOff :: !Bool
   , gameStateIsPinchHit :: !Bool
   , gameStateBatterId :: !(Maybe Text)
+  , gameStateBattingTeam :: !(Maybe HomeOrAway)
   , gameStatePitcherId :: !(Maybe Text)
   , gameStateRunnerOnFirstId :: !(Maybe Text)
   , gameStateRunnerOnSecondId :: !(Maybe Text)
@@ -33,7 +34,7 @@ data GameState
   , gameStateCurrentBatterId :: !(Maybe Text)
   , gameStateCurrentPitcherId :: !(Maybe Text)
   , gameStateRunnerOnFirstResponsiblePitcherId :: !(Maybe Text)
-  , gameStateRunnerOnSeocndResponsiblePitcherId :: !(Maybe Text)
+  , gameStateRunnerOnSecondResponsiblePitcherId :: !(Maybe Text)
   , gameStateRunnerOnThirdResponsiblePitcherId :: !(Maybe Text)
   } deriving (Eq, Show)
 
@@ -51,7 +52,7 @@ makeClassy_ ''GameState
 makeClassy_ ''Game
 
 unstartedGameState :: GameState
-unstartedGameState = GameState emptyBattingOrder emptyBattingOrder emptyFieldingLineup emptyFieldingLineup 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+unstartedGameState = GameState emptyBattingOrder emptyBattingOrder emptyFieldingLineup emptyFieldingLineup 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 unstartedGame :: Game
 unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState Nothing
@@ -103,12 +104,44 @@ applyRunnerMovement (PlayMovement startBase endBase True) gs =
   in
     addPlayerToBase playerId endBase $ removePlayerFromBase startBase gs
 
+checkForBattingSwitch :: HomeOrAway -> GameState -> GameState
+checkForBattingSwitch homeOrAway state@GameState{..} =
+  case fromMaybe False (map (== homeOrAway) gameStateBattingTeam) of
+    True -> state
+    False -> state
+      { gameStateBattingTeam = Just homeOrAway
+      , gameStateRunnerOnFirstId = Nothing
+      , gameStateRunnerOnSecondId = Nothing
+      , gameStateRunnerOnThirdId = Nothing
+      }
+
+applyRunnerHit :: Text -> Base -> GameState -> GameState
+applyRunnerHit playerId FirstBase state = state { gameStateRunnerOnFirstId = Just playerId }
+applyRunnerHit playerId SecondBase state = state { gameStateRunnerOnSecondId = Just playerId }
+applyRunnerHit playerId ThirdBase state = state { gameStateRunnerOnThirdId = Just playerId }
+applyRunnerHit _ _ state = state
+
+applyAction :: Text -> PlayAction -> GameState -> GameState
+applyAction playerId (Hit base _) state = applyRunnerHit playerId base state
+applyAction playerId (Walk _) state = state { gameStateRunnerOnFirstId = Just playerId }
+applyAction playerId HitByPitch state = state { gameStateRunnerOnFirstId = Just playerId }
+applyAction playerId (Outs outs) state =
+  case any (\out -> case out of FieldersChoice _ -> True; _ -> False) outs of
+   True -> state { gameStateRunnerOnFirstId = Just playerId }
+   False -> state
+applyAction _ _ state = state
+
 updateGameState :: Event -> GameState -> GameState
 updateGameState (StartEventType StartEvent{..}) =
   updateOrders startEventPlayerHome startEventPlayer startEventBattingPosition startEventFieldingPosition
 updateGameState (SubEventType SubEvent{..}) =
   updateOrders subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
-updateGameState (PlayEventType (PlayEvent _ _ _ _ _ (PlayResult _ _ movements))) =
-  \state -> foldr applyRunnerMovement state movements
+updateGameState (PlayEventType (PlayEvent _ homeOrAway playerId _ _ (PlayResult action _ movements))) =
+  \state ->
+    let
+      stateWithBatting = checkForBattingSwitch homeOrAway state
+      stateWithMovedRunners = foldr applyRunnerMovement stateWithBatting movements
+    in
+      applyAction playerId action stateWithMovedRunners
 updateGameState _ = id
 

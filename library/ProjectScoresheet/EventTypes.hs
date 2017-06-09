@@ -68,7 +68,7 @@ data SubEvent
 data PlayEvent
   = PlayEvent
   { playEventInning :: !Int
-  , playEventOuts :: !Int
+  , playEventHomeOrAway :: !HomeOrAway
   , playEventPlayerId :: !Text
   , playEventCount :: !Int
   , playEventPitchSequence :: !Text

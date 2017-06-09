@@ -87,12 +87,13 @@ data BoxScoreCounts
   { boxScoreCountsAtBats :: HashMap Text Int
   , boxScoreCountsHits :: HashMap Text Int
   , boxScoreCountsRBI :: HashMap Text Int
+  , boxScoreCountsRuns :: HashMap Text Int
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScoreCounts
 
 initialBoxScoreCount :: BoxScoreCounts
-initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty HashMap.empty
+initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty HashMap.empty HashMap.empty
 
 data BoxScore
   = BoxScore
@@ -105,7 +106,7 @@ data BoxScore
 makeClassy_ ''BoxScore
 
 initialBoxScore :: BoxScore
-initialBoxScore = BoxScore initialBoxScoreCount initialBattingOrderMap initialBattingOrderMap 
+initialBoxScore = BoxScore initialBoxScoreCount initialBattingOrderMap initialBattingOrderMap
 
 generateBoxScore :: [EventWithContext] -> BoxScore
 generateBoxScore events = foldr updateBoxScore initialBoxScore events
@@ -113,7 +114,7 @@ generateBoxScore events = foldr updateBoxScore initialBoxScore events
 updateBoxScore :: EventWithContext -> BoxScore -> BoxScore
 updateBoxScore (EventWithContext (StartEventType startEvent) _) = processStartEvent startEvent
 updateBoxScore (EventWithContext (SubEventType subEvent) _) = processSubEvent subEvent
-updateBoxScore (EventWithContext (PlayEventType playEvent) _) = processPlayEvent playEvent
+updateBoxScore (EventWithContext (PlayEventType playEvent) ctx) = processPlayEvent playEvent ctx
 updateBoxScore _ = id
 
 processInfoEvent :: InfoEvent -> Game -> Game
@@ -134,11 +135,39 @@ processSubEvent :: SubEvent -> BoxScore -> BoxScore
 processSubEvent SubEvent{..} =
   addPlayerToBoxScore subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
 
-processPlayEvent :: PlayEvent -> BoxScore -> BoxScore
-processPlayEvent PlayEvent{..} =
-  over boxScore (addAtBatsToPlayer playEventPlayerId (if isAtBat playEventResult then 1 else 0))
-  . over boxScore (addHitsToPlayer playEventPlayerId (if isHit playEventResult then 1 else 0))
-  . over boxScore (addRBIToPlayer playEventPlayerId (numRBI playEventResult))
+processPlayEvent :: PlayEvent -> GameState -> BoxScore -> BoxScore
+processPlayEvent PlayEvent{..} gameState score=
+  let
+    scoreWithAtBats = addAtBatsToPlayer playEventPlayerId (if isAtBat playEventResult then 1 else 0) score
+    scoreWithHits = addHitsToPlayer playEventPlayerId (if isHit playEventResult then 1 else 0) scoreWithAtBats
+    scoreWithRBI = addRBIToPlayer playEventPlayerId (numRBI playEventResult) scoreWithHits
+  in
+    addRuns playEventPlayerId playEventResult gameState scoreWithRBI
+
+getRunnerOnBase :: Base -> GameState -> Maybe Text
+getRunnerOnBase FirstBase GameState{..} = gameStateRunnerOnFirstId
+getRunnerOnBase SecondBase GameState{..} = gameStateRunnerOnSecondId
+getRunnerOnBase ThirdBase GameState{..} = gameStateRunnerOnThirdId
+getRunnerOnBase _ _ = Nothing
+
+addRunForMovement :: Text ->  GameState -> PlayMovement -> BoxScore -> BoxScore
+addRunForMovement _ state (PlayMovement startBase HomePlate True) score =
+  case getRunnerOnBase startBase state of
+    Just runnerId -> addRunToPlayer runnerId score
+    Nothing -> score
+addRunForMovement _ _ _ score = score
+
+addRuns :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
+addRuns batterId (PlayResult action _ movements) state score =
+  let
+    scoreWithRun = case action of
+      Hit HomePlate _ -> addRunToPlayer batterId score
+      _ -> score
+  in
+    foldr (addRunForMovement batterId state) scoreWithRun movements
+
+addRunToPlayer :: Text -> BoxScore -> BoxScore
+addRunToPlayer player = over _boxScoreStats (over _boxScoreCountsRuns (HashMap.insertWith (+) player 1))
 
 addAtBatsToPlayer :: Text -> Int -> BoxScore -> BoxScore
 addAtBatsToPlayer player numAtBats = over _boxScoreStats (over _boxScoreCountsAtBats (HashMap.insertWith (+) player numAtBats))
