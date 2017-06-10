@@ -98,8 +98,11 @@ parseOut =
 parseFieldersChoice :: Parser Out
 parseFieldersChoice = string "FC" *> map FieldersChoice parseFieldingPositions
 
+skipOutCount :: Parser ()
+skipOutCount = void (char '(') *> skip isDigit *> void (char ')')
+
 parseFieldingPositions :: Parser [FieldingPosition]
-parseFieldingPositions = some parseFieldingPosition <* skipMany (satisfy (\c -> c == '(' || c == ')' || isDigit c))
+parseFieldingPositions = some parseFieldingPosition <* optional skipOutCount
 
 parseFieldingPosition :: Parser FieldingPosition
 parseFieldingPosition = fieldPositionFromId . digitToInt <$> digit
@@ -164,7 +167,7 @@ parsePlayMovement :: Parser PlayMovement
 parsePlayMovement = do
   void $ try (char '.') <|> char ';'
   startBase <- parseNumericBase
-  isSuccess <- try (char 'X' *> pure False) <|> anyChar *> pure True
+  isSuccess <- try (char 'X' *> pure False) <|> char '-' *> pure True
   endBase <- parseNumericBase
   void $ many (satisfy (\c -> c == '(' || c == ')' || isDigit c))
   pure $ PlayMovement startBase endBase isSuccess

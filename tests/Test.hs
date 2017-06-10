@@ -58,25 +58,36 @@ spec = describe "PlayResult" $ do
     it "should successfully parse fielders choice" $
       "FC6" `shouldParseAsPlay` Outs [FieldersChoice [ShortStop]]
 
+    it "should successfully parse routine out" $
+      "53" `shouldParseAsPlay` Outs [RoutinePlay [ThirdBaseman, FirstBaseman]]
+
     it "should successfully parse annotated routine out" $
       "46(1)" `shouldParseAsPlay` Outs [RoutinePlay [SecondBaseman, ShortStop]]
 
+    it "should successfully parse routine double play" $
+      "46(1)3" `shouldParseAsPlay` Outs [RoutinePlay [SecondBaseman, ShortStop], RoutinePlay [FirstBaseman]]
+
   describe "parsePlayMovements" $ do
     let
-      shouldParseAsMovement :: Text -> PlayMovement -> Expectation
-      shouldParseAsMovement t pm = do
-        t ~> parsePlayMovement `shouldParse` pm
-        leftover (t ~?> parsePlayMovement) `shouldSatisfy` \str -> fromMaybe "" str == ""
+      shouldParseMovements :: Text -> [PlayMovement] -> Expectation
+      shouldParseMovements t pm = do
+        t ~> many parsePlayMovement `shouldParse` pm
+        leftover (t ~?> many parsePlayMovement) `shouldSatisfy` \str -> fromMaybe "" str == ""
 
     it "should successfully parse basic RBI" $
-      ".3-H" `shouldParseAsMovement` PlayMovement ThirdBase HomePlate True
+      ".3-H" `shouldParseMovements` [PlayMovement ThirdBase HomePlate True]
 
     it "should successfully parse out at home" $
-      ".3XH" `shouldParseAsMovement` PlayMovement ThirdBase HomePlate False
+      ".3XH" `shouldParseMovements` [PlayMovement ThirdBase HomePlate False]
 
     it "should successfully parse out with annotation" $
-      ";2X3(65)" `shouldParseAsMovement` PlayMovement SecondBase ThirdBase False
+      ";2X3(65)" `shouldParseMovements` [PlayMovement SecondBase ThirdBase False]
 
+    it "should successfully parse out multiple movements" $
+      ".3-H;2X3(65)" `shouldParseMovements`
+        [ PlayMovement ThirdBase HomePlate True
+        , PlayMovement SecondBase ThirdBase False
+        ]
 
   describe "box score smoke test" $ do
     let smokeScore = boxScoreFromFile "testgame.txt"
@@ -109,17 +120,10 @@ spec = describe "PlayResult" $ do
           [ ("bogax001",1)
           , ("ortid001",2)
           , ("rickj001",1)
-          , ("wietm001",0)
-          , ("ramih003",0)
-          , ("reimn001",0)
           , ("schoj001",1)
-          , ("holtb002",0)
           , ("trumm001",1)
           , ("davic003",2)
-          , ("younc004",0)
           , ("josec002",1)
-          , ("shawt001",0)
-          , ("flahr001",0)
           , ("machm001",2)
           , ("bettm001",3)
           , ("pedrd001",2)
@@ -173,7 +177,7 @@ spec = describe "PlayResult" $ do
           ]
         boxScoreCountsStrikeouts boxScoreStats `shouldBe` HashMap.fromList
           [ ("bogax001",1)
-          , ("ortid001",1) 
+          , ("ortid001",1)
           , ("rickj001",2)
           , ("wietm001",4)
           , ("ramih003",2)
@@ -193,4 +197,17 @@ spec = describe "PlayResult" $ do
           , ("hardj003",1)
           , ("bradj001",1)
           ]
-        )
+        boxScoreCountsRuns boxScoreStats `shouldBe` HashMap.fromList
+          [ ("bogax001",1)
+          , ("rickj001",1)
+          , ("holtb002",2)
+          , ("trumm001",1)
+          , ("davic003",2)
+          , ("josec002",2)
+          , ("machm001",2)
+          , ("bettm001",2)
+          , ("pedrd001",1)
+          , ("swihb001",1)
+          , ("hardj003",1)
+          ]
+      )

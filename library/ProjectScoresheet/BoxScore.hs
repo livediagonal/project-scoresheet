@@ -60,12 +60,13 @@ data BoxScoreCounts
   , boxScoreCountsRuns :: HashMap Text Int
   , boxScoreCountsBB :: HashMap Text Int
   , boxScoreCountsStrikeouts :: HashMap Text Int
+  , boxScoreCountsLOB :: HashMap Text Int
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScoreCounts
 
 initialBoxScoreCount :: BoxScoreCounts
-initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty
+initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty
 
 data BoxScore
   = BoxScore
@@ -108,15 +109,36 @@ processSubEvent SubEvent{..} =
   addPlayerToBoxScore subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
 
 processPlayEvent :: PlayEvent -> GameState -> BoxScore -> BoxScore
-processPlayEvent PlayEvent{..} gameState score=
+processPlayEvent PlayEvent{..} gameState score =
   let
-    scoreWithAtBats = addAtBatsToPlayer playEventPlayerId (if isAtBat playEventResult then 1 else 0) score
-    scoreWithHits = addHitsToPlayer playEventPlayerId (if isHit playEventResult then 1 else 0) scoreWithAtBats
+    scoreWithAtBats = if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId score else score
+    scoreWithHits = if isHit playEventResult then addHitToPlayer playEventPlayerId scoreWithAtBats else scoreWithAtBats
     scoreWithRBI = addRBIToPlayer playEventPlayerId (numRBI playEventResult) scoreWithHits
     scoreWithWalks = addWalkToPlayer playEventPlayerId (isWalk playEventResult) scoreWithRBI
     scoreWithStrikeouts = addStrikeoutToPlayer playEventPlayerId (isStrikeout playEventResult) scoreWithWalks
+    scoreWithRuns = addRuns playEventPlayerId playEventResult gameState scoreWithStrikeouts
   in
-    addRuns playEventPlayerId playEventResult gameState scoreWithStrikeouts
+    if isAtBat playEventResult && isOut playEventResult then addLOB playEventPlayerId playEventResult gameState scoreWithRuns else scoreWithRuns
+
+isOut :: PlayResult -> Bool
+isOut result = case playResultAction result of
+  Outs _ -> True
+  _ -> False
+
+numNotLeftOnBase :: PlayResult -> Int
+numNotLeftOnBase (PlayResult _ _ movements) =
+  let
+    numScored = length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) movements
+  in
+    numScored
+
+addLOB :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
+addLOB playerId playResult GameState{..} score =
+  let
+    numOB = length $ catMaybes [gameStateRunnerOnFirstId, gameStateRunnerOnSecondId, gameStateRunnerOnThirdId]
+    numLOB = numOB - numNotLeftOnBase playResult
+  in
+    addLOBToPlayer playerId numLOB score
 
 getRunnerOnBase :: Base -> GameState -> Maybe Text
 getRunnerOnBase FirstBase GameState{..} = gameStateRunnerOnFirstId
@@ -140,14 +162,17 @@ addRuns batterId (PlayResult action _ movements) state score =
   in
     foldr (addRunForMovement batterId state) scoreWithRun movements
 
+addLOBToPlayer :: Text -> Int -> BoxScore -> BoxScore
+addLOBToPlayer player numLOB = over _boxScoreStats (over _boxScoreCountsLOB (HashMap.insertWith (+) player numLOB))
+
 addRunToPlayer :: Text -> BoxScore -> BoxScore
 addRunToPlayer player = over _boxScoreStats (over _boxScoreCountsRuns (HashMap.insertWith (+) player 1))
 
-addAtBatsToPlayer :: Text -> Int -> BoxScore -> BoxScore
-addAtBatsToPlayer player numAtBats = over _boxScoreStats (over _boxScoreCountsAtBats (HashMap.insertWith (+) player numAtBats))
+addAtBatToPlayer :: Text -> BoxScore -> BoxScore
+addAtBatToPlayer player = over _boxScoreStats (over _boxScoreCountsAtBats (HashMap.insertWith (+) player 1))
 
-addHitsToPlayer :: Text -> Int -> BoxScore -> BoxScore
-addHitsToPlayer player numHits = over _boxScoreStats (over _boxScoreCountsHits (HashMap.insertWith (+) player numHits))
+addHitToPlayer :: Text -> BoxScore -> BoxScore
+addHitToPlayer player = over _boxScoreStats (over _boxScoreCountsHits (HashMap.insertWith (+) player 1))
 
 addRBIToPlayer :: Text -> Int -> BoxScore -> BoxScore
 addRBIToPlayer player rbi = over _boxScoreStats (over _boxScoreCountsRBI (HashMap.insertWith (+) player rbi))
