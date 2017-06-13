@@ -87,7 +87,7 @@ generateBoxScore events = foldr updateBoxScore initialBoxScore events
 updateBoxScore :: EventWithContext -> BoxScore -> BoxScore
 updateBoxScore (EventWithContext (StartEventType startEvent) _) = processStartEvent startEvent
 updateBoxScore (EventWithContext (SubEventType subEvent) _) = processSubEvent subEvent
-updateBoxScore (EventWithContext (PlayEventType playEvent) ctx) = processPlayEvent playEvent ctx
+updateBoxScore (EventWithContext (PlayEventType pe) ctx) = processPlayEvent pe ctx
 updateBoxScore _ = id
 
 processInfoEvent :: InfoEvent -> Game -> Game
@@ -109,16 +109,16 @@ processSubEvent SubEvent{..} =
   addPlayerToBoxScore subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
 
 processPlayEvent :: PlayEvent -> GameState -> BoxScore -> BoxScore
-processPlayEvent PlayEvent{..} gameState score =
+processPlayEvent PlayEvent{..} gs score =
   let
     scoreWithAtBats = if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId score else score
     scoreWithHits = if isHit playEventResult then addHitToPlayer playEventPlayerId scoreWithAtBats else scoreWithAtBats
     scoreWithRBI = addRBIToPlayer playEventPlayerId (numRBI playEventResult) scoreWithHits
     scoreWithWalks = addWalkToPlayer playEventPlayerId (isWalk playEventResult) scoreWithRBI
     scoreWithStrikeouts = addStrikeoutToPlayer playEventPlayerId (isStrikeout playEventResult) scoreWithWalks
-    scoreWithRuns = addRuns playEventPlayerId playEventResult gameState scoreWithStrikeouts
+    scoreWithRuns = addRuns playEventPlayerId playEventResult gs scoreWithStrikeouts
   in
-    if isAtBat playEventResult && isOut playEventResult then addLOB playEventPlayerId playEventResult gameState scoreWithRuns else scoreWithRuns
+    if isAtBat playEventResult && isOut playEventResult then addLOB playEventPlayerId playEventResult gs scoreWithRuns else scoreWithRuns
 
 isOut :: PlayResult -> Bool
 isOut result = case playResultAction result of
@@ -133,10 +133,10 @@ numNotLeftOnBase (PlayResult _ _ movements) =
     numScored
 
 addLOB :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
-addLOB playerId playResult GameState{..} score =
+addLOB playerId pr GameState{..} score =
   let
     numOB = length $ catMaybes [gameStateRunnerOnFirstId, gameStateRunnerOnSecondId, gameStateRunnerOnThirdId]
-    numLOB = numOB - numNotLeftOnBase playResult
+    numLOB = numOB - numNotLeftOnBase pr
   in
     addLOBToPlayer playerId numLOB score
 
@@ -184,7 +184,7 @@ addStrikeoutToPlayer :: Text -> Bool -> BoxScore -> BoxScore
 addStrikeoutToPlayer player strikeout = over _boxScoreStats (over _boxScoreCountsStrikeouts (HashMap.insertWith (+) player (if strikeout then 1 else 0)))
 
 addPlayerToBoxScore :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> BoxScore -> BoxScore
-addPlayerToBoxScore homeOrAway player battingPosition fieldingPosition =
+addPlayerToBoxScore homeOrAway player battingPosition _ =
   let
     addPlayer = addPlayerToBattingOrderMap battingPosition player
   in

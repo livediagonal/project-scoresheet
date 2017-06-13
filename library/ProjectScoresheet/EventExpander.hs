@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module ProjectScoresheet.EventExpander where
 
 import ClassyPrelude hiding (zipWith)
+import Control.Lens (over)
 import Data.List (zipWith)
 import Data.Csv
 import ProjectScoresheet.BoxScore
@@ -13,6 +15,12 @@ import ProjectScoresheet.PlayResult
 import ProjectScoresheet.Print
 import qualified Data.ByteString.Lazy as BL
 
+cleanEvent :: Event -> Event
+cleanEvent event =
+  case event of
+    PlayEventType pe@PlayEvent{..} -> PlayEventType $ over _playEventResult saturatePlayMovements pe
+    _ -> event
+
 boxScoreFromFile :: String -> IO BoxScore
 boxScoreFromFile file = do
   csvEvents <- BL.readFile file
@@ -20,17 +28,9 @@ boxScoreFromFile file = do
     Left err -> fail err
     Right v -> do
       let
-        events = toList v
+        events = map cleanEvent $ toList v
         gameStates = unstartedGameState : zipWith updateGameState events gameStates
         eventsWithContext = zipWith EventWithContext events gameStates
-      --traverse (\event -> case event of (PlayEventType playEvent) -> print $ playResultMovements $ playEventResult playEvent; _ -> print "no play") events
-      traverse (\(EventWithContext event state) -> do
-        print event
-        print $ gameStateOuts state
-        print $ gameStateRunnerOnFirstId state
-        print $ gameStateRunnerOnSecondId state
-        print $ gameStateRunnerOnThirdId state
-        ) eventsWithContext
       pure $ generateBoxScore eventsWithContext
 
 main :: IO ()

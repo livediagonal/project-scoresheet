@@ -5,10 +5,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ProjectScoresheet.EventTypes where
 
 import ClassyPrelude
+import Control.Lens
 import Data.Csv
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.PlayResult
@@ -65,6 +67,13 @@ data SubEvent
   , subEventFieldingPosition :: !FieldingPositionId
   } deriving (Eq, Show, Generic)
 
+data DataEvent
+  = DataEvent
+  { dataEventKey :: !Text
+  , dataEventPlayerId :: !Text
+  , dataEventValue :: !Int
+  } deriving (Eq, Show, Generic)
+
 data PlayEvent
   = PlayEvent
   { playEventInning :: !Int
@@ -75,12 +84,7 @@ data PlayEvent
   , playEventResult :: !PlayResult
   } deriving (Eq, Show, Generic)
 
-data DataEvent
-  = DataEvent
-  { dataEventKey :: !Text
-  , dataEventPlayerId :: !Text
-  , dataEventValue :: !Int
-  } deriving (Eq, Show, Generic)
+makeClassy_ ''PlayEvent
 
 instance FromRecord IdEvent
 instance FromRecord SchemaEvent

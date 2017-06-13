@@ -137,28 +137,12 @@ checkForStolenBase :: Text -> PlayAction -> GameState -> GameState
       HomePlate -> removePlayerFromBase currentBase state-}
 checkForStolenBase _ _ state = state
 
-applyRunnerHit :: Text -> Base -> GameState -> GameState
-applyRunnerHit playerId FirstBase state = state { gameStateRunnerOnFirstId = Just playerId }
-applyRunnerHit playerId SecondBase state = state { gameStateRunnerOnSecondId = Just playerId }
-applyRunnerHit playerId ThirdBase state = state { gameStateRunnerOnThirdId = Just playerId }
-applyRunnerHit _ _ state = state
-
 batterOuts :: [Out] -> Int
-batterOuts outs = length $ filter (\o -> case o of Strikeout _ -> True; RoutinePlay _ -> True; _ -> False) outs
+batterOuts outs = length $ filter (\o -> case o of Strikeout _ -> True; RoutinePlay _ Nothing -> True; _ -> False) outs
 
-applyAction :: Text -> PlayAction -> GameState -> GameState
-applyAction playerId (Hit base _) state = applyRunnerHit playerId base state
-applyAction playerId (Walk _) state = state { gameStateRunnerOnFirstId = Just playerId }
-applyAction playerId HitByPitch state = state { gameStateRunnerOnFirstId = Just playerId }
-applyAction playerId (Outs outs) state =
-  let
-    stateWithRunners@GameState{..} =
-      case any (\out -> case out of FieldersChoice _ -> True; _ -> False) outs of
-        True -> state { gameStateRunnerOnFirstId = Just playerId }
-        False -> state
-  in
-    stateWithRunners { gameStateOuts = gameStateOuts + batterOuts outs }
-applyAction _ _ state = state
+applyAction :: PlayAction -> GameState -> GameState
+applyAction (Outs outs) state = state { gameStateOuts = gameStateOuts state + batterOuts outs }
+applyAction _ state = state
 
 updateGameState :: Event -> GameState -> GameState
 updateGameState (StartEventType StartEvent{..}) =
@@ -170,7 +154,7 @@ updateGameState (PlayEventType (PlayEvent _ _ playerId _ _ (PlayResult action _ 
     let
       stateWithStolenBases = checkForStolenBase playerId action state
       stateWithMovements = foldr (applyRunnerMovement playerId) stateWithStolenBases (reverse movements)
-      stateWithActions = applyAction playerId action stateWithMovements
+      stateWithActions = applyAction action stateWithMovements
     in
       if gameStateOuts stateWithActions == 3 then resetInningState stateWithActions else stateWithActions
 updateGameState _ = id

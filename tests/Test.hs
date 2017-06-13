@@ -59,13 +59,13 @@ spec = describe "PlayResult" $ do
       "FC6" `shouldParseAsPlay` Outs [FieldersChoice [ShortStop]]
 
     it "should successfully parse routine out" $
-      "53" `shouldParseAsPlay` Outs [RoutinePlay [ThirdBaseman, FirstBaseman]]
+      "53" `shouldParseAsPlay` Outs [RoutinePlay [ThirdBaseman, FirstBaseman] Nothing]
 
     it "should successfully parse annotated routine out" $
-      "46(1)" `shouldParseAsPlay` Outs [RoutinePlay [SecondBaseman, ShortStop]]
+      "46(1)" `shouldParseAsPlay` Outs [RoutinePlay [SecondBaseman, ShortStop] (Just FirstBase)]
 
     it "should successfully parse routine double play" $
-      "46(1)3" `shouldParseAsPlay` Outs [RoutinePlay [SecondBaseman, ShortStop], RoutinePlay [FirstBaseman]]
+      "46(1)3" `shouldParseAsPlay` Outs [RoutinePlay [SecondBaseman, ShortStop] (Just FirstBase), RoutinePlay [FirstBaseman] Nothing]
 
   describe "parsePlayMovements" $ do
     let
@@ -209,5 +209,27 @@ spec = describe "PlayResult" $ do
           , ("pedrd001",1)
           , ("swihb001",1)
           , ("hardj003",1)
+          ]
+        boxScoreCountsLOB boxScoreStats `shouldBe` HashMap.fromList
+          [ ("bogax001",0)
+          , ("ortid001",2)
+          , ("rickj001",2)
+          , ("wietm001",1)
+          , ("ramih003",1)
+          , ("reimn001",2)
+          , ("schoj001",0)
+          , ("holtb002",1)
+          , ("trumm001",3)
+          , ("davic003",3)
+          , ("younc004",2)
+          , ("josec002",2)
+          , ("shawt001",2)
+          , ("flahr001",0)
+          , ("machm001",1)
+          , ("bettm001",2)
+          , ("pedrd001",2)
+          , ("swihb001",0)
+          , ("hardj003",0)
+          , ("bradj001",1)
           ]
       )

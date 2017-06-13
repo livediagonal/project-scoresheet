@@ -5,28 +5,17 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module ProjectScoresheet.PlayResult where
 
 import ClassyPrelude hiding (try)
+import Control.Lens
 import Data.Char (digitToInt, isDigit)
 import Data.Attoparsec.Text
 import Data.Csv hiding (Parser)
 import ProjectScoresheet.BaseballTypes
-
-data PlayResult
-  = PlayResult
-  { playResultAction :: !PlayAction
-  , playResultDescriptors :: ![PlayDescriptor]
-  , playResultMovements :: ![PlayMovement]
-  } deriving (Eq, Show, Generic)
-
-instance FromField PlayResult where
-  parseField info =
-    case parseOnly parsePlayResult (decodeUtf8 info) of
-      Left e -> fail e
-      Right r -> pure r
 
 data Base
   = FirstBase
@@ -36,7 +25,7 @@ data Base
   deriving (Eq, Show, Enum)
 
 data Out
-  = RoutinePlay [FieldingPosition]
+  = RoutinePlay [FieldingPosition] (Maybe Base)
   | FieldersChoice [FieldingPosition]
   | Strikeout (Maybe Text)
   deriving (Eq, Show)
@@ -54,12 +43,28 @@ data PlayAction
   deriving (Eq, Show)
 
 data PlayDescriptor
-  = SacrificeFly
+  = ForceOut
+  | SacrificeFly
   | SacrificeBunt
   | OtherDescriptor Text
   deriving (Eq, Show)
 
 data PlayMovement = PlayMovement Base Base Bool deriving (Eq, Show)
+
+data PlayResult
+  = PlayResult
+  { playResultAction :: !PlayAction
+  , playResultDescriptors :: ![PlayDescriptor]
+  , playResultMovements :: ![PlayMovement]
+  } deriving (Eq, Show, Generic)
+
+makeClassy_ ''PlayResult
+
+instance FromField PlayResult where
+  parseField info =
+    case parseOnly parsePlayResult (decodeUtf8 info) of
+      Left e -> fail e
+      Right r -> pure r
 
 parsePlayResult :: Parser PlayResult
 parsePlayResult = do
@@ -93,16 +98,20 @@ parseOut :: Parser Out
 parseOut =
   try parseStrikeout <|>
   try parseFieldersChoice <|>
-  try (RoutinePlay <$> parseFieldingPositions)
+  try (RoutinePlay <$> parseFieldingPositions <*> optional parseOutRunnerBase)
 
 parseFieldersChoice :: Parser Out
 parseFieldersChoice = string "FC" *> map FieldersChoice parseFieldingPositions
 
-skipOutCount :: Parser ()
-skipOutCount = void (char '(') *> skip isDigit *> void (char ')')
+parseOutRunnerBase :: Parser Base
+parseOutRunnerBase = do
+  void $ char '('
+  base <- parseNumericBase
+  void $ char ')'
+  return base
 
 parseFieldingPositions :: Parser [FieldingPosition]
-parseFieldingPositions = some parseFieldingPosition <* optional skipOutCount
+parseFieldingPositions = some parseFieldingPosition
 
 parseFieldingPosition :: Parser FieldingPosition
 parseFieldingPosition = fieldPositionFromId . digitToInt <$> digit
@@ -151,7 +160,8 @@ parseOther = Other . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 parsePlayDescriptor :: Parser PlayDescriptor
 parsePlayDescriptor = do
   void $ char '/'
-  try (string "SF" *> pure SacrificeFly) <|>
+  try (string "FO" *> pure ForceOut) <|>
+    try (string "SF" *> pure SacrificeFly) <|>
     try (string "SH" *> pure SacrificeBunt) <|>
     OtherDescriptor . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 
@@ -190,9 +200,7 @@ fromBool False = 0
 fromBool True = 1
 
 numRBI :: PlayResult -> Int
-numRBI pr@PlayResult{..} =
-  fromBool (isHomeRun pr) +
-  length (filter isRBI playResultMovements)
+numRBI PlayResult{..} = length (filter isRBI playResultMovements)
 
 isHomeRun :: PlayResult -> Bool
 isHomeRun PlayResult{..} =
@@ -230,6 +238,13 @@ isStrikeoutOut out =
     Strikeout _ -> True
     _ -> False
 
+isForceOut :: PlayResult -> Bool
+isForceOut (PlayResult _ descriptors _) = any isForceOutDescriptor descriptors
+
+isForceOutDescriptor :: PlayDescriptor -> Bool
+isForceOutDescriptor ForceOut = True
+isForceOutDescriptor _ = False
+
 isSacrifice :: PlayResult -> Bool
 isSacrifice (PlayResult _ descriptors _) = any isSacrificeDescriptor descriptors
 
@@ -253,3 +268,27 @@ isWildPitch PlayResult{..} = False
 isPassedBall :: PlayResult -> Bool
 isPassedBall PlayResult{..} = False
 
+addPlayMovement :: PlayMovement -> [PlayMovement] -> [PlayMovement]
+addPlayMovement pm@(PlayMovement startBase _ _) pms =
+  case any (\(PlayMovement existingStartBase _ _) -> startBase == existingStartBase) pms of
+    True -> pms
+    False -> pms ++ [pm]
+
+saturatePlayMovements :: PlayResult -> PlayResult
+saturatePlayMovements pr@PlayResult{..} =
+  let
+    pr' = case playResultAction of
+      Walk _ -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
+      HitByPitch -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
+      Hit base _ -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate base True)) pr
+      Outs outs -> foldr saturateMovementsOnOut pr outs
+      _ -> pr
+  in
+    case isForceOut pr' of
+      True -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr'
+      False -> pr'
+
+saturateMovementsOnOut :: Out -> PlayResult -> PlayResult
+saturateMovementsOnOut (FieldersChoice _) pr = over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
+saturateMovementsOnOut (RoutinePlay _ (Just startingBase)) pr = over _playResultMovements (addPlayMovement (PlayMovement startingBase HomePlate False)) pr
+saturateMovementsOnOut _ pr = pr
