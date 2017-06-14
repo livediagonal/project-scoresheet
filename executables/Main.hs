@@ -1,5 +1,5 @@
 module Main
-  ( module ProjectScoresheet.EventExpander
+  ( module ProjectScoresheet.Main
   ) where
 
-import ProjectScoresheet.EventExpander (main)
+import ProjectScoresheet.Main (main)

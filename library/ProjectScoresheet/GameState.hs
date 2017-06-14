@@ -63,30 +63,25 @@ initialContext :: EventWithContext
 initialContext = EventWithContext EmptyEvent unstartedGameState
 
 updateOrders :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> GameState -> GameState
-updateOrders hoa player battingPosition fieldingPosition =
+updateOrders hoa player battingPosition fieldingPosition gs =
   case hoa of
-    Away ->
-      over _gameStateAwayBattingOrder (addToBattingOrder player battingPosition)
-      . over _gameStateAwayFieldingLineup (addToFieldingLineup player fieldingPosition)
-    Home ->
-      over _gameStateHomeBattingOrder (addToBattingOrder player battingPosition)
-      . over _gameStateHomeFieldingLineup (addToFieldingLineup player fieldingPosition)
+    Away -> gs
+      & _gameStateAwayBattingOrder %~ addToBattingOrder player battingPosition
+      & _gameStateAwayFieldingLineup %~ addToFieldingLineup player fieldingPosition
+    Home -> gs
+      & _gameStateHomeBattingOrder %~ addToBattingOrder player battingPosition
+      & _gameStateHomeFieldingLineup %~ addToFieldingLineup player fieldingPosition
 
 removePlayerFromBase :: Base -> GameState -> GameState
-removePlayerFromBase base gs =
-  case base of
-    FirstBase -> gs { gameStateRunnerOnFirstId = Nothing }
-    SecondBase -> gs { gameStateRunnerOnSecondId = Nothing }
-    ThirdBase -> gs { gameStateRunnerOnThirdId = Nothing }
-    _ -> gs
+removePlayerFromBase base = addPlayerToBase Nothing base
 
 addPlayerToBase :: Maybe Text -> Base -> GameState -> GameState
-addPlayerToBase playerId base gs =
+addPlayerToBase playerId base =
   case base of
-    FirstBase -> gs { gameStateRunnerOnFirstId = playerId }
-    SecondBase -> gs { gameStateRunnerOnSecondId = playerId }
-    ThirdBase -> gs { gameStateRunnerOnThirdId = playerId }
-    _ -> gs
+    FirstBase -> _gameStateRunnerOnFirstId .~ playerId
+    SecondBase -> _gameStateRunnerOnSecondId .~ playerId
+    ThirdBase -> _gameStateRunnerOnThirdId .~ playerId
+    _ -> id
 
 playerOnBase :: Text -> Base -> GameState -> Maybe Text
 playerOnBase batterId base GameState{..} =
@@ -104,38 +99,20 @@ baseForPlayer playerId GameState{..} =
     ThirdBase -> gameStateRunnerOnThirdId
     _ -> Nothing) [FirstBase, SecondBase, ThirdBase]
 
-applyRunnerMovement :: Text -> PlayMovement -> GameState -> GameState
-applyRunnerMovement _ (PlayMovement startBase _ False) gs =
-  let
-    removedPlayerState@GameState{..} = removePlayerFromBase startBase gs
-  in
-    removedPlayerState { gameStateOuts = gameStateOuts + 1 }
-applyRunnerMovement batterId (PlayMovement startBase endBase True) gs =
-  let
-    playerId = playerOnBase batterId startBase gs
-  in
-    removePlayerFromBase startBase $ addPlayerToBase playerId endBase gs
+applyRunnerMovement :: Text -> GameState -> PlayMovement -> GameState
+applyRunnerMovement _ gs (PlayMovement startBase _ False) = gs
+  & gameState %~ removePlayerFromBase startBase
+  & _gameStateOuts %~ (+1)
+applyRunnerMovement batterId gs (PlayMovement startBase endBase True) = gs
+  & gameState %~ addPlayerToBase (playerOnBase batterId startBase gs) endBase
+  & gameState %~ removePlayerFromBase startBase
 
 resetInningState :: GameState -> GameState
 resetInningState state = state
-  { gameStateRunnerOnFirstId = Nothing
-  , gameStateRunnerOnSecondId = Nothing
-  , gameStateRunnerOnThirdId = Nothing
-  , gameStateOuts = 0
-  }
-
-checkForStolenBase :: Text -> PlayAction -> GameState -> GameState
-{-checkForStolenBase playerId (StolenBase base) state =
-  let
-    Just currentBase = baseForPlayer playerId state -- Crash if not found, something is broken
-    player = Just playerId
-  in
-    case base of
-      FirstBase -> addPlayerToBase player base $ removePlayerFromBase currentBase state
-      SecondBase -> addPlayerToBase player base $ removePlayerFromBase currentBase state
-      ThirdBase -> addPlayerToBase player base $ removePlayerFromBase currentBase state
-      HomePlate -> removePlayerFromBase currentBase state-}
-checkForStolenBase _ _ state = state
+  & _gameStateRunnerOnFirstId .~ Nothing
+  & _gameStateRunnerOnSecondId .~ Nothing
+  & _gameStateRunnerOnThirdId .~ Nothing
+  & _gameStateOuts .~ 0
 
 batterOuts :: [Out] -> Int
 batterOuts outs = length $ filter (\o -> case o of Strikeout _ -> True; RoutinePlay _ Nothing -> True; _ -> False) outs
@@ -150,12 +127,10 @@ updateGameState (StartEventType StartEvent{..}) =
 updateGameState (SubEventType SubEvent{..}) =
   updateOrders subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
 updateGameState (PlayEventType (PlayEvent _ _ playerId _ _ (PlayResult action _ movements))) =
-  \state ->
-    let
-      stateWithStolenBases = checkForStolenBase playerId action state
-      stateWithMovements = foldr (applyRunnerMovement playerId) stateWithStolenBases (reverse movements)
-      stateWithActions = applyAction action stateWithMovements
-    in
-      if gameStateOuts stateWithActions == 3 then resetInningState stateWithActions else stateWithActions
+  gameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
+  & gameState %~ applyAction action
+  & gameState %~ \state' ->
+    if gameStateOuts state' == 3
+    then resetInningState state'
+    else state'
 updateGameState _ = id
-

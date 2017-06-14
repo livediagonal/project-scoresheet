@@ -102,7 +102,7 @@ instance FromRecord Event where
    case (lineType :: Text)  of
      "id" -> IdEventType <$> parseRecord args
      "version" -> SchemaEventType <$> parseRecord args
-     "play" -> PlayEventType <$> parseRecord args
+     "play" -> PlayEventType . over _playEventResult saturatePlayMovements <$> parseRecord args
      "info" -> InfoEventType <$> parseRecord args
      "start" -> StartEventType <$> parseRecord args
      "sub" -> SubEventType <$> parseRecord args

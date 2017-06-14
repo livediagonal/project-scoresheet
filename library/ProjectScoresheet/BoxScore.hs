@@ -9,10 +9,12 @@ module ProjectScoresheet.BoxScore where
 
 import ClassyPrelude
 import Control.Lens
+import Data.Csv
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.EventTypes
 import ProjectScoresheet.GameState
 import ProjectScoresheet.PlayResult
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HashMap
 
 data InningLine
@@ -42,47 +44,37 @@ makeClassy_ ''PitchingLine
 initialPitchingLine :: PitchingLine
 initialPitchingLine = PitchingLine 0
 
-data TeamBoxScore
-  = TeamBoxScore
-  { innings :: [InningLine]
+data BattingLine
+  = BattingLine
+  { battingLinePlayerId :: !Text
+  , battingLineAtBats :: !Int
+  , battingLineRuns :: !Int
+  , battingLineHits :: !Int
+  , battingLineRBI :: !Int
+  , battingLineWalks :: !Int
+  , battingLineStrikeouts :: !Int
+  , battingLineLOB :: !Int
   } deriving (Eq, Show)
 
-makeClassy_ ''TeamBoxScore
+makeClassy_ ''BattingLine
 
-initialTeamBoxScore :: TeamBoxScore
-initialTeamBoxScore = TeamBoxScore []
-
-data BoxScoreCounts
-  = BoxScoreCounts
-  { boxScoreCountsAtBats :: HashMap Text Int
-  , boxScoreCountsHits :: HashMap Text Int
-  , boxScoreCountsRBI :: HashMap Text Int
-  , boxScoreCountsRuns :: HashMap Text Int
-  , boxScoreCountsBB :: HashMap Text Int
-  , boxScoreCountsStrikeouts :: HashMap Text Int
-  , boxScoreCountsLOB :: HashMap Text Int
-  } deriving (Eq, Show)
-
-makeClassy_ ''BoxScoreCounts
-
-initialBoxScoreCount :: BoxScoreCounts
-initialBoxScoreCount = BoxScoreCounts HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty HashMap.empty
+emptyBattingLine :: Text -> BattingLine
+emptyBattingLine playerId = BattingLine playerId 0 0 0 0 0 0 0
 
 data BoxScore
   = BoxScore
-  { boxScoreStats :: BoxScoreCounts
-  -- , boxScorePitchingLines :: HashMap Text PitchingLine
-  , boxScoreHomeBattingOrderMap :: BattingOrderMap
-  , boxScoreAwayBattingOrderMap :: BattingOrderMap
+  { boxScoreStats :: !(HashMap Text BattingLine)
+  , boxScoreHomeBattingOrderMap :: !BattingOrderMap
+  , boxScoreAwayBattingOrderMap :: !BattingOrderMap
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScore
 
 initialBoxScore :: BoxScore
-initialBoxScore = BoxScore initialBoxScoreCount initialBattingOrderMap initialBattingOrderMap
+initialBoxScore = BoxScore HashMap.empty initialBattingOrderMap initialBattingOrderMap
 
 generateBoxScore :: [EventWithContext] -> BoxScore
-generateBoxScore events = foldr updateBoxScore initialBoxScore events
+generateBoxScore events = foldl' (flip updateBoxScore) initialBoxScore events
 
 updateBoxScore :: EventWithContext -> BoxScore -> BoxScore
 updateBoxScore (EventWithContext (StartEventType startEvent) _) = processStartEvent startEvent
@@ -94,10 +86,10 @@ processInfoEvent :: InfoEvent -> Game -> Game
 processInfoEvent InfoEvent{..} = do
   let info = Just infoEventValue
   case infoEventKey of
-    "visteam" -> set _gameAwayTeam info
-    "hometeam" -> set _gameHomeTeam info
-    "date" -> set _gameDate info
-    "starttime" -> set _gameStartTime info
+    "visteam" -> _gameAwayTeam .~ info
+    "hometeam" -> _gameHomeTeam .~ info
+    "date" -> _gameDate .~ info
+    "starttime" -> _gameStartTime .~ info
     _ -> id
 
 processStartEvent :: StartEvent -> BoxScore -> BoxScore
@@ -109,16 +101,14 @@ processSubEvent SubEvent{..} =
   addPlayerToBoxScore subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
 
 processPlayEvent :: PlayEvent -> GameState -> BoxScore -> BoxScore
-processPlayEvent PlayEvent{..} gs score =
-  let
-    scoreWithAtBats = if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId score else score
-    scoreWithHits = if isHit playEventResult then addHitToPlayer playEventPlayerId scoreWithAtBats else scoreWithAtBats
-    scoreWithRBI = addRBIToPlayer playEventPlayerId (numRBI playEventResult) scoreWithHits
-    scoreWithWalks = addWalkToPlayer playEventPlayerId (isWalk playEventResult) scoreWithRBI
-    scoreWithStrikeouts = addStrikeoutToPlayer playEventPlayerId (isStrikeout playEventResult) scoreWithWalks
-    scoreWithRuns = addRuns playEventPlayerId playEventResult gs scoreWithStrikeouts
-  in
-    if isAtBat playEventResult && isOut playEventResult then addLOB playEventPlayerId playEventResult gs scoreWithRuns else scoreWithRuns
+processPlayEvent PlayEvent{..} gs score = score
+  & boxScore %~ (if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId else id)
+  & boxScore %~ (if isHit playEventResult then addHitToPlayer playEventPlayerId else id)
+  & boxScore %~ (if isWalk playEventResult then addWalkToPlayer playEventPlayerId else id)
+  & boxScore %~ (if isStrikeout playEventResult then addStrikeoutToPlayer playEventPlayerId else id)
+  & boxScore %~ (if isAtBat playEventResult && isOut playEventResult then addLOB playEventPlayerId playEventResult gs else id)
+  & boxScore %~ addRBIToPlayer playEventPlayerId (numRBI playEventResult)
+  & boxScore %~ addRuns playEventPlayerId playEventResult gs
 
 isOut :: PlayResult -> Bool
 isOut result = case playResultAction result of
@@ -127,10 +117,7 @@ isOut result = case playResultAction result of
 
 numNotLeftOnBase :: PlayResult -> Int
 numNotLeftOnBase (PlayResult _ _ movements) =
-  let
-    numScored = length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) movements
-  in
-    numScored
+  length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) movements
 
 addLOB :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
 addLOB playerId pr GameState{..} score =
@@ -141,16 +128,14 @@ addLOB playerId pr GameState{..} score =
     addLOBToPlayer playerId numLOB score
 
 getRunnerOnBase :: Base -> GameState -> Maybe Text
-getRunnerOnBase FirstBase GameState{..} = gameStateRunnerOnFirstId
-getRunnerOnBase SecondBase GameState{..} = gameStateRunnerOnSecondId
-getRunnerOnBase ThirdBase GameState{..} = gameStateRunnerOnThirdId
-getRunnerOnBase _ _ = Nothing
+getRunnerOnBase FirstBase = gameStateRunnerOnFirstId
+getRunnerOnBase SecondBase = gameStateRunnerOnSecondId
+getRunnerOnBase ThirdBase = gameStateRunnerOnThirdId
+getRunnerOnBase _ = const Nothing
 
 addRunForMovement :: Text ->  GameState -> PlayMovement -> BoxScore -> BoxScore
 addRunForMovement _ state (PlayMovement startBase HomePlate True) score =
-  case getRunnerOnBase startBase state of
-    Just runnerId -> addRunToPlayer runnerId score
-    Nothing -> score
+  fromMaybe score $ map (`addRunToPlayer` score) $ getRunnerOnBase startBase state
 addRunForMovement _ _ _ score = score
 
 addRuns :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
@@ -162,46 +147,72 @@ addRuns batterId (PlayResult action _ movements) state score =
   in
     foldr (addRunForMovement batterId state) scoreWithRun movements
 
+addToPlayer
+  :: Text
+  -> Int
+  -> ASetter BattingLine BattingLine Int Int
+  -> BoxScore
+  -> BoxScore
+addToPlayer player num stat bs =
+  bs & _boxScoreStats . at player %~ map (stat %~ (+num))
+
+addOneToPlayer
+  :: Text
+  -> ASetter BattingLine BattingLine Int Int
+  -> BoxScore
+  -> BoxScore
+addOneToPlayer player stat = addToPlayer player 1 stat
+
 addLOBToPlayer :: Text -> Int -> BoxScore -> BoxScore
-addLOBToPlayer player numLOB = over _boxScoreStats (over _boxScoreCountsLOB (HashMap.insertWith (+) player numLOB))
+addLOBToPlayer player lob = addToPlayer player lob _battingLineLOB
 
 addRunToPlayer :: Text -> BoxScore -> BoxScore
-addRunToPlayer player = over _boxScoreStats (over _boxScoreCountsRuns (HashMap.insertWith (+) player 1))
+addRunToPlayer player = addOneToPlayer player _battingLineRuns
 
 addAtBatToPlayer :: Text -> BoxScore -> BoxScore
-addAtBatToPlayer player = over _boxScoreStats (over _boxScoreCountsAtBats (HashMap.insertWith (+) player 1))
+addAtBatToPlayer player = addOneToPlayer player _battingLineAtBats
 
 addHitToPlayer :: Text -> BoxScore -> BoxScore
-addHitToPlayer player = over _boxScoreStats (over _boxScoreCountsHits (HashMap.insertWith (+) player 1))
+addHitToPlayer player = addOneToPlayer player _battingLineHits
 
 addRBIToPlayer :: Text -> Int -> BoxScore -> BoxScore
-addRBIToPlayer player rbi = over _boxScoreStats (over _boxScoreCountsRBI (HashMap.insertWith (+) player rbi))
+addRBIToPlayer player rbi = addToPlayer player rbi _battingLineRBI
 
-addWalkToPlayer :: Text -> Bool -> BoxScore -> BoxScore
-addWalkToPlayer player bb = over _boxScoreStats (over _boxScoreCountsBB (HashMap.insertWith (+) player (if bb then 1 else 0)))
+addWalkToPlayer :: Text -> BoxScore -> BoxScore
+addWalkToPlayer player = addOneToPlayer player _battingLineWalks
 
-addStrikeoutToPlayer :: Text -> Bool -> BoxScore -> BoxScore
-addStrikeoutToPlayer player strikeout = over _boxScoreStats (over _boxScoreCountsStrikeouts (HashMap.insertWith (+) player (if strikeout then 1 else 0)))
+addStrikeoutToPlayer :: Text -> BoxScore -> BoxScore
+addStrikeoutToPlayer player = addOneToPlayer player _battingLineStrikeouts
 
 addPlayerToBoxScore :: HomeOrAway -> Text -> BattingOrderPosition -> FieldingPositionId -> BoxScore -> BoxScore
-addPlayerToBoxScore homeOrAway player battingPosition _ =
-  let
-    addPlayer = addPlayerToBattingOrderMap battingPosition player
-  in
-    case homeOrAway of
-      Away -> over _boxScoreAwayBattingOrderMap addPlayer
-      Home -> over _boxScoreHomeBattingOrderMap addPlayer
-
-addPlayerToBattingOrderMap :: BattingOrderPosition -> Text -> BattingOrderMap -> BattingOrderMap
-addPlayerToBattingOrderMap position player battingOrderMap =
-  let
-    players = battingOrderMap HashMap.! position
-  in
-    case player `elem` players of
-      True -> battingOrderMap
-      False -> HashMap.insertWith (++) position [player] battingOrderMap
+addPlayerToBoxScore homeOrAway player battingPosition _ bs =
+  case bs ^. _boxScoreStats . at player of
+    Just _ -> bs
+    Nothing ->
+      let
+        _boxScoreBattingOrder = case homeOrAway of
+          Away -> _boxScoreAwayBattingOrderMap
+          Home -> _boxScoreHomeBattingOrderMap
+      in
+        bs
+        & _boxScoreStats . at player ?~ emptyBattingLine player
+        & _boxScoreBattingOrder . at battingPosition %~ map (++ [player])
 
 -- addPlayerToPitching :: Text -> FieldingPositionId -> [PitchingLine] -> [PitchingLine]
 -- addPlayerToPitching playerId 1 pitching =
 --   pitching ++ [initialPitchingLine]
 -- addPlayerToPitching _ _ pitching = pitching
+
+boxScoreFromFile :: String -> IO BoxScore
+boxScoreFromFile file = do
+  csvEvents <- BL.readFile file
+  case (decode NoHeader csvEvents :: Either String (Vector Event)) of
+    Left err -> fail err
+    Right v -> do
+      let
+        events = toList v
+        gameStates = unstartedGameState : zipWith updateGameState events gameStates
+        eventsWithContext = zipWith EventWithContext events gameStates
+      pure $ generateBoxScore eventsWithContext
+
+

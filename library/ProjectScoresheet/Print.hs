@@ -49,22 +49,22 @@ prettyPrintBoxScore BoxScore{..} =
     , prettyPrintBattingLines boxScoreAwayBattingOrderMap boxScoreStats
     ]
 
-prettyPrintBattingLines :: BattingOrderMap -> BoxScoreCounts -> Text
+prettyPrintBattingLines :: BattingOrderMap -> HashMap Text BattingLine -> Text
 prettyPrintBattingLines bom counts =
   unlines $ map (\i ->
     let
       battingLineForSlot :: [Text]
       battingLineForSlot = bom HashMap.! i
     in
-      intercalate "\n " (map (prettyPrintBattingLine counts) battingLineForSlot)
+      intercalate "\n " (map (prettyPrintBattingLine . (counts HashMap.!)) battingLineForSlot)
   ) $ tail [(minBound :: BattingOrderPosition) ..]
 
-prettyPrintBattingLine :: BoxScoreCounts -> Text -> Text
-prettyPrintBattingLine (BoxScoreCounts atBats hits rbis runs walks strikeouts lob) player = player
-  <> "   " <> tshow (HashMap.lookupDefault 0 player atBats)
-  <> " " <> tshow (HashMap.lookupDefault 0 player runs)
-  <> " " <> tshow (HashMap.lookupDefault 0 player hits)
-  <> "  " <> tshow (HashMap.lookupDefault 0 player rbis)
-  <> "   " <> tshow (HashMap.lookupDefault 0 player walks)
-  <> "  " <> tshow (HashMap.lookupDefault 0 player strikeouts)
-  <> "  " <> tshow (HashMap.lookupDefault 0 player lob)
+prettyPrintBattingLine :: BattingLine -> Text
+prettyPrintBattingLine BattingLine{..} = battingLinePlayerId
+  <> "   " <> tshow battingLineAtBats
+  <> " " <> tshow battingLineRuns
+  <> " " <> tshow battingLineHits
+  <> "  " <> tshow battingLineRBI
+  <> "   " <> tshow battingLineWalks
+  <> "  " <> tshow battingLineStrikeouts
+  <> "  " <> tshow battingLineLOB
