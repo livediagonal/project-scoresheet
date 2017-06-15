@@ -89,10 +89,10 @@ spec = describe "PlayResult" $ do
         ]
 
   describe "box score smoke test" $ do
-    let smokeScore = boxScoreFromFile "testgame.txt"
+    let smokeScores = boxScoresFromFile "testgame.txt"
 
     it "should return correct stats" $
-      smokeScore >>= (\BoxScore{..} ->
+      smokeScores >>= (\[BoxScore{..}] ->
         boxScoreStats `shouldBe` HashMap.fromList
           [ ("kimbc001",BattingLine {battingLinePlayerId = "kimbc001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
           , ("bogax001",BattingLine {battingLinePlayerId = "bogax001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 1, battingLineWalks = 1, battingLineStrikeouts = 1, battingLineLOB = 0})

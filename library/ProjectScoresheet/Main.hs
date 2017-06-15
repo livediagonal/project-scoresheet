@@ -3,9 +3,12 @@
 
 module ProjectScoresheet.Main where
 
-import ClassyPrelude
+import ClassyPrelude hiding (head)
+import Data.List (head)
 import ProjectScoresheet.BoxScore
 import ProjectScoresheet.Print
 
 main :: IO ()
-main = prettyPrintBoxScore <$> boxScoreFromFile "testgame.txt" >>= putStrLn
+main = do
+  eventFile <- unpack . head <$> getArgs
+  boxScoresFromFile eventFile >>= mapM_ (putStrLn . prettyPrintBoxScore)

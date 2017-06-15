@@ -36,7 +36,7 @@ data FieldingPosition
 fieldPositionFromId :: Int -> FieldingPosition
 fieldPositionFromId fpId = toEnum (fpId - 1)
 
-type FieldingPositionId = Closed 1 11
+type FieldingPositionId = Closed 1 12
 type FieldingLineup = HashMap FieldingPositionId Text
 
 emptyFieldingLineup :: FieldingLineup

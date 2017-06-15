@@ -25,12 +25,20 @@ data Event
   | SubEventType SubEvent
   | PlayEventType PlayEvent
   | DataEventType DataEvent
+  | UnknownEventType UnknownEvent
   | EmptyEvent
   deriving (Eq, Show, Generic)
 
 data IdEvent
   = IdEvent
   { idEventName :: !Text
+  } deriving (Eq, Show, Generic)
+
+data UnknownEvent
+  = UnknownEvent
+  { unknownEventType :: !Text
+  , unknownEventField1 :: !Text
+  , unknownEventField2 :: !Text
   } deriving (Eq, Show, Generic)
 
 data SchemaEvent
@@ -87,6 +95,7 @@ data PlayEvent
 makeClassy_ ''PlayEvent
 
 instance FromRecord IdEvent
+instance FromRecord UnknownEvent
 instance FromRecord SchemaEvent
 instance FromRecord CommentEvent
 instance FromRecord InfoEvent
@@ -108,4 +117,4 @@ instance FromRecord Event where
      "sub" -> SubEventType <$> parseRecord args
      "com" -> CommentEventType <$> parseRecord args
      "data" -> DataEventType <$> parseRecord args
-     _ -> fail "Unrecognized key"
+     _ -> UnknownEventType <$> parseRecord v

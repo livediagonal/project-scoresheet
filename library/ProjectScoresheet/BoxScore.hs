@@ -73,14 +73,15 @@ makeClassy_ ''BoxScore
 initialBoxScore :: BoxScore
 initialBoxScore = BoxScore HashMap.empty initialBattingOrderMap initialBattingOrderMap
 
-generateBoxScore :: [EventWithContext] -> BoxScore
-generateBoxScore events = foldl' (flip updateBoxScore) initialBoxScore events
+generateBoxScores :: [EventWithContext] -> [BoxScore]
+generateBoxScores events = reverse $ foldl' (flip updateBoxScore) [] events
 
-updateBoxScore :: EventWithContext -> BoxScore -> BoxScore
-updateBoxScore (EventWithContext (StartEventType startEvent) _) = processStartEvent startEvent
-updateBoxScore (EventWithContext (SubEventType subEvent) _) = processSubEvent subEvent
-updateBoxScore (EventWithContext (PlayEventType pe) ctx) = processPlayEvent pe ctx
-updateBoxScore _ = id
+updateBoxScore :: EventWithContext -> [BoxScore] -> [BoxScore]
+updateBoxScore (EventWithContext (IdEventType _) _) bss = initialBoxScore : bss
+updateBoxScore (EventWithContext (StartEventType startEvent) _) (bs:rest) = processStartEvent startEvent bs : rest
+updateBoxScore (EventWithContext (SubEventType subEvent) _) (bs:rest) = processSubEvent subEvent bs : rest
+updateBoxScore (EventWithContext (PlayEventType pe) ctx) (bs:rest) = processPlayEvent pe ctx bs : rest
+updateBoxScore _ bss = bss
 
 processInfoEvent :: InfoEvent -> Game -> Game
 processInfoEvent InfoEvent{..} = do
@@ -203,8 +204,8 @@ addPlayerToBoxScore homeOrAway player battingPosition _ bs =
 --   pitching ++ [initialPitchingLine]
 -- addPlayerToPitching _ _ pitching = pitching
 
-boxScoreFromFile :: String -> IO BoxScore
-boxScoreFromFile file = do
+boxScoresFromFile :: String -> IO [BoxScore]
+boxScoresFromFile file = do
   csvEvents <- BL.readFile file
   case (decode NoHeader csvEvents :: Either String (Vector Event)) of
     Left err -> fail err
@@ -213,6 +214,6 @@ boxScoreFromFile file = do
         events = toList v
         gameStates = unstartedGameState : zipWith updateGameState events gameStates
         eventsWithContext = zipWith EventWithContext events gameStates
-      pure $ generateBoxScore eventsWithContext
+      pure $ generateBoxScores eventsWithContext
 
 
