@@ -173,13 +173,19 @@ parseNumericBase =
   try (char '3' *> pure ThirdBase) <|>
   char 'H' *> pure HomePlate
 
+parseMovementAnnotation :: Parser ()
+parseMovementAnnotation = do
+  void $ char '('
+  void $ try (string "NR") <|> pack <$> many (satisfy isDigit)
+  void $ char ')'
+
 parsePlayMovement :: Parser PlayMovement
 parsePlayMovement = do
   void $ try (char '.') <|> char ';'
   startBase <- parseNumericBase
   isSuccess <- try (char 'X' *> pure False) <|> char '-' *> pure True
   endBase <- parseNumericBase
-  void $ many (satisfy (\c -> c == '(' || c == ')' || isDigit c))
+  void $ optional parseMovementAnnotation
   pure $ PlayMovement startBase endBase isSuccess
 
 isBatterEvent :: PlayResult -> Bool
@@ -200,7 +206,10 @@ fromBool False = 0
 fromBool True = 1
 
 numRBI :: PlayResult -> Int
-numRBI PlayResult{..} = length (filter isRBI playResultMovements)
+numRBI pr@PlayResult{..} =
+  if isWildPitch pr
+  then 0
+  else length $ filter isRBI playResultMovements
 
 isHomeRun :: PlayResult -> Bool
 isHomeRun PlayResult{..} =
@@ -263,10 +272,19 @@ isTriplePlay :: PlayResult -> Bool
 isTriplePlay PlayResult{..} = False
 
 isWildPitch :: PlayResult -> Bool
-isWildPitch PlayResult{..} = False
+isWildPitch (PlayResult WildPitch _ _) = True
+isWildPitch _ = False
 
 isPassedBall :: PlayResult -> Bool
 isPassedBall PlayResult{..} = False
+
+isBatterOutOnMovement :: PlayMovement -> Bool
+isBatterOutOnMovement (PlayMovement HomePlate _ False) = True
+isBatterOutOnMovement _ = False
+
+isBatterOut :: PlayResult -> Bool
+isBatterOut PlayResult{..} =
+  any isBatterOutOnMovement playResultMovements
 
 addPlayMovement :: PlayMovement -> [PlayMovement] -> [PlayMovement]
 addPlayMovement pm@(PlayMovement startBase _ _) pms =
@@ -274,13 +292,20 @@ addPlayMovement pm@(PlayMovement startBase _ _) pms =
     True -> pms
     False -> pms ++ [pm]
 
+baseBefore :: Base -> Base
+baseBefore FirstBase = HomePlate
+baseBefore SecondBase = FirstBase
+baseBefore ThirdBase = SecondBase
+baseBefore HomePlate = ThirdBase
+
 saturatePlayMovements :: PlayResult -> PlayResult
 saturatePlayMovements pr@PlayResult{..} =
   let
     pr' = case playResultAction of
       Walk _ -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
       HitByPitch -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
-      Hit base _ -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate base True)) pr
+      Hit base _ -> over _playResultMovements (if isBatterOut pr then id else addPlayMovement (PlayMovement HomePlate base True)) pr
+      StolenBase base -> over _playResultMovements (addPlayMovement (PlayMovement (baseBefore base) base True)) pr
       Outs outs -> foldr saturateMovementsOnOut pr outs
       _ -> pr
   in

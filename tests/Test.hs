@@ -1,6 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 
 import ClassyPrelude
 import Test.Hspec.Attoparsec
@@ -18,6 +17,17 @@ main = do
 
 spec :: Spec
 spec = describe "PlayResult" $ do
+
+  describe "parsePlayResult" $
+
+    it "should successfully parse non-RBI wild pitch" $ do
+      let
+        res = ("WP.3-H(NR)" :: Text) ~> parsePlayResult
+      case res of
+        Left err -> fail err
+        Right pr -> do
+          pr `shouldBe` PlayResult WildPitch [] [PlayMovement ThirdBase HomePlate True]
+          numRBI pr `shouldBe` 0
 
   describe "parsePlayAction" $ do
 
@@ -82,6 +92,9 @@ spec = describe "PlayResult" $ do
     it "should successfully parse out with annotation" $
       ";2X3(65)" `shouldParseMovements` [PlayMovement SecondBase ThirdBase False]
 
+    it "should successfully parse non-RBI advance" $
+      ".3-H(NR)" `shouldParseMovements` [PlayMovement ThirdBase HomePlate True]
+
     it "should successfully parse out multiple movements" $
       ".3-H;2X3(65)" `shouldParseMovements`
         [ PlayMovement ThirdBase HomePlate True
@@ -92,8 +105,8 @@ spec = describe "PlayResult" $ do
     let smokeScores = boxScoresFromFile "testgame.txt"
 
     it "should return correct stats" $
-      smokeScores >>= (\[BoxScore{..}] ->
-        boxScoreStats `shouldBe` HashMap.fromList
+      smokeScores >>= (\[bs1, bs2, _] -> do
+        boxScoreStats bs1 `shouldBe` HashMap.fromList
           [ ("kimbc001",BattingLine {battingLinePlayerId = "kimbc001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
           , ("bogax001",BattingLine {battingLinePlayerId = "bogax001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 1, battingLineWalks = 1, battingLineStrikeouts = 1, battingLineLOB = 0})
           , ("ortid001",BattingLine {battingLinePlayerId = "ortid001", battingLineAtBats = 5, battingLineRuns = 0, battingLineHits = 2, battingLineRBI = 1, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 2})
@@ -125,5 +138,35 @@ spec = describe "PlayResult" $ do
           , ("hardj003",BattingLine {battingLinePlayerId = "hardj003", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 0})
           , ("bradj001",BattingLine {battingLinePlayerId = "bradj001", battingLineAtBats = 4, battingLineRuns = 0, battingLineHits = 1, battingLineRBI = 2, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 1})
           , ("bracb001",BattingLine {battingLinePlayerId = "bracb001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          ]
+        boxScoreStats bs2 `shouldBe` HashMap.fromList
+          [ ("laynt001",BattingLine {battingLinePlayerId = "laynt001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("bogax001",BattingLine {battingLinePlayerId = "bogax001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 1})
+          , ("ortid001",BattingLine {battingLinePlayerId = "ortid001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 2, battingLineRBI = 3, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("rickj001",BattingLine {battingLinePlayerId = "rickj001", battingLineAtBats = 5, battingLineRuns = 0, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 2, battingLineLOB = 2})
+          , ("wietm001",BattingLine {battingLinePlayerId = "wietm001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 2, battingLineWalks = 1, battingLineStrikeouts = 2, battingLineLOB = 3})
+          , ("buchc001",BattingLine {battingLinePlayerId = "buchc001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("jonea003",BattingLine {battingLinePlayerId = "jonea003", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("ramih003",BattingLine {battingLinePlayerId = "ramih003", battingLineAtBats = 4, battingLineRuns = 0, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 1})
+          , ("schoj001",BattingLine {battingLinePlayerId = "schoj001", battingLineAtBats = 4, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 2})
+          , ("mcfat001",BattingLine {battingLinePlayerId = "mcfat001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("holtb002",BattingLine {battingLinePlayerId = "holtb002", battingLineAtBats = 2, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 1, battingLineStrikeouts = 0, battingLineLOB = 2})
+          , ("wrigm001",BattingLine {battingLinePlayerId = "wrigm001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("trumm001",BattingLine {battingLinePlayerId = "trumm001", battingLineAtBats = 4, battingLineRuns = 3, battingLineHits = 3, battingLineRBI = 2, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 2})
+          , ("davic003",BattingLine {battingLinePlayerId = "davic003", battingLineAtBats = 3, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 2, battingLineStrikeouts = 2, battingLineLOB = 1})
+          , ("younc004",BattingLine {battingLinePlayerId = "younc004", battingLineAtBats = 1, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 1})
+          , ("rossr002",BattingLine {battingLinePlayerId = "rossr002", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("bundd001",BattingLine {battingLinePlayerId = "bundd001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("shawt001",BattingLine {battingLinePlayerId = "shawt001", battingLineAtBats = 2, battingLineRuns = 0, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("flahr001",BattingLine {battingLinePlayerId = "flahr001", battingLineAtBats = 3, battingLineRuns = 0, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 1, battingLineStrikeouts = 2, battingLineLOB = 1})
+          , ("alvap001",BattingLine {battingLinePlayerId = "alvap001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 1, battingLineStrikeouts = 1, battingLineLOB = 2})
+          , ("ramin002",BattingLine {battingLinePlayerId = "ramin002", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("machm001",BattingLine {battingLinePlayerId = "machm001", battingLineAtBats = 5, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 1})
+          , ("bettm001",BattingLine {battingLinePlayerId = "bettm001", battingLineAtBats = 5, battingLineRuns = 1, battingLineHits = 2, battingLineRBI = 1, battingLineWalks = 0, battingLineStrikeouts = 2, battingLineLOB = 0})
+          , ("odayd001",BattingLine {battingLinePlayerId = "odayd001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
+          , ("pedrd001",BattingLine {battingLinePlayerId = "pedrd001", battingLineAtBats = 5, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 2})
+          , ("swihb001",BattingLine {battingLinePlayerId = "swihb001", battingLineAtBats = 4, battingLineRuns = 0, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 5})
+          , ("hardj003",BattingLine {battingLinePlayerId = "hardj003", battingLineAtBats = 4, battingLineRuns = 2, battingLineHits = 2, battingLineRBI = 5, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 1})
+          , ("bradj001",BattingLine {battingLinePlayerId = "bradj001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 1})
           ]
       )

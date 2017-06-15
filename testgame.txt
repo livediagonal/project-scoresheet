@@ -177,3 +177,324 @@ data,er,barnm001,1
 data,er,tazaj001,0
 data,er,uehak001,0
 data,er,kimbc001,3
+id,BOS201604120
+version,2
+info,visteam,BAL
+info,hometeam,BOS
+info,site,BOS07
+info,date,2016/04/12
+info,number,0
+info,starttime,7:11PM
+info,daynight,night
+info,usedh,true
+info,umphome,buckc901
+info,ump1b,reynj901
+info,ump2b,gonzm901
+info,ump3b,culbf901
+info,howscored,park
+info,pitches,pitches
+info,oscorer,shalm701
+info,temp,53
+info,winddir,ltor
+info,windspeed,12
+info,fieldcond,unknown
+info,precip,unknown
+info,sky,cloudy
+info,timeofgame,203
+info,attendance,31114
+info,wp,wrigm001
+info,lp,buchc001
+info,save,
+start,rickj001,"Joey Rickard",0,1,8
+start,machm001,"Manny Machado",0,2,5
+start,davic003,"Chris Davis",0,3,3
+start,trumm001,"Mark Trumbo",0,4,9
+start,wietm001,"Matt Wieters",0,5,2
+start,alvap001,"Pedro Alvarez",0,6,10
+start,hardj003,"J.J. Hardy",0,7,6
+start,schoj001,"Jonathan Schoop",0,8,4
+start,flahr001,"Ryan Flaherty",0,9,7
+start,wrigm001,"Mike Wright",0,0,1
+start,bettm001,"Mookie Betts",1,1,9
+start,pedrd001,"Dustin Pedroia",1,2,4
+start,bogax001,"Xander Bogaerts",1,3,6
+start,ortid001,"David Ortiz",1,4,10
+start,ramih003,"Hanley Ramirez",1,5,3
+start,shawt001,"Travis Shaw",1,6,5
+start,holtb002,"Brock Holt",1,7,7
+start,swihb001,"Blake Swihart",1,8,2
+start,bradj001,"Jackie Bradley",1,9,8
+start,buchc001,"Clay Buchholz",1,0,1
+play,1,0,rickj001,11,CBX,53/G
+play,1,0,machm001,20,BBX,2/P2F
+play,1,0,davic003,30,BBBB,W
+play,1,0,trumm001,12,CSBX,S7/L.1-2
+play,1,0,wietm001,02,CFS,K
+play,1,1,bettm001,32,CSBFBBS,K
+play,1,1,pedrd001,22,BCBFFX,S9/L
+play,1,1,bogax001,12,BCFC,K
+play,1,1,ortid001,12,FSBX,HR/9/F.1-H
+play,1,1,ramih003,01,CX,9/F
+play,2,0,alvap001,31,BBSBB,W
+play,2,0,hardj003,20,B1BX,7/F
+play,2,0,schoj001,02,CFX,8/F
+play,2,0,flahr001,32,B1C*BFFB>C,K
+play,2,1,shawt001,21,BBSX,5/L-
+play,2,1,holtb002,31,CBBBB,W
+play,2,1,swihb001,01,CX,6/L+/DP.1X1(63)
+play,3,0,rickj001,02,CCFFC,K
+play,3,0,machm001,22,CFBBX,7/F
+play,3,0,davic003,32,BFBFBS,K
+play,3,1,bradj001,32,CBBCBS,K
+play,3,1,bettm001,12,BFFC,K
+play,3,1,pedrd001,12,BCCX,53/G
+play,4,0,trumm001,01,CH,HP
+play,4,0,wietm001,00,X,9/F.1-2
+play,4,0,alvap001,21,BBCX,5/P5F
+play,4,0,hardj003,12,CBFX,HR/9/F/UREV.2-H
+com,"replay,4,hardj003,BAL,culbf901,BOS07,I,N,U,,H"
+com,"$J.J. Hardy's fly to RF bounced on the top of the wall just"
+com,"beyond the RF pole and caromed into the seats; the ball was"
+com,"ruled a home run; crew chief Fieldin Culbreth requested a"
+com,"review, which upheld the call"
+play,4,0,schoj001,01,SX,63/G
+play,4,1,bogax001,01,CX,63/G
+play,4,1,ortid001,32,FFBFBBX,9/F
+play,4,1,ramih003,22,CBSBFX,S9/L
+play,4,1,shawt001,02,CFH,HP.1-2
+play,4,1,holtb002,21,*BBFH,HP.2-3;1-2
+play,4,1,swihb001,22,SFBFBX,43/G
+play,5,0,flahr001,02,CCC,K
+play,5,0,rickj001,01,CX,63/G
+play,5,0,machm001,21,CBBX,53/G
+play,5,1,bradj001,22,SBBCX,S9/G
+play,5,1,bettm001,00,X,D7/F.1-H
+play,5,1,pedrd001,12,CCBFX,43/G.2-3
+play,5,1,bogax001,22,FB*B+3FB,WP.3-H(NR)
+play,5,1,bogax001,32,FB*B+3FB.X,8/F
+play,5,1,ortid001,02,CSX,63/G
+play,6,0,davic003,32,BFBBCX,S7/F
+play,6,0,trumm001,32,B1BC1FBFFFX,HR/78/F.1-H
+play,6,0,wietm001,32,SBFBBFB,W
+play,6,0,alvap001,02,SFX,D7/F.1-3
+play,6,0,hardj003,00,,NP
+sub,ramin002,"Noe Ramirez",1,0,1
+play,6,0,hardj003,21,.BCBX,9/L/SF.3-H;2-3
+play,6,0,schoj001,11,SBX,5/L
+play,6,0,flahr001,30,IIII,IW
+play,6,0,rickj001,10,B>C,SB2
+play,6,0,rickj001,12,B>C.FS,K
+play,6,1,ramih003,00,,NP
+sub,bundd001,"Dylan Bundy",0,0,1
+play,6,1,ramih003,01,.FX,53/G
+play,6,1,shawt001,12,SBCFFFX,D7/F
+play,6,1,holtb002,11,BCX,43/G.2-3
+play,6,1,swihb001,22,CBBSX,43/G
+play,7,0,machm001,10,BX,S8/L-
+play,7,0,davic003,00,,NP
+sub,rossr002,"Robbie Ross",1,0,1
+play,7,0,davic003,12,.BSSFS,K
+play,7,0,trumm001,12,FBFX,D7/L.1-3
+play,7,0,wietm001,02,SFX,S8/L.3-H;2-H
+play,7,0,alvap001,01,CX,46(1)/FO/G
+play,7,0,hardj003,21,B*BCX,HR/9/F.1-H
+play,7,0,schoj001,21,BBSX,13/G
+play,7,1,bradj001,11,BCX,43/G
+play,7,1,bettm001,32,BBFBFX,4/P3F
+play,7,1,pedrd001,22,BCFBX,8/F
+play,8,0,flahr001,10,BX,S8/L/MREV.BX2(84)
+com,"replay,8,flahr001,BAL,culbf901,BOS07,,N,M,BAL,A"
+com,"$when Ryan Flaherty was called out at 2B, Orioles"
+com,"manager Buck Showalter challenged the call; the"
+com,"ruling was upheld by replay"
+play,8,0,rickj001,22,BBCCX,S7/G
+play,8,0,machm001,11,B1FB,PB.1-2
+play,8,0,machm001,32,B1FB.CBX,9/F
+play,8,0,davic003,22,SFFBBB,WP.2-3
+play,8,0,davic003,32,SFFBBB.B,W
+play,8,0,trumm001,21,FBBX,9/F
+play,8,1,bogax001,00,,NP
+sub,rickj001,"Joey Rickard",0,1,9
+play,8,1,bogax001,00,,NP
+sub,jonea003,"Adam Jones",0,4,8
+play,8,1,bogax001,01,..FX,S4/G
+play,8,1,ortid001,12,CBFFFFX,D8/L.1-H
+play,8,1,ramih003,02,CFX,3/P-
+play,8,1,shawt001,00,,NP
+sub,mcfat001,"T.J. McFarland",0,0,1
+play,8,1,shawt001,00,,NP
+sub,younc004,"Chris Young",1,6,11
+play,8,1,younc004,21,..BBSX,8/F
+play,8,1,holtb002,10,BX,43/G
+play,9,0,wietm001,00,,NP
+sub,younc004,"Chris Young",1,6,7
+play,9,0,wietm001,00,,NP
+sub,holtb002,"Brock Holt",1,7,5
+play,9,0,wietm001,00,,NP
+sub,laynt001,"Tom Layne",1,0,1
+play,9,0,wietm001,32,...CBBBSS,K
+play,9,0,alvap001,02,CSS,K
+play,9,0,hardj003,21,BBCX,63/G
+play,9,1,swihb001,12,CSBX,S5/G-
+play,9,1,bradj001,00,X,6(1)3/GDP
+play,9,1,bettm001,00,,NP
+sub,odayd001,"Darren O'Day",0,0,1
+play,9,1,bettm001,01,.CX,D8/L
+play,9,1,pedrd001,12,CSBFFX,53/G/MREV
+com,"replay,9,pedrd001,BOS,culbf901,BOS07,,N,M,BOS,C"
+com,"$when Dustin Pedroia was called out at 1B, Red Sox"
+com,"manager John Farrell challenged the ruling; the"
+com,"call was upheld by replay"
+data,er,wrigm001,4
+data,er,bundd001,1
+data,er,mcfat001,0
+data,er,odayd001,0
+data,er,buchc001,5
+data,er,ramin002,1
+data,er,rossr002,3
+data,er,laynt001,0
+id,BOS201604130
+version,2
+info,visteam,BAL
+info,hometeam,BOS
+info,site,BOS07
+info,date,2016/04/13
+info,number,0
+info,starttime,7:10PM
+info,daynight,night
+info,usedh,true
+info,umphome,reynj901
+info,ump1b,gonzm901
+info,ump2b,culbf901
+info,ump3b,buckc901
+info,howscored,park
+info,pitches,pitches
+info,oscorer,ellib701
+info,temp,44
+info,winddir,rtol
+info,windspeed,13
+info,fieldcond,unknown
+info,precip,unknown
+info,sky,sunny
+info,timeofgame,193
+info,attendance,31011
+info,wp,kellj001
+info,lp,jimeu001
+info,save,kimbc001
+start,rickj001,"Joey Rickard",0,1,8
+start,machm001,"Manny Machado",0,2,5
+start,davic003,"Chris Davis",0,3,3
+start,trumm001,"Mark Trumbo",0,4,9
+start,hardj003,"J.J. Hardy",0,5,6
+start,alvap001,"Pedro Alvarez",0,6,10
+start,schoj001,"Jonathan Schoop",0,7,4
+start,josec002,"Caleb Joseph",0,8,2
+start,kim-h001,"Hyun Soo Kim",0,9,7
+start,jimeu001,"Ubaldo Jimenez",0,0,1
+start,bettm001,"Mookie Betts",1,1,9
+start,pedrd001,"Dustin Pedroia",1,2,4
+start,bogax001,"Xander Bogaerts",1,3,6
+start,ortid001,"David Ortiz",1,4,10
+start,ramih003,"Hanley Ramirez",1,5,3
+start,shawt001,"Travis Shaw",1,6,5
+start,holtb002,"Brock Holt",1,7,7
+start,hanir001,"Ryan Hanigan",1,8,2
+start,bradj001,"Jackie Bradley",1,9,8
+start,kellj001,"Joe Kelly",1,0,1
+play,1,0,rickj001,32,CBBCBFB,W
+play,1,0,machm001,20,B11BX,8/F
+play,1,0,davic003,32,CBBBSC,K
+play,1,0,trumm001,02,1CFX,3/G
+play,1,1,bettm001,22,BCBCX,S7/G+
+play,1,1,pedrd001,11,1CB1>B,SB2
+play,1,1,pedrd001,32,1CB1>B.CBB,W
+play,1,1,bogax001,21,BFBX,54(1)6(2)/GDP
+play,1,1,ortid001,21,CBB>S,SB2
+play,1,1,ortid001,32,CBB>S.BB,W
+play,1,1,ramih003,01,C>B,SB3
+play,1,1,ramih003,32,C>B.BCB>F>X,43/G
+play,2,0,hardj003,01,CX,D9/F.BX3(945)
+play,2,0,alvap001,32,CBBFB*B,W
+play,2,0,schoj001,12,BSSS,K
+play,2,0,josec002,32,BFS*BB>X,S5/G-.1-2
+play,2,0,kim-h001,32,CCBFBB+2*B,W.2-3;1-2
+play,2,0,rickj001,01,FX,64(1)/FO/G
+play,2,1,shawt001,32,BBBCFFFC,K
+play,2,1,holtb002,22,CBBCC,K
+play,2,1,hanir001,01,CX,S8/G
+play,2,1,bradj001,21,*BBFX,3/L+
+play,3,0,machm001,01,CX,D7/L+
+play,3,0,davic003,30,BBBX,HR/7/F.2-H
+play,3,0,trumm001,11,FBX,5/P5F
+play,3,0,hardj003,02,CFX,53/G
+play,3,0,alvap001,32,BBCSBX,S9/L
+play,3,0,schoj001,22,CBFBS,K
+play,3,1,bettm001,21,BBCX,S7/L
+play,3,1,pedrd001,21,1BF1BX,S6/G.1-2
+play,3,1,bogax001,01,CX,D7/G.2-H;1-H
+play,3,1,ortid001,30,BBBB,W
+play,3,1,ramih003,02,FFX,6/L/DP.2X2(64)
+play,3,1,shawt001,22,B*BCFFX,56(1)/FO/G
+play,4,0,josec002,32,BCBSBFS,K
+play,4,0,kim-h001,31,BCBBB,W
+play,4,0,rickj001,10,BX,9/L-
+play,4,0,machm001,21,BFBX,S6/G.1-2
+play,4,0,davic003,02,CSX,43/G
+play,4,1,holtb002,32,BBBCCB,W
+play,4,1,hanir001,02,S1CF1C,K
+play,4,1,bradj001,11,CB>X,T9/L+.1-H
+play,4,1,bettm001,00,X,143/G.3-H
+play,4,1,pedrd001,32,BFSBBS,K
+play,5,0,trumm001,12,BFSS,K
+play,5,0,hardj003,12,BCCX,63/G
+play,5,0,alvap001,32,BSSBBF*B,W
+play,5,0,schoj001,22,SBFFFBX,S9/G.1-2
+play,5,0,josec002,12,SBCS,K
+play,5,1,bogax001,22,CBSBX,4/P
+play,5,1,ortid001,11,BCX,3/G
+play,5,1,ramih003,32,BCFBBC,K
+play,6,0,kim-h001,00,,NP
+sub,barnm001,"Matt Barnes",1,0,1
+play,6,0,kim-h001,12,.SCBS,K23
+play,6,0,rickj001,01,CX,9/F
+play,6,0,machm001,21,BFBX,D9/L
+play,6,0,davic003,00,,NP
+sub,laynt001,"Tom Layne",1,0,1
+play,6,0,davic003,01,.C>S,CS3(25)
+play,6,1,shawt001,00,,NP
+sub,wilst004,"Tyler Wilson",0,0,1
+play,6,1,shawt001,00,.X,S8/L-
+play,6,1,holtb002,01,CX,4/P
+play,6,1,hanir001,22,BSFB>FX,3/P
+play,6,1,bradj001,12,CFBFX,53/G
+play,7,0,davic003,11,CBX,8/F
+play,7,0,trumm001,00,,NP
+sub,tazaj001,"Junichi Tazawa",1,0,1
+play,7,0,trumm001,22,.FSBFFBX,8/F+
+play,7,0,hardj003,01,CX,43/G+
+play,7,1,bettm001,32,CBFBBX,4/P
+play,7,1,pedrd001,02,CFS,K
+play,7,1,bogax001,00,X,S9/L
+play,7,1,ortid001,12,FBFFX,5/P
+play,8,0,alvap001,00,,NP
+sub,uehak001,"Koji Uehara",1,0,1
+play,8,0,alvap001,02,.CSX,53/G
+play,8,0,schoj001,02,SFX,7/F
+play,8,0,josec002,11,FBX,S8/L
+play,8,0,kim-h001,21,BS*BX,8/L
+play,8,1,ramih003,02,FFFFS,K
+play,8,1,shawt001,21,BBFX,53/G-
+play,8,1,holtb002,00,X,43/G
+play,9,0,rickj001,00,,NP
+sub,kimbc001,"Craig Kimbrel",1,0,1
+play,9,0,rickj001,22,.CBSBS,K
+play,9,0,machm001,22,CBTBS,K
+play,9,0,davic003,12,CBCS,K23
+data,er,jimeu001,4
+data,er,wilst004,0
+data,er,kellj001,2
+data,er,barnm001,0
+data,er,laynt001,0
+data,er,tazaj001,0
+data,er,uehak001,0
+data,er,kimbc001,0
