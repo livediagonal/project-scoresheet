@@ -10,7 +10,6 @@ module ProjectScoresheet.Print
 
 import ClassyPrelude hiding (tail, intercalate)
 import Data.List (tail)
-import Data.Text (intercalate)
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.GameState
 import ProjectScoresheet.BoxScore
@@ -57,14 +56,6 @@ prettyPrintBattingLine isFirst BattingLine{..} = (if isFirst then "" else " ")
   <> "  " <> tshow battingLineStrikeouts
   <> "  " <> tshow battingLineLOB
 
-
-prettyPrintGame :: Game -> Text
-prettyPrintGame Game{..} =
-  unlines
-    [ tshow (fromMaybe "" gameAwayTeam) <> "@" <> tshow (fromMaybe "" gameHomeTeam)
-    , ""
-    , prettyPrintGameState gameGameState
-    ]
 
 prettyPrintGameState :: GameState -> Text
 prettyPrintGameState GameState{..} =
