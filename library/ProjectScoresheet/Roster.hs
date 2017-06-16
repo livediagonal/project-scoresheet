@@ -4,7 +4,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.Roster where
+module ProjectScoresheet.Roster
+( rosterFromFile
+) where
 
 import ClassyPrelude
 import Data.Csv
@@ -14,6 +16,7 @@ import qualified Data.Vector as V
 import ProjectScoresheet.BaseballTypes
 
 data Handedness = LeftHanded | RightHanded | BothHanded deriving (Eq, Show)
+
 instance FromField Handedness where
   parseField "L" = pure LeftHanded
   parseField "R" = pure RightHanded
@@ -22,7 +25,7 @@ instance FromField Handedness where
 
 type Roster = HashMap Text RosterEntry
 
-data RosterEntry 
+data RosterEntry
   = RosterEntry
   { rosterEntryPlayerId :: Text
   , rosterEntryLastName :: Text
