@@ -17,13 +17,6 @@ import Data.Attoparsec.Text
 import Data.Csv hiding (Parser)
 import ProjectScoresheet.BaseballTypes
 
-data Base
-  = FirstBase
-  | SecondBase
-  | ThirdBase
-  | HomePlate
-  deriving (Eq, Show, Enum)
-
 data Out
   = RoutinePlay [FieldingPosition] (Maybe Base)
   | FieldersChoice [FieldingPosition]

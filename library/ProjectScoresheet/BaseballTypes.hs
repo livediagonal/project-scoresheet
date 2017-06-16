@@ -18,6 +18,13 @@ instance FromField HomeOrAway where
   parseField "1" = pure Home
   parseField val = fail $ "Unrecognized value: " ++ show val
 
+data Base
+  = FirstBase
+  | SecondBase
+  | ThirdBase
+  | HomePlate
+  deriving (Eq, Show, Enum)
+
 data FieldingPosition
   = Pitcher
   | Catcher
