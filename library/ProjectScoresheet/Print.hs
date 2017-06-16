@@ -52,8 +52,8 @@ prettyPrintBattingLine isFirst BattingLine{..} = (if isFirst then "" else " ")
   <> tshow battingLineAtBats
   <> " " <> tshow battingLineRuns
   <> " " <> tshow battingLineHits
-  <> "  " <> tshow battingLineRBI
-  <> "   " <> tshow battingLineWalks
+  <> "   " <> tshow battingLineRBI
+  <> "  " <> tshow battingLineWalks
   <> "  " <> tshow battingLineStrikeouts
   <> "  " <> tshow battingLineLOB
 
