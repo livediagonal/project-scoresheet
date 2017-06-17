@@ -19,13 +19,13 @@ import qualified Data.HashMap.Strict as HashMap
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =
   unlines
-    [ "------------------------------"
-    , "Home      AB R H RBI BB SO LOB"
-    , "------------------------------"
+    [ "------------------------------------"
+    , "Home Batters    AB R H RBI BB SO LOB"
+    , "------------------------------------"
     , prettyPrintBattingOrderMap boxScoreHomeBattingOrderMap boxScoreStats
-    , "------------------------------"
-    , "Away      AB R H RBI BB SO LOB"
-    , "------------------------------"
+    , "------------------------------------"
+    , "Away Batters    AB R H RBI BB SO LOB"
+    , "------------------------------------"
     , prettyPrintBattingOrderMap boxScoreAwayBattingOrderMap boxScoreStats
     ]
 
@@ -36,18 +36,18 @@ prettyPrintBattingOrderMap bom counts =
       battingLineForSlot :: [Text]
       battingLineForSlot = bom HashMap.! i
     in
-      prettyPrintBattingLines $ map (counts HashMap.!) battingLineForSlot
+      tshow (fromIntegral i) <> ": " <> (prettyPrintBattingLines $ reverse $ map (counts HashMap.!) battingLineForSlot)
   ) $ tail [(minBound :: BattingOrderPosition) ..]
 
 prettyPrintBattingLines :: [BattingLine] -> Text
 prettyPrintBattingLines [] = ""
 prettyPrintBattingLines [x] = prettyPrintBattingLine True x
-prettyPrintBattingLines (x:xs) = prettyPrintBattingLine False x <> "\n" <> prettyPrintBattingLines xs
+prettyPrintBattingLines (x:xs) = prettyPrintBattingLines xs <> "\n" <> prettyPrintBattingLine False x
 
 prettyPrintBattingLine :: Bool -> BattingLine -> Text
-prettyPrintBattingLine isFirst BattingLine{..} = (if isFirst then "" else " ")
+prettyPrintBattingLine isFirst BattingLine{..} = (if isFirst then "" else "    ")
   <> battingLinePlayerId
-  <> (if isFirst then "   " else "  ")
+  <> (if isFirst then "      " else "     ")
   <> tshow battingLineAtBats
   <> " " <> tshow battingLineRuns
   <> " " <> tshow battingLineHits
