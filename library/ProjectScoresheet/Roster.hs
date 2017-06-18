@@ -20,7 +20,7 @@ data Handedness = LeftHanded | RightHanded | BothHanded deriving (Eq, Show)
 instance FromField Handedness where
   parseField "L" = pure LeftHanded
   parseField "R" = pure RightHanded
-  parseField "B" = pure RightHanded
+  parseField "B" = pure BothHanded
   parseField val = fail $ "Unrecognized value: " ++ show val
 
 type Roster = HashMap Text RosterEntry
