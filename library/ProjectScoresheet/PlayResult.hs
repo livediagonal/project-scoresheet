@@ -181,104 +181,6 @@ parsePlayMovement = do
   void $ optional parseMovementAnnotation
   pure $ PlayMovement startBase endBase isSuccess
 
-isBatterEvent :: PlayResult -> Bool
-isBatterEvent PlayResult{..} = False
-
-isHit :: PlayResult -> Bool
-isHit PlayResult{..} =
-  case playResultAction of
-    Hit _ _ -> True
-    _ -> False
-
-isRBI :: PlayMovement -> Bool
-isRBI (PlayMovement _ HomePlate True) = True
-isRBI _ = False
-
-fromBool :: Bool -> Int
-fromBool False = 0
-fromBool True = 1
-
-numRBI :: PlayResult -> Int
-numRBI pr@PlayResult{..} =
-  if isWildPitch pr
-  then 0
-  else length $ filter isRBI playResultMovements
-
-isHomeRun :: PlayResult -> Bool
-isHomeRun PlayResult{..} =
-  case playResultAction of
-    Hit HomePlate _ -> True
-    _ -> False
-
-isAtBat :: PlayResult -> Bool
-isAtBat pr@PlayResult{..} =
-  case playResultAction of
-    Walk _ -> False
-    HitByPitch -> False
-    WildPitch -> False
-    NoPlay _ -> False
-    Other _ -> False
-    StolenBase _ -> False
-    Outs _ -> not $ isSacrifice pr
-    _ -> True
-
-isWalk :: PlayResult -> Bool
-isWalk PlayResult{..} =
-  case playResultAction of
-    Walk _ -> True
-    _ -> False
-
-isStrikeout :: PlayResult -> Bool
-isStrikeout PlayResult{..} =
-  case playResultAction of
-    Outs outs -> any isStrikeoutOut outs
-    _ -> False
-
-isStrikeoutOut :: Out -> Bool
-isStrikeoutOut out =
-  case out of
-    Strikeout _ -> True
-    _ -> False
-
-isForceOut :: PlayResult -> Bool
-isForceOut (PlayResult _ descriptors _) = any isForceOutDescriptor descriptors
-
-isForceOutDescriptor :: PlayDescriptor -> Bool
-isForceOutDescriptor ForceOut = True
-isForceOutDescriptor _ = False
-
-isSacrifice :: PlayResult -> Bool
-isSacrifice (PlayResult _ descriptors _) = any isSacrificeDescriptor descriptors
-
-isSacrificeDescriptor :: PlayDescriptor -> Bool
-isSacrificeDescriptor SacrificeFly = True
-isSacrificeDescriptor SacrificeBunt = True
-isSacrificeDescriptor _ = False
-
-isBattedBall :: PlayResult -> Bool
-isBattedBall PlayResult{..} = False
-
-isDoublePlay :: PlayResult -> Bool
-isDoublePlay PlayResult{..} = False
-
-isTriplePlay :: PlayResult -> Bool
-isTriplePlay PlayResult{..} = False
-
-isWildPitch :: PlayResult -> Bool
-isWildPitch (PlayResult WildPitch _ _) = True
-isWildPitch _ = False
-
-isPassedBall :: PlayResult -> Bool
-isPassedBall PlayResult{..} = False
-
-isBatterOutOnMovement :: PlayMovement -> Bool
-isBatterOutOnMovement (PlayMovement HomePlate _ False) = True
-isBatterOutOnMovement _ = False
-
-isBatterOut :: PlayResult -> Bool
-isBatterOut PlayResult{..} =
-  any isBatterOutOnMovement playResultMovements
-
 addPlayMovement :: PlayMovement -> [PlayMovement] -> [PlayMovement]
 addPlayMovement pm@(PlayMovement startBase _ _) pms =
   case any (\(PlayMovement existingStartBase _ _) -> startBase == existingStartBase) pms of
@@ -290,6 +192,21 @@ baseBefore FirstBase = HomePlate
 baseBefore SecondBase = FirstBase
 baseBefore ThirdBase = SecondBase
 baseBefore HomePlate = ThirdBase
+
+isForceOutDescriptor :: PlayDescriptor -> Bool
+isForceOutDescriptor ForceOut = True
+isForceOutDescriptor _ = False
+
+isForceOut :: PlayResult -> Bool
+isForceOut PlayResult{..} = any isForceOutDescriptor playResultDescriptors
+
+isBatterOutOnMovement :: PlayMovement -> Bool
+isBatterOutOnMovement (PlayMovement HomePlate _ False) = True
+isBatterOutOnMovement _ = False
+
+isBatterOut :: PlayResult -> Bool
+isBatterOut PlayResult{..} =
+  any isBatterOutOnMovement playResultMovements
 
 saturatePlayMovements :: PlayResult -> PlayResult
 saturatePlayMovements pr@PlayResult{..} =

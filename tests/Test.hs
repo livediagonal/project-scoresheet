@@ -5,6 +5,7 @@ import ClassyPrelude
 import Test.Hspec.Attoparsec
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.BoxScore
+import ProjectScoresheet.PlateAppearance
 import ProjectScoresheet.PlayResult
 import Test.Tasty
 import Test.Tasty.Hspec
@@ -27,7 +28,7 @@ spec = describe "PlayResult" $ do
         Left err -> fail err
         Right pr -> do
           pr `shouldBe` PlayResult WildPitch [] [PlayMovement ThirdBase HomePlate True]
-          numRBI pr `shouldBe` 0
+          numRBI (convertToPlateAppearance "" pr) `shouldBe` 0
 
   describe "parsePlayAction" $ do
 

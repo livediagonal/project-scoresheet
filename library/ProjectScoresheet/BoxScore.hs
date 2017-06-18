@@ -13,6 +13,7 @@ import Data.Csv
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.EventTypes
 import ProjectScoresheet.GameState
+import ProjectScoresheet.PlateAppearance
 import ProjectScoresheet.PlayResult
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HashMap
@@ -80,7 +81,7 @@ updateBoxScore :: EventWithContext -> [BoxScore] -> [BoxScore]
 updateBoxScore (EventWithContext (IdEventType _) _) bss = initialBoxScore : bss
 updateBoxScore (EventWithContext (StartEventType startEvent) _) (bs:rest) = processStartEvent startEvent bs : rest
 updateBoxScore (EventWithContext (SubEventType subEvent) _) (bs:rest) = processSubEvent subEvent bs : rest
-updateBoxScore (EventWithContext (PlayEventType pe) ctx) (bs:rest) = processPlayEvent pe ctx bs : rest
+updateBoxScore (EventWithContext (PlayEventType pe) ctx) (bs:rest) = processPlateAppearance (convertEventToPlateAppearance pe) ctx bs : rest
 updateBoxScore _ bss = bss
 
 processInfoEvent :: InfoEvent -> Game -> Game
@@ -101,30 +102,30 @@ processSubEvent :: SubEvent -> BoxScore -> BoxScore
 processSubEvent SubEvent{..} =
   addPlayerToBoxScore subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
 
-processPlayEvent :: PlayEvent -> GameState -> BoxScore -> BoxScore
-processPlayEvent PlayEvent{..} gs score = score
-  & boxScore %~ (if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId else id)
-  & boxScore %~ (if isHit playEventResult then addHitToPlayer playEventPlayerId else id)
-  & boxScore %~ (if isWalk playEventResult then addWalkToPlayer playEventPlayerId else id)
-  & boxScore %~ (if isStrikeout playEventResult then addStrikeoutToPlayer playEventPlayerId else id)
-  & boxScore %~ (if isAtBat playEventResult && isOut playEventResult then addLOB playEventPlayerId playEventResult gs else id)
-  & boxScore %~ addRBIToPlayer playEventPlayerId (numRBI playEventResult)
-  & boxScore %~ addRuns playEventPlayerId playEventResult gs
+processPlateAppearance :: PlateAppearance -> GameState -> BoxScore -> BoxScore
+processPlateAppearance pa@PlateAppearance{..} gs score = score
+  & boxScore %~ (if isAtBat pa then addAtBatToPlayer plateAppearanceBatterId else id)
+  & boxScore %~ (if isHit pa then addHitToPlayer plateAppearanceBatterId else id)
+  & boxScore %~ (if isWalk pa then addWalkToPlayer plateAppearanceBatterId else id)
+  & boxScore %~ (if isStrikeout pa then addStrikeoutToPlayer plateAppearanceBatterId else id)
+  & boxScore %~ (if isAtBat pa && isOut pa then addLOB plateAppearanceBatterId pa gs else id)
+  & boxScore %~ addRBIToPlayer plateAppearanceBatterId (numRBI pa)
+  & boxScore %~ addRuns pa gs
 
-isOut :: PlayResult -> Bool
-isOut result = case playResultAction result of
+isOut :: PlateAppearance -> Bool
+isOut PlateAppearance{..} = case plateAppearanceAction of
   Outs _ -> True
   _ -> False
 
-numNotLeftOnBase :: PlayResult -> Int
-numNotLeftOnBase (PlayResult _ _ movements) =
-  length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) movements
+numNotLeftOnBase :: PlateAppearance -> Int
+numNotLeftOnBase PlateAppearance{..} =
+  length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) plateAppearanceMovements
 
-addLOB :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
-addLOB playerId pr GameState{..} score =
+addLOB :: Text -> PlateAppearance -> GameState -> BoxScore -> BoxScore
+addLOB playerId pa GameState{..} score =
   let
     numOB = length $ catMaybes [gameStateRunnerOnFirstId, gameStateRunnerOnSecondId, gameStateRunnerOnThirdId]
-    numLOB = numOB - numNotLeftOnBase pr
+    numLOB = numOB - numNotLeftOnBase pa
   in
     addLOBToPlayer playerId numLOB score
 
@@ -139,14 +140,14 @@ addRunForMovement _ state (PlayMovement startBase HomePlate True) score =
   fromMaybe score $ map (`addRunToPlayer` score) $ getRunnerOnBase startBase state
 addRunForMovement _ _ _ score = score
 
-addRuns :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
-addRuns batterId (PlayResult action _ movements) state score =
+addRuns :: PlateAppearance -> GameState -> BoxScore -> BoxScore
+addRuns PlateAppearance{..} state score =
   let
-    scoreWithRun = case action of
-      Hit HomePlate _ -> addRunToPlayer batterId score
+    scoreWithRun = case plateAppearanceAction of
+      Hit HomePlate _ -> addRunToPlayer plateAppearanceBatterId score
       _ -> score
   in
-    foldr (addRunForMovement batterId state) scoreWithRun movements
+    foldr (addRunForMovement plateAppearanceBatterId state) scoreWithRun plateAppearanceMovements
 
 addToPlayer
   :: Text
