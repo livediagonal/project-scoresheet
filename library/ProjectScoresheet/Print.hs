@@ -41,13 +41,12 @@ prettyPrintBattingOrderMap bom counts =
 
 prettyPrintBattingLines :: [BattingLine] -> Text
 prettyPrintBattingLines [] = ""
-prettyPrintBattingLines [x] = prettyPrintBattingLine True x
-prettyPrintBattingLines (x:xs) = prettyPrintBattingLines xs <> "\n" <> prettyPrintBattingLine False x
+prettyPrintBattingLines [x] = prettyPrintBattingLine x
+prettyPrintBattingLines (x:xs) = prettyPrintBattingLines xs <> "\n   " <> prettyPrintBattingLine x
 
-prettyPrintBattingLine :: Bool -> BattingLine -> Text
-prettyPrintBattingLine isFirst BattingLine{..} = (if isFirst then "" else "    ")
-  <> battingLinePlayerId
-  <> (if isFirst then "      " else "     ")
+prettyPrintBattingLine :: BattingLine -> Text
+prettyPrintBattingLine BattingLine{..} = battingLinePlayerId
+  <> "      "
   <> tshow battingLineAtBats
   <> " " <> tshow battingLineRuns
   <> " " <> tshow battingLineHits
