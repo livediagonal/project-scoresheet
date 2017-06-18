@@ -5,7 +5,6 @@
 
 module ProjectScoresheet.Print 
 ( prettyPrintBoxScore
-, prettyPrintGameState
 ) where
 
 import ClassyPrelude hiding (tail, intercalate)
@@ -54,20 +53,3 @@ prettyPrintBattingLine BattingLine{..} = battingLinePlayerId
   <> "  " <> tshow battingLineWalks
   <> "  " <> tshow battingLineStrikeouts
   <> "  " <> tshow battingLineLOB
-
-
-prettyPrintGameState :: GameState -> Text
-prettyPrintGameState GameState{..} =
-  unlines
-    [ "Inning: " <> tshow gameStateInning <> ", Outs: " <> tshow gameStateOuts
-    , ""
-    , "Away: "
-    , prettyPrintBattingOrder gameStateAwayBattingOrder
-    , "Home: "
-    , prettyPrintBattingOrder gameStateAwayBattingOrder
-    ]
-
-prettyPrintBattingOrder :: BattingOrder -> Text
-prettyPrintBattingOrder battingOrder =
-  unlines $ map (\i -> tshow i <> ": " <> battingOrder HashMap.! i) $ tail [(minBound :: BattingOrderPosition) ..]
-
