@@ -10,7 +10,6 @@ module ProjectScoresheet.Print
 import ClassyPrelude hiding (tail, intercalate)
 import Data.List (tail)
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.GameState
 import ProjectScoresheet.BoxScore
 import qualified Data.HashMap.Strict as HashMap
 
@@ -35,7 +34,7 @@ prettyPrintBattingOrderMap bom counts =
       battingLineForSlot :: [Text]
       battingLineForSlot = bom HashMap.! i
     in
-      tshow (fromIntegral i) <> ": " <> (prettyPrintBattingLines $ reverse $ map (counts HashMap.!) battingLineForSlot)
+      tshow (fromIntegral i :: Integer) <> ": " <> prettyPrintBattingLines (reverse $ map (counts HashMap.!) battingLineForSlot)
   ) $ tail [(minBound :: BattingOrderPosition) ..]
 
 prettyPrintBattingLines :: [BattingLine] -> Text
