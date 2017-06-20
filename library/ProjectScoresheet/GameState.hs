@@ -20,10 +20,7 @@ data GameState
   , gameStateAwayFieldingLineup :: FieldingLineup
   , gameStateInning :: !Int
   , gameStateInningHalf :: InningHalf
-  , gameStateHomeRuns :: !Int
-  , gameStateAwayRuns :: !Int
   , gameStateOuts :: !Int
-  , gameStateIsLeadOff :: !Bool
   , gameStateIsPinchHit :: !Bool
   , gameStateBatterId :: !(Maybe Text)
   , gameStateBattingTeam :: !(Maybe HomeOrAway)
@@ -31,11 +28,6 @@ data GameState
   , gameStateRunnerOnFirstId :: !(Maybe Text)
   , gameStateRunnerOnSecondId :: !(Maybe Text)
   , gameStateRunnerOnThirdId :: !(Maybe Text)
-  , gameStateCurrentBatterId :: !(Maybe Text)
-  , gameStateCurrentPitcherId :: !(Maybe Text)
-  , gameStateRunnerOnFirstResponsiblePitcherId :: !(Maybe Text)
-  , gameStateRunnerOnSecondResponsiblePitcherId :: !(Maybe Text)
-  , gameStateRunnerOnThirdResponsiblePitcherId :: !(Maybe Text)
   } deriving (Eq, Show)
 
 data Game
@@ -52,7 +44,7 @@ makeClassy_ ''GameState
 makeClassy_ ''Game
 
 unstartedGameState :: GameState
-unstartedGameState = GameState emptyBattingOrder emptyBattingOrder emptyFieldingLineup emptyFieldingLineup 1 BottomInningHalf 0 0 0 False False Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+unstartedGameState = GameState emptyBattingOrder emptyBattingOrder emptyFieldingLineup emptyFieldingLineup 1 BottomInningHalf 0 False Nothing Nothing Nothing Nothing Nothing Nothing
 
 unstartedGame :: Game
 unstartedGame = Game Nothing Nothing Nothing Nothing unstartedGameState Nothing
@@ -100,8 +92,8 @@ baseForPlayer playerId GameState{..} =
     _ -> Nothing) [FirstBase, SecondBase, ThirdBase]
 
 applyRunnerMovement :: Text -> GameState -> PlayMovement -> GameState
-applyRunnerMovement _ gs (PlayMovement startBase _ False) = gs
-  & gameState %~ removePlayerFromBase startBase
+applyRunnerMovement _ gs (PlayMovement startBase _ False) =
+  removePlayerFromBase startBase gs
   & _gameStateOuts %~ (+1)
 applyRunnerMovement batterId gs (PlayMovement startBase endBase True) = gs
   & gameState %~ addPlayerToBase (playerOnBase batterId startBase gs) endBase
@@ -118,8 +110,8 @@ batterOuts :: [Out] -> Int
 batterOuts outs = length $ filter (\o -> case o of Strikeout _ -> True; RoutinePlay _ Nothing -> True; _ -> False) outs
 
 applyAction :: PlayAction -> GameState -> GameState
-applyAction (Outs outs) state = state { gameStateOuts = gameStateOuts state + batterOuts outs }
-applyAction _ state = state
+applyAction (Outs outs) gs = gs & _gameStateOuts %~ (+ batterOuts outs)
+applyAction _ gs = gs
 
 updateGameState :: Event -> GameState -> GameState
 updateGameState (StartEventType StartEvent{..}) =

@@ -81,7 +81,8 @@ updateBoxScore :: EventWithContext -> [BoxScore] -> [BoxScore]
 updateBoxScore (EventWithContext (IdEventType _) _) bss = initialBoxScore : bss
 updateBoxScore (EventWithContext (StartEventType startEvent) _) (bs:rest) = processStartEvent startEvent bs : rest
 updateBoxScore (EventWithContext (SubEventType subEvent) _) (bs:rest) = processSubEvent subEvent bs : rest
-updateBoxScore (EventWithContext (PlayEventType pe) ctx) (bs:rest) = processPlateAppearance (convertEventToPlateAppearance pe) ctx bs : rest
+updateBoxScore (EventWithContext (PlayEventType pe) ctx) (bs:rest) =
+  processPlateAppearance (convertEventToPlateAppearance pe) ctx bs : rest
 updateBoxScore _ bss = bss
 
 processInfoEvent :: InfoEvent -> Game -> Game

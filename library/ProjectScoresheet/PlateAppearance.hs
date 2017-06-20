@@ -84,6 +84,7 @@ isAtBat pa@PlateAppearance{..} =
   case plateAppearanceAction of
     Walk _ -> False
     HitByPitch -> False
+    CaughtStealing _ _ -> False
     WildPitch -> False
     NoPlay _ -> False
     Other _ -> False

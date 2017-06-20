@@ -27,6 +27,7 @@ data PlayAction
   = Outs [Out]
   | Hit Base (Maybe FieldingPosition)
   | StolenBase Base
+  | CaughtStealing Base (Maybe [FieldingPosition])
   | WildPitch
   | Walk Bool
   | NoPlay (Maybe Text)
@@ -71,6 +72,7 @@ parsePlayAction =
   try parseStolenBase <|>
   try parseHit <|>
   try parseOuts <|>
+  try parseCaughtStealing <|>
   try parseWildPitch <|>
   try parseWalk <|>
   try parseNoPlay <|>
@@ -80,6 +82,12 @@ parsePlayAction =
 
 parseStolenBase :: Parser PlayAction
 parseStolenBase = string "SB" *> (StolenBase <$> parseNumericBase)
+
+parseCaughtStealing :: Parser PlayAction
+parseCaughtStealing = string "CS" *> (CaughtStealing <$> parseNumericBase <*> optional (parseParenthetical parseFieldingPositions))
+
+parseParenthetical :: Parser a -> Parser a
+parseParenthetical delegate = char '(' *> delegate <* char ')'
 
 parseHit :: Parser PlayAction
 parseHit = Hit <$> parseBase <*> optional parseFieldingPosition
@@ -134,7 +142,9 @@ parseQualifier :: Parser Text
 parseQualifier = char '+' *> (pack <$> many (satisfy (not . \c -> c == '/' || c == '.')))
 
 parseStrikeout :: Parser Out
-parseStrikeout = parsePlayActionTokenWithQualifier "K" Strikeout
+parseStrikeout =
+  try (string "K23" *> pure (Strikeout Nothing)) <|>
+  parsePlayActionTokenWithQualifier "K" Strikeout
 
 parseNoPlay :: Parser PlayAction
 parseNoPlay = parsePlayActionTokenWithQualifier "NP" NoPlay
@@ -216,12 +226,22 @@ saturatePlayMovements pr@PlayResult{..} =
       HitByPitch -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
       Hit base _ -> over _playResultMovements (if isBatterOut pr then id else addPlayMovement (PlayMovement HomePlate base True)) pr
       StolenBase base -> over _playResultMovements (addPlayMovement (PlayMovement (baseBefore base) base True)) pr
+      CaughtStealing base _ -> over _playResultMovements (addPlayMovement (PlayMovement (baseBefore base) base False)) pr
       Outs outs -> foldr saturateMovementsOnOut pr outs
+        & _playResultMovements %~ if not (isBatterOutOnOuts outs) then addPlayMovement (PlayMovement HomePlate FirstBase True) else id
       _ -> pr
   in
     case isForceOut pr' of
       True -> over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr'
       False -> pr'
+
+isBatterOutOnOuts :: [Out] -> Bool
+isBatterOutOnOuts = any isBatterOutOnOut
+
+isBatterOutOnOut :: Out -> Bool
+isBatterOutOnOut (Strikeout _) = True
+isBatterOutOnOut (RoutinePlay _ Nothing) = True
+isBatterOutOnOut _ = False
 
 saturateMovementsOnOut :: Out -> PlayResult -> PlayResult
 saturateMovementsOnOut (FieldersChoice _) pr = over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
