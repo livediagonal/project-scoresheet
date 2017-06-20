@@ -9,6 +9,8 @@ import ClassyPrelude
 import Closed
 import Data.Csv
 import qualified Data.HashMap.Strict as HashMap
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.HashMap.Strict as HashMap
 
 data InningHalf = TopInningHalf | BottomInningHalf deriving (Eq, Show)
 

@@ -74,14 +74,14 @@ makeClassy_ ''BoxScore
 initialBoxScore :: BoxScore
 initialBoxScore = BoxScore HashMap.empty initialBattingOrderMap initialBattingOrderMap
 
-generateBoxScores :: [EventWithContext] -> [BoxScore]
+generateBoxScores :: [EventWithState] -> [BoxScore]
 generateBoxScores events = reverse $ foldl' (flip updateBoxScore) [] events
 
-updateBoxScore :: EventWithContext -> [BoxScore] -> [BoxScore]
-updateBoxScore (EventWithContext (IdEventType _) _) bss = initialBoxScore : bss
-updateBoxScore (EventWithContext (StartEventType startEvent) _) (bs:rest) = processStartEvent startEvent bs : rest
-updateBoxScore (EventWithContext (SubEventType subEvent) _) (bs:rest) = processSubEvent subEvent bs : rest
-updateBoxScore (EventWithContext (PlayEventType pe) ctx) (bs:rest) = processPlayEvent pe ctx bs : rest
+updateBoxScore :: EventWithState -> [BoxScore] -> [BoxScore]
+updateBoxScore (EventWithState (IdEventType _) _) bss = initialBoxScore : bss
+updateBoxScore (EventWithState (StartEventType startEvent) _) (bs:rest) = processStartEvent startEvent bs : rest
+updateBoxScore (EventWithState (SubEventType subEvent) _) (bs:rest) = processSubEvent subEvent bs : rest
+updateBoxScore (EventWithState (PlayEventType pe) ctx) (bs:rest) = processPlayEvent pe ctx bs : rest
 updateBoxScore _ bss = bss
 
 processInfoEvent :: InfoEvent -> Game -> Game
@@ -102,7 +102,7 @@ processSubEvent :: SubEvent -> BoxScore -> BoxScore
 processSubEvent SubEvent{..} =
   addPlayerToBoxScore subEventPlayerHome subEventPlayer subEventBattingPosition subEventFieldingPosition
 
-processPlayEvent :: PlayEvent -> GameState -> BoxScore -> BoxScore
+processPlayEvent :: PlayEvent -> FrameState -> BoxScore -> BoxScore
 processPlayEvent pe@PlayEvent{..} gs score = score
   & boxScore %~ (if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId else id)
   & boxScore %~ (if isHit playEventResult then addHitToPlayer playEventPlayerId else id)
@@ -121,26 +121,26 @@ numNotLeftOnBase :: PlayResult -> Int
 numNotLeftOnBase PlayResult{..} =
   length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) playResultMovements
 
-addLOB :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
-addLOB playerId pr GameState{..} score =
+addLOB :: Text -> PlayResult -> FrameState -> BoxScore -> BoxScore
+addLOB playerId pr FrameState{..} score =
   let
-    numOB = length $ catMaybes [gameStateRunnerOnFirstId, gameStateRunnerOnSecondId, gameStateRunnerOnThirdId]
+    numOB = length $ catMaybes [frameStateRunnerOnFirstId, frameStateRunnerOnSecondId, frameStateRunnerOnThirdId]
     numLOB = numOB - numNotLeftOnBase pr
   in
     addLOBToPlayer playerId numLOB score
 
-getRunnerOnBase :: Base -> GameState -> Maybe Text
-getRunnerOnBase FirstBase = gameStateRunnerOnFirstId
-getRunnerOnBase SecondBase = gameStateRunnerOnSecondId
-getRunnerOnBase ThirdBase = gameStateRunnerOnThirdId
+getRunnerOnBase :: Base -> FrameState -> Maybe Text
+getRunnerOnBase FirstBase = frameStateRunnerOnFirstId
+getRunnerOnBase SecondBase = frameStateRunnerOnSecondId
+getRunnerOnBase ThirdBase = frameStateRunnerOnThirdId
 getRunnerOnBase _ = const Nothing
 
-addRunForMovement :: Text ->  GameState -> PlayMovement -> BoxScore -> BoxScore
+addRunForMovement :: Text ->  FrameState -> PlayMovement -> BoxScore -> BoxScore
 addRunForMovement _ state (PlayMovement startBase HomePlate True) score =
   fromMaybe score $ map (`addRunToPlayer` score) $ getRunnerOnBase startBase state
 addRunForMovement _ _ _ score = score
 
-addRuns :: Text -> PlayResult -> GameState -> BoxScore -> BoxScore
+addRuns :: Text -> PlayResult -> FrameState -> BoxScore -> BoxScore
 addRuns player PlayResult{..} state score =
   let
     scoreWithRun = case playResultAction of
@@ -213,8 +213,8 @@ boxScoresFromFile file = do
     Right v -> do
       let
         events = toList v
-        gameStates = unstartedGameState : zipWith updateGameState events gameStates
-        eventsWithContext = zipWith EventWithContext events gameStates
+        frameStates = unstartedFrameState : zipWith updateFrameState events frameStates
+        eventsWithContext = zipWith EventWithState events frameStates
       pure $ generateBoxScores eventsWithContext
 
 
