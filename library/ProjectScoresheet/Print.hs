@@ -13,7 +13,6 @@ import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.BoxScore
 import qualified Data.HashMap.Strict as HashMap
 
-
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =
   unlines
