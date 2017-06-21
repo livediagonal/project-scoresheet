@@ -50,14 +50,14 @@ data Game
 makeClassy_ ''FrameState
 makeClassy_ ''Game
 
-unstartedFrameState :: FrameState
-unstartedFrameState = FrameState 1 BottomInningHalf 0 False Nothing Nothing Nothing Nothing Nothing Nothing
-
 initialState :: EventWithState
-initialState = EventWithState EmptyEvent unstartedFrameState
+initialState = EventWithState EmptyEvent initialFrameState
 
-baseGame :: Game
-baseGame = Game Nothing Nothing Nothing Nothing []
+initialFrameState :: FrameState
+initialFrameState = FrameState 1 BottomInningHalf 0 False Nothing Nothing Nothing Nothing Nothing Nothing
+
+initialGame :: Game
+initialGame = Game Nothing Nothing Nothing Nothing []
 
 removePlayerFromBase :: Base -> FrameState -> FrameState
 removePlayerFromBase base = addPlayerToBase Nothing base
@@ -94,13 +94,6 @@ applyRunnerMovement batterId gs (PlayMovement startBase endBase True) = gs
   & frameState %~ addPlayerToBase (playerOnBase batterId startBase gs) endBase
   & frameState %~ removePlayerFromBase startBase
 
-resetInningState :: FrameState -> FrameState
-resetInningState state = state
-  & _frameStateRunnerOnFirstId .~ Nothing
-  & _frameStateRunnerOnSecondId .~ Nothing
-  & _frameStateRunnerOnThirdId .~ Nothing
-  & _frameStateOuts .~ 0
-
 batterOuts :: [Out] -> Int
 batterOuts outs = length $ filter (\o -> case o of Strikeout _ -> True; RoutinePlay _ Nothing -> True; _ -> False) outs
 
@@ -114,7 +107,7 @@ updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (PlayResult action _
   & frameState %~ applyAction action
   & frameState %~ \state' ->
     if frameStateOuts state' == 3
-    then resetInningState state'
+    then initialFrameState
     else state'
 updateFrameState _ = id
 
