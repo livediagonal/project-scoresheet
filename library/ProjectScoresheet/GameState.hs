@@ -11,7 +11,7 @@ import Control.Lens
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Retrosheet.Parser
-import ProjectScoresheet.PlayResult
+import ProjectScoresheet.Play
 
 data EventWithState = EventWithState Event FrameState deriving (Eq, Show)
 
@@ -101,7 +101,7 @@ applyAction (Outs outs) gs = gs & _frameStateOuts %~ (+ batterOuts outs)
 applyAction _ gs = gs
 
 updateFrameState :: Event -> FrameState -> FrameState
-updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (PlayResult action _ movements))) =
+updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (Play action _ movements))) =
   frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
   & frameState %~ applyAction action
   & frameState %~ \state' ->

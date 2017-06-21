@@ -14,7 +14,7 @@ import Data.Char (digitToInt, isDigit)
 import Data.Attoparsec.Text
 import Data.Csv hiding (Parser)
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.PlayResult
+import ProjectScoresheet.Play
 import ProjectScoresheet.Retrosheet.Events
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
@@ -44,18 +44,14 @@ instance FromRecord Event where
      "data" -> DataEventType <$> parseRecord args
      _ -> UnknownEventType <$> parseRecord v
 
-instance FromField PlayResult where
+instance FromField Play where
   parseField info =
-    case parseOnly parsePlayResult (decodeUtf8 info) of
+    case parseOnly parsePlay (decodeUtf8 info) of
       Left e -> fail e
       Right r -> pure r
 
-parsePlayResult :: Parser PlayResult
-parsePlayResult = do
-  playAction <- parsePlayAction
-  playDescriptors <- many parsePlayDescriptor
-  playMovements <- many parsePlayMovement
-  pure $ PlayResult playAction playDescriptors playMovements
+parsePlay :: Parser Play
+parsePlay = Play <$> parsePlayAction <*> many parsePlayDescriptor <*> many parsePlayMovement
 
 parsePlayAction :: Parser PlayAction
 parsePlayAction =

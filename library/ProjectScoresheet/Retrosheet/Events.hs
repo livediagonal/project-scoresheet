@@ -12,7 +12,7 @@ module ProjectScoresheet.Retrosheet.Events where
 import ClassyPrelude
 import Control.Lens
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.PlayResult
+import ProjectScoresheet.Play
 
 data Event
   = IdEventType IdEvent
@@ -87,7 +87,7 @@ data PlayEvent
   , playEventPlayerId :: !Text
   , playEventCount :: !Int
   , playEventPitchSequence :: !Text
-  , playEventResult :: !PlayResult
+  , playEventResult :: !Play
   } deriving (Eq, Show, Generic)
 
 makeClassy_ ''PlayEvent

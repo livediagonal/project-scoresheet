@@ -12,8 +12,7 @@ import Control.Lens
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.GameState
-import ProjectScoresheet.PlayResult
-import ProjectScoresheet.PlayResultUtils
+import ProjectScoresheet.Play
 import qualified Data.HashMap.Strict as HashMap
 
 data InningLine
@@ -110,15 +109,15 @@ processPlayEvent pe@PlayEvent{..} gs score = score
   & boxScore %~ addRuns playEventPlayerId playEventResult gs
 
 isOut :: PlayEvent -> Bool
-isOut PlayEvent{..} = case playResultAction playEventResult of
+isOut PlayEvent{..} = case playAction playEventResult of
   Outs _ -> True
   _ -> False
 
-numNotLeftOnBase :: PlayResult -> Int
-numNotLeftOnBase PlayResult{..} =
-  length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) playResultMovements
+numNotLeftOnBase :: Play -> Int
+numNotLeftOnBase Play{..} =
+  length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) playMovements
 
-addLOB :: Text -> PlayResult -> FrameState -> BoxScore -> BoxScore
+addLOB :: Text -> Play -> FrameState -> BoxScore -> BoxScore
 addLOB playerId pr FrameState{..} score =
   let
     numOB = length $ catMaybes [frameStateRunnerOnFirstId, frameStateRunnerOnSecondId, frameStateRunnerOnThirdId]
@@ -137,14 +136,14 @@ addRunForMovement _ state (PlayMovement startBase HomePlate True) score =
   fromMaybe score $ map (`addRunToPlayer` score) $ getRunnerOnBase startBase state
 addRunForMovement _ _ _ score = score
 
-addRuns :: Text -> PlayResult -> FrameState -> BoxScore -> BoxScore
-addRuns player PlayResult{..} state score =
+addRuns :: Text -> Play -> FrameState -> BoxScore -> BoxScore
+addRuns player Play{..} state score =
   let
-    scoreWithRun = case playResultAction of
+    scoreWithRun = case playAction of
       Hit HomePlate _ -> addRunToPlayer player score
       _ -> score
   in
-    foldr (addRunForMovement player state) scoreWithRun playResultMovements
+    foldr (addRunForMovement player state) scoreWithRun playMovements
 
 addToPlayer
   :: Text
