@@ -5,9 +5,8 @@ import ClassyPrelude
 import Test.Hspec.Attoparsec
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.BoxScore
-import ProjectScoresheet.GameState (gamesFromFilePath)
-import ProjectScoresheet.PlayResult
-import ProjectScoresheet.PlayResultUtils
+import ProjectScoresheet.Game (gamesFromFilePath)
+import ProjectScoresheet.Play
 import ProjectScoresheet.Retrosheet.Parser
 import Test.Tasty
 import Test.Tasty.Hspec
@@ -19,17 +18,17 @@ main = do
   defaultMain tests
 
 spec :: Spec
-spec = describe "PlayResult" $ do
+spec = describe "Play" $ do
 
-  describe "parsePlayResult" $
+  describe "parsePlay" $
 
     it "should successfully parse non-RBI wild pitch" $ do
       let
-        res = ("WP.3-H(NR)" :: Text) ~> parsePlayResult
+        res = ("WP.3-H(NR)" :: Text) ~> parsePlay
       case res of
         Left err -> fail err
         Right pr -> do
-          pr `shouldBe` PlayResult WildPitch [] [PlayMovement ThirdBase HomePlate True]
+          pr `shouldBe` Play WildPitch [] [PlayMovement ThirdBase HomePlate True]
           numRBI pr `shouldBe` 0
 
   describe "parsePlayAction" $ do

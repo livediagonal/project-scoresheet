@@ -4,14 +4,23 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.GameState where
+module ProjectScoresheet.Game where
 
 import ClassyPrelude hiding (toLower)
 import Control.Lens
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Retrosheet.Parser
-import ProjectScoresheet.PlayResult
+import ProjectScoresheet.Play
+
+data Game
+  = Game
+  { gameHomeTeam :: !(Maybe Text)
+  , gameAwayTeam :: !(Maybe Text)
+  , gameDate :: !(Maybe Text)
+  , gameStartTime :: !(Maybe Text)
+  , gameEvents :: ![EventWithState]
+  } deriving (Eq, Show)
 
 data EventWithState = EventWithState Event FrameState deriving (Eq, Show)
 
@@ -35,15 +44,6 @@ data FrameState
   , frameStateRunnerOnFirstId :: !(Maybe Text)
   , frameStateRunnerOnSecondId :: !(Maybe Text)
   , frameStateRunnerOnThirdId :: !(Maybe Text)
-  } deriving (Eq, Show)
-
-data Game
-  = Game
-  { gameHomeTeam :: !(Maybe Text)
-  , gameAwayTeam :: !(Maybe Text)
-  , gameDate :: !(Maybe Text)
-  , gameStartTime :: !(Maybe Text)
-  , gameEvents :: ![EventWithState]
   } deriving (Eq, Show)
 
 makeClassy_ ''FrameState
@@ -98,7 +98,7 @@ applyAction (Outs outs) gs = gs & _frameStateOuts %~ (+ batterOuts outs)
 applyAction _ gs = gs
 
 updateFrameState :: Event -> FrameState -> FrameState
-updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (PlayResult action _ movements))) =
+updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (Play action _ movements))) =
   frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
   & frameState %~ applyAction action
   & frameState %~ \state' ->

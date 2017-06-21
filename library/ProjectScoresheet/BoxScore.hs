@@ -7,13 +7,12 @@
 
 module ProjectScoresheet.BoxScore where
 
-import ClassyPrelude
+import ClassyPrelude hiding (tail)
 import Control.Lens
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
-import ProjectScoresheet.GameState
-import ProjectScoresheet.PlayResult
-import ProjectScoresheet.PlayResultUtils
+import ProjectScoresheet.Game
+import ProjectScoresheet.Play
 import qualified Data.HashMap.Strict as HashMap
 
 data InningLine
@@ -100,15 +99,15 @@ processPlayEvent pe@PlayEvent{..} gs score = score
   & boxScore %~ addRuns playEventPlayerId playEventResult gs
 
 isOut :: PlayEvent -> Bool
-isOut PlayEvent{..} = case playResultAction playEventResult of
+isOut PlayEvent{..} = case playAction playEventResult of
   Outs _ -> True
   _ -> False
 
-numNotLeftOnBase :: PlayResult -> Int
-numNotLeftOnBase PlayResult{..} =
-  length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) playResultMovements
+numNotLeftOnBase :: Play -> Int
+numNotLeftOnBase Play{..} =
+  length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) playMovements
 
-addLOB :: Text -> PlayResult -> FrameState -> BoxScore -> BoxScore
+addLOB :: Text -> Play -> FrameState -> BoxScore -> BoxScore
 addLOB playerId pr FrameState{..} score =
   let
     numOB = length $ catMaybes [frameStateRunnerOnFirstId, frameStateRunnerOnSecondId, frameStateRunnerOnThirdId]
@@ -127,14 +126,14 @@ addRunForMovement _ state (PlayMovement startBase HomePlate True) score =
   fromMaybe score $ map (`addRunToPlayer` score) $ getRunnerOnBase startBase state
 addRunForMovement _ _ _ score = score
 
-addRuns :: Text -> PlayResult -> FrameState -> BoxScore -> BoxScore
-addRuns player PlayResult{..} state score =
+addRuns :: Text -> Play -> FrameState -> BoxScore -> BoxScore
+addRuns player Play{..} state score =
   let
-    scoreWithRun = case playResultAction of
+    scoreWithRun = case playAction of
       Hit HomePlate _ -> addRunToPlayer player score
       _ -> score
   in
-    foldr (addRunForMovement player state) scoreWithRun playResultMovements
+    foldr (addRunForMovement player state) scoreWithRun playMovements
 
 addToPlayer
   :: Text
@@ -184,7 +183,45 @@ addPlayerToBoxScore homeOrAway player battingPosition _ bs =
           Home -> _boxScoreHomeBattingOrderMap
       in
         bs
-        & _boxScoreStats . at player ?~ emptyBattingLine player
+        & _boxScoreStats . at player ?~ initialBattingLine player
         & _boxScoreBattingOrder . at battingPosition %~ map (++ [player])
 
 
+prettyPrintBoxScore :: BoxScore -> Text
+prettyPrintBoxScore BoxScore{..} =
+  unlines
+    [ "------------------------------------"
+    , "Home Batters    AB R H RBI BB SO LOB"
+    , "------------------------------------"
+    , prettyPrintBattingOrderMap boxScoreHomeBattingOrderMap boxScoreStats
+    , "------------------------------------"
+    , "Away Batters    AB R H RBI BB SO LOB"
+    , "------------------------------------"
+    , prettyPrintBattingOrderMap boxScoreAwayBattingOrderMap boxScoreStats
+    ]
+
+prettyPrintBattingOrderMap :: BattingOrderMap -> HashMap Text BattingLine -> Text
+prettyPrintBattingOrderMap bom counts =
+  let
+    (_:hitters) = [(minBound :: BattingOrderPosition) ..]
+  in
+    unlines $ map (\i ->
+      tshow (fromIntegral i :: Integer) <> ": "
+      <> prettyPrintBattingLines (reverse $ map (counts HashMap.!) (bom HashMap.! i))
+    ) hitters
+
+prettyPrintBattingLines :: [BattingLine] -> Text
+prettyPrintBattingLines [] = ""
+prettyPrintBattingLines [x] = prettyPrintBattingLine x
+prettyPrintBattingLines (x:xs) = prettyPrintBattingLines xs <> "\n   " <> prettyPrintBattingLine x
+
+prettyPrintBattingLine :: BattingLine -> Text
+prettyPrintBattingLine BattingLine{..} = battingLinePlayerId
+  <> "      "
+  <> tshow battingLineAtBats
+  <> " " <> tshow battingLineRuns
+  <> " " <> tshow battingLineHits
+  <> "   " <> tshow battingLineRBI
+  <> "  " <> tshow battingLineWalks
+  <> "  " <> tshow battingLineStrikeouts
+  <> "  " <> tshow battingLineLOB
