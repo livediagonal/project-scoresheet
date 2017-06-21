@@ -7,14 +7,12 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module ProjectScoresheet.EventTypes where
+module ProjectScoresheet.Retrosheet.Events where
 
 import ClassyPrelude
 import Control.Lens
-import Data.Csv
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.PlayResult
-import qualified Data.Vector as V
 
 data Event
   = IdEventType IdEvent
@@ -93,28 +91,3 @@ data PlayEvent
   } deriving (Eq, Show, Generic)
 
 makeClassy_ ''PlayEvent
-
-instance FromRecord IdEvent
-instance FromRecord UnknownEvent
-instance FromRecord SchemaEvent
-instance FromRecord CommentEvent
-instance FromRecord InfoEvent
-instance FromRecord StartEvent
-instance FromRecord SubEvent
-instance FromRecord PlayEvent
-instance FromRecord DataEvent
-
-instance FromRecord Event where
-  parseRecord v = do
-   let args = V.tail v
-   lineType <- v .! 0
-   case (lineType :: Text)  of
-     "id" -> IdEventType <$> parseRecord args
-     "version" -> SchemaEventType <$> parseRecord args
-     "play" -> PlayEventType . over _playEventResult saturatePlayMovements <$> parseRecord args
-     "info" -> InfoEventType <$> parseRecord args
-     "start" -> StartEventType <$> parseRecord args
-     "sub" -> SubEventType <$> parseRecord args
-     "com" -> CommentEventType <$> parseRecord args
-     "data" -> DataEventType <$> parseRecord args
-     _ -> UnknownEventType <$> parseRecord v

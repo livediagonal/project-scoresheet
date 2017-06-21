@@ -8,6 +8,7 @@ import ProjectScoresheet.BoxScore
 import ProjectScoresheet.GameState (gamesFromFilePath)
 import ProjectScoresheet.PlayResult
 import ProjectScoresheet.PlayResultUtils
+import ProjectScoresheet.Retrosheet.Parser
 import Test.Tasty
 import Test.Tasty.Hspec
 import qualified Data.HashMap.Strict as HashMap

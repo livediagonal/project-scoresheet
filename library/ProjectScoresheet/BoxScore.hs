@@ -10,7 +10,7 @@ module ProjectScoresheet.BoxScore where
 import ClassyPrelude
 import Control.Lens
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.EventTypes
+import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.GameState
 import ProjectScoresheet.PlayResult
 import ProjectScoresheet.PlayResultUtils
@@ -32,16 +32,6 @@ type BattingOrderMap = HashMap BattingOrderPosition [Text]
 
 initialBattingOrderMap :: BattingOrderMap
 initialBattingOrderMap = HashMap.fromList $ zip [minBound ..] $ repeat []
-
-data PitchingLine
-  = PitchingLine
-  { strikes :: !Int
-  } deriving (Eq, Show)
-
-makeClassy_ ''PitchingLine
-
-initialPitchingLine :: PitchingLine
-initialPitchingLine = PitchingLine 0
 
 data BattingLine
   = BattingLine
@@ -196,22 +186,5 @@ addPlayerToBoxScore homeOrAway player battingPosition _ bs =
         bs
         & _boxScoreStats . at player ?~ emptyBattingLine player
         & _boxScoreBattingOrder . at battingPosition %~ map (++ [player])
-
--- addPlayerToPitching :: Text -> FieldingPositionId -> [PitchingLine] -> [PitchingLine]
--- addPlayerToPitching playerId 1 pitching =
---   pitching ++ [initialPitchingLine]
--- addPlayerToPitching _ _ pitching = pitching
-
--- boxScoresFromFile :: String -> IO [BoxScore]
--- boxScoresFromFile file = do
---   csvEvents <- BL.readFile file
---   case (decode NoHeader csvEvents :: Either String (Vector Event)) of
---     Left err -> fail err
---     Right v -> do
---       let
---         events = toList v
---         frameStates = unstartedFrameState : zipWith updateFrameState events frameStates
---         eventsWithContext = zipWith EventWithState events frameStates
---       pure $ generateBoxScores eventsWithContext
 
 
