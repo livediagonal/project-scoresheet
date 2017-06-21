@@ -12,8 +12,6 @@ import ClassyPrelude
 import Data.Csv
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HashMap
-import qualified Data.Vector as V
-import ProjectScoresheet.BaseballTypes
 
 data Handedness = LeftHanded | RightHanded | BothHanded deriving (Eq, Show)
 

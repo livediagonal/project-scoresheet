@@ -10,7 +10,7 @@ import ClassyPrelude hiding (toLower)
 import Control.Lens
 import Data.Csv
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.EventTypes
+import ProjectScoresheet.RetrosheetEvents
 import ProjectScoresheet.PlayResult
 import qualified Data.ByteString.Lazy as BL
 

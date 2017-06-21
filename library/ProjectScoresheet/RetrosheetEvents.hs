@@ -7,7 +7,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module ProjectScoresheet.EventTypes where
+module ProjectScoresheet.RetrosheetEvents where
 
 import ClassyPrelude
 import Control.Lens
