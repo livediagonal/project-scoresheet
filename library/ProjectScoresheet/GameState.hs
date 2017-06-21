@@ -8,11 +8,10 @@ module ProjectScoresheet.GameState where
 
 import ClassyPrelude hiding (toLower)
 import Control.Lens
-import Data.Csv
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.RetrosheetEvents
+import ProjectScoresheet.Retrosheet.Events
+import ProjectScoresheet.Retrosheet.Parser
 import ProjectScoresheet.PlayResult
-import qualified Data.ByteString.Lazy as BL
 
 data EventWithState = EventWithState Event FrameState deriving (Eq, Show)
 
@@ -113,15 +112,11 @@ updateFrameState _ = id
 
 gamesFromFilePath :: String -> IO [Game]
 gamesFromFilePath file = do
-  csvEvents <- BL.readFile file
-  case (decode NoHeader csvEvents :: Either String (Vector Event)) of
-    Left err -> fail err
-    Right v -> do
-      let
-        events = toList v
-        frameStates = initialFrameState : zipWith updateFrameState events frameStates
-        eventsWithState = zipWith EventWithState events frameStates
-      pure $ generateGames eventsWithState
+  events <- retrosheetEventsFromFile file
+  let
+    frameStates = initialFrameState : zipWith updateFrameState events frameStates
+    eventsWithState = zipWith EventWithState events frameStates
+  pure $ generateGames eventsWithState
 
 generateGames :: [EventWithState] -> [Game]
 generateGames events = reverse $ foldl' (flip updateGame) [] events

@@ -10,7 +10,7 @@ module ProjectScoresheet.BoxScore where
 import ClassyPrelude
 import Control.Lens
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.RetrosheetEvents
+import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.GameState
 import ProjectScoresheet.PlayResult
 import ProjectScoresheet.PlayResultUtils
