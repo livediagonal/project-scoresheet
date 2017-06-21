@@ -4,7 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.GameState where
+module ProjectScoresheet.Game where
 
 import ClassyPrelude hiding (toLower)
 import Control.Lens
@@ -12,6 +12,15 @@ import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Retrosheet.Parser
 import ProjectScoresheet.Play
+
+data Game
+  = Game
+  { gameHomeTeam :: !(Maybe Text)
+  , gameAwayTeam :: !(Maybe Text)
+  , gameDate :: !(Maybe Text)
+  , gameStartTime :: !(Maybe Text)
+  , gameEvents :: ![EventWithState]
+  } deriving (Eq, Show)
 
 data EventWithState = EventWithState Event FrameState deriving (Eq, Show)
 
@@ -35,15 +44,6 @@ data FrameState
   , frameStateRunnerOnFirstId :: !(Maybe Text)
   , frameStateRunnerOnSecondId :: !(Maybe Text)
   , frameStateRunnerOnThirdId :: !(Maybe Text)
-  } deriving (Eq, Show)
-
-data Game
-  = Game
-  { gameHomeTeam :: !(Maybe Text)
-  , gameAwayTeam :: !(Maybe Text)
-  , gameDate :: !(Maybe Text)
-  , gameStartTime :: !(Maybe Text)
-  , gameEvents :: ![EventWithState]
   } deriving (Eq, Show)
 
 makeClassy_ ''FrameState

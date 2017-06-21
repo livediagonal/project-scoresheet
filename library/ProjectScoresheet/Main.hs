@@ -5,7 +5,7 @@ module ProjectScoresheet.Main where
 
 import ClassyPrelude hiding (head)
 import Data.List (head)
-import ProjectScoresheet.GameState
+import ProjectScoresheet.Game
 import ProjectScoresheet.Print
 import ProjectScoresheet.BoxScore
 

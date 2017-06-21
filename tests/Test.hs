@@ -5,7 +5,7 @@ import ClassyPrelude
 import Test.Hspec.Attoparsec
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.BoxScore
-import ProjectScoresheet.GameState (gamesFromFilePath)
+import ProjectScoresheet.Game (gamesFromFilePath)
 import ProjectScoresheet.Play
 import ProjectScoresheet.Retrosheet.Parser
 import Test.Tasty

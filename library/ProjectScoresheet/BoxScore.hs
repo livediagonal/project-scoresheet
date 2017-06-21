@@ -11,7 +11,7 @@ import ClassyPrelude
 import Control.Lens
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
-import ProjectScoresheet.GameState
+import ProjectScoresheet.Game
 import ProjectScoresheet.Play
 import qualified Data.HashMap.Strict as HashMap
 
