@@ -119,7 +119,7 @@ gamesFromFilePath file = do
     Right v -> do
       let
         events = toList v
-        frameStates = unstartedFrameState : zipWith updateFrameState events frameStates
+        frameStates = initialFrameState : zipWith updateFrameState events frameStates
         eventsWithState = zipWith EventWithState events frameStates
       pure $ generateGames eventsWithState
 
@@ -127,7 +127,7 @@ generateGames :: [EventWithState] -> [Game]
 generateGames events = reverse $ foldl' (flip updateGame) [] events
 
 updateGame :: EventWithState -> [Game] -> [Game]
-updateGame (EventWithState (IdEventType _) _) games = baseGame : games
+updateGame (EventWithState (IdEventType _) _) games = initialGame : games
 updateGame event (gs:rest) = addEventToGame event gs : rest
 updateGame _ games = games
 
