@@ -72,8 +72,8 @@ makeClassy_ ''BoxScore
 initialBoxScore :: BoxScore
 initialBoxScore = BoxScore HashMap.empty initialBattingOrderMap initialBattingOrderMap
 
-generateBoxScore :: [EventWithState] -> BoxScore
-generateBoxScore events = foldl' (flip updateBoxScore) initialBoxScore events
+generateBoxScore :: Game -> BoxScore
+generateBoxScore = foldl' (flip updateBoxScore) initialBoxScore . gameEvents
 
 updateBoxScore :: EventWithState -> BoxScore -> BoxScore
 updateBoxScore (EventWithState (StartEventType startEvent) _) bs = processStartEvent startEvent bs
