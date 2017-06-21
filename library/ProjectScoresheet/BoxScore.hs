@@ -47,8 +47,8 @@ data BattingLine
 
 makeClassy_ ''BattingLine
 
-emptyBattingLine :: Text -> BattingLine
-emptyBattingLine playerId = BattingLine playerId 0 0 0 0 0 0 0
+initialBattingLine :: Text -> BattingLine
+initialBattingLine playerId = BattingLine playerId 0 0 0 0 0 0 0
 
 data BoxScore
   = BoxScore
