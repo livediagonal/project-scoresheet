@@ -92,9 +92,6 @@ applyRunnerMovement batterId gs (PlayMovement startBase endBase True) = gs
   & frameState %~ addPlayerToBase (playerOnBase batterId startBase gs) endBase
   & frameState %~ removePlayerFromBase startBase
 
-batterOuts :: [Out] -> Int
-batterOuts outs = length $ filter (\o -> case o of Strikeout _ -> True; RoutinePlay _ Nothing -> True; _ -> False) outs
-
 applyAction :: PlayAction -> FrameState -> FrameState
 applyAction (Outs outs) gs = gs & _frameStateOuts %~ (+ batterOuts outs)
 applyAction _ gs = gs
