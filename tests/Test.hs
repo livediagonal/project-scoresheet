@@ -5,8 +5,9 @@ import ClassyPrelude
 import Test.Hspec.Attoparsec
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.BoxScore
-import ProjectScoresheet.PlateAppearance
+import ProjectScoresheet.GameState (gamesFromFilePath)
 import ProjectScoresheet.PlayResult
+import ProjectScoresheet.PlayResultUtils
 import Test.Tasty
 import Test.Tasty.Hspec
 import qualified Data.HashMap.Strict as HashMap
@@ -28,7 +29,7 @@ spec = describe "PlayResult" $ do
         Left err -> fail err
         Right pr -> do
           pr `shouldBe` PlayResult WildPitch [] [PlayMovement ThirdBase HomePlate True]
-          numRBI (convertToPlateAppearance "" pr) `shouldBe` 0
+          numRBI pr `shouldBe` 0
 
   describe "parsePlayAction" $ do
 
@@ -109,7 +110,7 @@ spec = describe "PlayResult" $ do
         ]
 
   describe "box score smoke test" $ do
-    let smokeScores = boxScoresFromFile "testgame.txt"
+    let smokeScores = map generateBoxScore <$> gamesFromFilePath "testgame.txt"
 
     it "should return correct stats" $
       smokeScores >>= (\[bs1, bs2, bs3] -> do
