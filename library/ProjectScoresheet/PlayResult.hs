@@ -243,6 +243,9 @@ isBatterOutOnOut (Strikeout _) = True
 isBatterOutOnOut (RoutinePlay _ Nothing) = True
 isBatterOutOnOut _ = False
 
+batterOuts :: [Out] -> Int
+batterOuts outs = length $ filter (\o -> case o of Strikeout _ -> True; RoutinePlay _ Nothing -> True; _ -> False) outs
+
 saturateMovementsOnOut :: Out -> PlayResult -> PlayResult
 saturateMovementsOnOut (FieldersChoice _) pr = over _playResultMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
 saturateMovementsOnOut (RoutinePlay _ (Just startingBase)) pr = over _playResultMovements (addPlayMovement (PlayMovement startingBase HomePlate False)) pr
