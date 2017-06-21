@@ -7,7 +7,7 @@
 
 module ProjectScoresheet.BoxScore where
 
-import ClassyPrelude
+import ClassyPrelude hiding (tail)
 import Control.Lens
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
@@ -214,3 +214,41 @@ addPlayerToBoxScore homeOrAway player battingPosition _ bs =
 --       pure $ generateBoxScores eventsWithContext
 
 
+prettyPrintBoxScore :: BoxScore -> Text
+prettyPrintBoxScore BoxScore{..} =
+  unlines
+    [ "------------------------------------"
+    , "Home Batters    AB R H RBI BB SO LOB"
+    , "------------------------------------"
+    , prettyPrintBattingOrderMap boxScoreHomeBattingOrderMap boxScoreStats
+    , "------------------------------------"
+    , "Away Batters    AB R H RBI BB SO LOB"
+    , "------------------------------------"
+    , prettyPrintBattingOrderMap boxScoreAwayBattingOrderMap boxScoreStats
+    ]
+
+prettyPrintBattingOrderMap :: BattingOrderMap -> HashMap Text BattingLine -> Text
+prettyPrintBattingOrderMap bom counts =
+  let
+    (_:hitters) = [(minBound :: BattingOrderPosition) ..]
+  in
+    unlines $ map (\i ->
+      tshow (fromIntegral i :: Integer) <> ": "
+      <> prettyPrintBattingLines (reverse $ map (counts HashMap.!) (bom HashMap.! i))
+    ) hitters
+
+prettyPrintBattingLines :: [BattingLine] -> Text
+prettyPrintBattingLines [] = ""
+prettyPrintBattingLines [x] = prettyPrintBattingLine x
+prettyPrintBattingLines (x:xs) = prettyPrintBattingLines xs <> "\n   " <> prettyPrintBattingLine x
+
+prettyPrintBattingLine :: BattingLine -> Text
+prettyPrintBattingLine BattingLine{..} = battingLinePlayerId
+  <> "      "
+  <> tshow battingLineAtBats
+  <> " " <> tshow battingLineRuns
+  <> " " <> tshow battingLineHits
+  <> "   " <> tshow battingLineRBI
+  <> "  " <> tshow battingLineWalks
+  <> "  " <> tshow battingLineStrikeouts
+  <> "  " <> tshow battingLineLOB
