@@ -19,15 +19,17 @@ data Game
   , gameAwayTeam :: !(Maybe Text)
   , gameDate :: !(Maybe Text)
   , gameStartTime :: !(Maybe Text)
-  , gameEvents :: ![EventWithState]
+  , gameEvents :: ![GameEvent]
   } deriving (Eq, Show)
 
-data EventWithState = EventWithState Event FrameState deriving (Eq, Show)
+data GameEvent = GameEvent Event FrameState deriving (Eq, Show)
 
 data GameState
   = GameState
   { gameStateHomeLineup :: FieldingLineup
   , gameStateAwayLineup :: FieldingLineup
+  , gameStateHomeBattingOrder :: BattingOrder
+  , gameStateAwayBattingOrder :: BattingOrder
   , gameStateInning :: Int
   , gameStateInningState :: InningHalf
   }
@@ -46,17 +48,18 @@ data FrameState
   , frameStateRunnerOnThirdId :: !(Maybe Text)
   } deriving (Eq, Show)
 
-makeClassy_ ''FrameState
 makeClassy_ ''Game
-
-initialState :: EventWithState
-initialState = EventWithState EmptyEvent initialFrameState
-
-initialFrameState :: FrameState
-initialFrameState = FrameState 1 BottomInningHalf 0 False Nothing Nothing Nothing Nothing Nothing Nothing
+makeClassy_ ''GameState
+makeClassy_ ''FrameState
 
 initialGame :: Game
 initialGame = Game Nothing Nothing Nothing Nothing []
+
+initialGameState :: GameState
+initialGameState = GameState initialFieldingLineup initialFieldingLineup initialBattingOrder initialBattingOrder 0 BottomInningHalf
+
+initialFrameState :: FrameState
+initialFrameState = FrameState 1 BottomInningHalf 0 False Nothing Nothing Nothing Nothing Nothing Nothing
 
 removePlayerFromBase :: Base -> FrameState -> FrameState
 removePlayerFromBase base = addPlayerToBase Nothing base
@@ -112,16 +115,16 @@ gamesFromFilePath file = do
   events <- retrosheetEventsFromFile file
   let
     frameStates = initialFrameState : zipWith updateFrameState events frameStates
-    eventsWithState = zipWith EventWithState events frameStates
+    eventsWithState = zipWith GameEvent events frameStates
   pure $ generateGames eventsWithState
 
-generateGames :: [EventWithState] -> [Game]
+generateGames :: [GameEvent] -> [Game]
 generateGames events = reverse $ foldl' (flip updateGame) [] events
 
-updateGame :: EventWithState -> [Game] -> [Game]
-updateGame (EventWithState (IdEventType _) _) games = initialGame : games
+updateGame :: GameEvent -> [Game] -> [Game]
+updateGame (GameEvent (IdEventType _) _) games = initialGame : games
 updateGame event (gs:rest) = addEventToGame event gs : rest
 updateGame _ games = games
 
-addEventToGame :: EventWithState -> Game -> Game
+addEventToGame :: GameEvent -> Game -> Game
 addEventToGame event = _gameEvents %~ (++ [event])

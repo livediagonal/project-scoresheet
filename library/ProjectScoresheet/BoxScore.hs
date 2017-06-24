@@ -64,10 +64,10 @@ initialBoxScore = BoxScore HashMap.empty initialBattingOrderMap initialBattingOr
 generateBoxScore :: Game -> BoxScore
 generateBoxScore = foldl' (flip updateBoxScore) initialBoxScore . gameEvents
 
-updateBoxScore :: EventWithState -> BoxScore -> BoxScore
-updateBoxScore (EventWithState (StartEventType startEvent) _) bs = processStartEvent startEvent bs
-updateBoxScore (EventWithState (SubEventType subEvent) _) bs = processSubEvent subEvent bs
-updateBoxScore (EventWithState (PlayEventType pe) ctx) bs = processPlayEvent pe ctx bs
+updateBoxScore :: GameEvent -> BoxScore -> BoxScore
+updateBoxScore (GameEvent (StartEventType startEvent) _) bs = processStartEvent startEvent bs
+updateBoxScore (GameEvent (SubEventType subEvent) _) bs = processSubEvent subEvent bs
+updateBoxScore (GameEvent (PlayEventType pe) ctx) bs = processPlayEvent pe ctx bs
 updateBoxScore _ bss = bss
 
 processInfoEvent :: InfoEvent -> Game -> Game
