@@ -6,8 +6,9 @@
 
 module ProjectScoresheet.Game where
 
-import ClassyPrelude hiding (toLower)
+import ClassyPrelude hiding (toLower, last)
 import Control.Lens
+import Data.List (last)
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Retrosheet.Parser
@@ -22,26 +23,27 @@ data Game
   , gameEvents :: ![GameEvent]
   } deriving (Eq, Show)
 
-data GameEvent = GameEvent Event FrameState deriving (Eq, Show)
+data GameEvent = 
+  GameEvent 
+  { gameEventEvent :: Event
+  , gameEventGameState :: GameState
+  , gameEventFrameState :: FrameState 
+  } deriving (Eq, Show)
 
 data GameState
   = GameState
-  { gameStateHomeLineup :: FieldingLineup
+  { gameStateInning :: Int
+  , gameStateInningState :: InningHalf
+  , gameStateHomeLineup :: FieldingLineup
   , gameStateAwayLineup :: FieldingLineup
   , gameStateHomeBattingOrder :: BattingOrder
   , gameStateAwayBattingOrder :: BattingOrder
-  , gameStateInning :: Int
-  , gameStateInningState :: InningHalf
-  }
+  } deriving (Eq, Show)
 
 data FrameState
   = FrameState
-  { frameStateInning :: !Int
-  , frameStateInningHalf :: InningHalf
-  , frameStateOuts :: !Int
-  , frameStateIsPinchHit :: !Bool
+  { frameStateOuts :: !Int
   , frameStateBatterId :: !(Maybe Text)
-  , frameStateBattingTeam :: !(Maybe HomeOrAway)
   , frameStatePitcherId :: !(Maybe Text)
   , frameStateRunnerOnFirstId :: !(Maybe Text)
   , frameStateRunnerOnSecondId :: !(Maybe Text)
@@ -52,14 +54,17 @@ makeClassy_ ''Game
 makeClassy_ ''GameState
 makeClassy_ ''FrameState
 
-initialGame :: Game
-initialGame = Game Nothing Nothing Nothing Nothing []
+initialGame :: Event -> Game
+initialGame event = Game Nothing Nothing Nothing Nothing [initialGameEvent event]
+
+initialGameEvent :: Event -> GameEvent
+initialGameEvent event = GameEvent event initialGameState initialFrameState
 
 initialGameState :: GameState
-initialGameState = GameState initialFieldingLineup initialFieldingLineup initialBattingOrder initialBattingOrder 0 BottomInningHalf
+initialGameState = GameState 0 BottomInningHalf initialFieldingLineup initialFieldingLineup initialBattingOrder initialBattingOrder
 
 initialFrameState :: FrameState
-initialFrameState = FrameState 1 BottomInningHalf 0 False Nothing Nothing Nothing Nothing Nothing Nothing
+initialFrameState = FrameState 0 Nothing Nothing Nothing Nothing Nothing
 
 removePlayerFromBase :: Base -> FrameState -> FrameState
 removePlayerFromBase base = addPlayerToBase Nothing base
@@ -105,26 +110,24 @@ updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (Play action _ movem
   frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
   & frameState %~ applyAction action
   & frameState %~ \state' ->
-    if frameStateOuts state' == 3
-    then initialFrameState
-    else state'
+    if frameStateOuts state' == 3  then initialFrameState else state'
 updateFrameState _ = id
 
 gamesFromFilePath :: String -> IO [Game]
 gamesFromFilePath file = do
   events <- retrosheetEventsFromFile file
+  pure $ reverse (foldl' (flip generateGames) [] events)
+
+generateGames :: Event -> [Game] -> [Game]
+generateGames event@(IdEventType _) games = initialGame event : games
+generateGames event (g:rest) = addEventToGame event g : rest
+generateGames _ games = games
+
+addEventToGame :: Event -> Game -> Game
+addEventToGame event g@Game{..} = 
   let
-    frameStates = initialFrameState : zipWith updateFrameState events frameStates
-    eventsWithState = zipWith GameEvent events frameStates
-  pure $ generateGames eventsWithState
-
-generateGames :: [GameEvent] -> [Game]
-generateGames events = reverse $ foldl' (flip updateGame) [] events
-
-updateGame :: GameEvent -> [Game] -> [Game]
-updateGame (GameEvent (IdEventType _) _) games = initialGame : games
-updateGame event (gs:rest) = addEventToGame event gs : rest
-updateGame _ games = games
-
-addEventToGame :: GameEvent -> Game -> Game
-addEventToGame event = _gameEvents %~ (++ [event])
+    previousGameEvent = last gameEvents
+    nextGameState = initialGameState -- todo implement
+    nextFrameState = updateFrameState (gameEventEvent previousGameEvent) (gameEventFrameState previousGameEvent)
+  in
+    g & _gameEvents %~ (++ [GameEvent event nextGameState nextFrameState])

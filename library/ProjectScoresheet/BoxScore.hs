@@ -65,9 +65,9 @@ generateBoxScore :: Game -> BoxScore
 generateBoxScore = foldl' (flip updateBoxScore) initialBoxScore . gameEvents
 
 updateBoxScore :: GameEvent -> BoxScore -> BoxScore
-updateBoxScore (GameEvent (StartEventType startEvent) _) bs = processStartEvent startEvent bs
-updateBoxScore (GameEvent (SubEventType subEvent) _) bs = processSubEvent subEvent bs
-updateBoxScore (GameEvent (PlayEventType pe) ctx) bs = processPlayEvent pe ctx bs
+updateBoxScore (GameEvent (StartEventType startEvent) _ _) bs = processStartEvent startEvent bs
+updateBoxScore (GameEvent (SubEventType subEvent) _ _) bs = processSubEvent subEvent bs
+updateBoxScore (GameEvent (PlayEventType pe) _ ctx) bs = processPlayEvent pe ctx bs
 updateBoxScore _ bss = bss
 
 processInfoEvent :: InfoEvent -> Game -> Game
