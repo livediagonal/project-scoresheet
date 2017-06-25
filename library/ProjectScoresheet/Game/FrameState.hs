@@ -8,6 +8,7 @@ module ProjectScoresheet.Game.FrameState
   ( FrameState(..)
   , initialFrameState
   , updateFrameState
+  , runnerOnBase
   ) where
 
 import ClassyPrelude
@@ -41,6 +42,12 @@ updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (Play actions _ move
     then initialFrameState
     else state'
 updateFrameState _ = id
+
+runnerOnBase :: Base -> FrameState -> Maybe Text
+runnerOnBase FirstBase = frameStateRunnerOnFirstId
+runnerOnBase SecondBase = frameStateRunnerOnSecondId
+runnerOnBase ThirdBase = frameStateRunnerOnThirdId
+runnerOnBase _ = const Nothing
 
 applyRunnerMovement :: Text -> FrameState -> PlayMovement -> FrameState
 applyRunnerMovement _ gs (PlayMovement startBase _ False) =

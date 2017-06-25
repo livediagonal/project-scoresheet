@@ -120,15 +120,9 @@ addLOB playerId pr FrameState{..} score =
   in
     addLOBToPlayer playerId numLOB score
 
-getRunnerOnBase :: Base -> FrameState -> Maybe Text
-getRunnerOnBase FirstBase = frameStateRunnerOnFirstId
-getRunnerOnBase SecondBase = frameStateRunnerOnSecondId
-getRunnerOnBase ThirdBase = frameStateRunnerOnThirdId
-getRunnerOnBase _ = const Nothing
-
 addRunForMovement :: Text ->  FrameState -> PlayMovement -> BoxScore -> BoxScore
 addRunForMovement _ state (PlayMovement startBase HomePlate True) score =
-  fromMaybe score $ map (`addRunToPlayer` score) $ getRunnerOnBase startBase state
+  fromMaybe score $ map (`addRunToPlayer` score) $ runnerOnBase startBase state
 addRunForMovement _ _ _ score = score
 
 addRuns :: Text -> Play -> FrameState -> BoxScore -> BoxScore
