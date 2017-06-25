@@ -52,15 +52,15 @@ instance FromField Play where
       Right r -> pure r
 
 parsePlay :: Parser Play
-parsePlay = Play <$> some parsePlayAction <*> many parsePlayDescriptor <*> many parsePlayMovement
+parsePlay = Play <$> parsePlayAction `sepBy1` optional (char '+') <*> many parsePlayDescriptor <*> many parsePlayMovement
 
 parsePlayAction :: Parser PlayAction
 parsePlayAction =
   try parseStolenBase <|>
   try parseHit <|>
   try parseStrikeout <|>
+  try parseRoutinePlay <|>
   try parseFieldersChoice <|>
-  try (RoutinePlay <$> parseFieldingPositions <*> optional parseOutRunnerBase) <|>
   try parseCaughtStealing <|>
   try parseWildPitch <|>
   try parsePassedBall <|>
@@ -81,15 +81,14 @@ parseParenthetical delegate = char '(' *> delegate <* char ')'
 parseHit :: Parser PlayAction
 parseHit = Hit <$> parseBase <*> optional parseFieldingPosition
 
+parseRoutinePlay :: Parser PlayAction
+parseRoutinePlay = RoutinePlay <$> parseFieldingPositions <*> optional parseOutRunnerBase
+
 parseFieldersChoice :: Parser PlayAction
 parseFieldersChoice = string "FC" *> map FieldersChoice parseFieldingPositions
 
 parseOutRunnerBase :: Parser Base
-parseOutRunnerBase = do
-  void $ char '('
-  base <- parseNumericBase
-  void $ char ')'
-  return base
+parseOutRunnerBase = parseParenthetical parseNumericBase
 
 parseFieldingPositions :: Parser [FieldingPosition]
 parseFieldingPositions = some parseFieldingPosition
@@ -119,19 +118,13 @@ parseWalk =
   try (string "IW" *> pure (Walk True)) <|>
   try (char 'I' *> pure (Walk True))
 
-parsePlayActionTokenWithQualifier :: Text -> (Maybe Text -> a) -> Parser a
-parsePlayActionTokenWithQualifier token result = string token *> (result <$> optional parseQualifier)
-
-parseQualifier :: Parser Text
-parseQualifier = char '+' *> (pack <$> many (satisfy (not . \c -> c == '/' || c == '.')))
-
 parseStrikeout :: Parser PlayAction
 parseStrikeout =
   try (string "K23" *> pure (Strikeout Nothing)) <|>
-  parsePlayActionTokenWithQualifier "K" Strikeout
+  try (char 'K' *> pure (Strikeout Nothing))
 
 parseNoPlay :: Parser PlayAction
-parseNoPlay = parsePlayActionTokenWithQualifier "NP" NoPlay
+parseNoPlay = string "NP" *> pure NoPlay
 
 parseHitByPitch :: Parser PlayAction
 parseHitByPitch = string "HP" *> pure HitByPitch

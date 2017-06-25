@@ -32,7 +32,7 @@ data PlayAction
   | WildPitch
   | PassedBall
   | Walk Bool
-  | NoPlay (Maybe Text)
+  | NoPlay
   | HitByPitch
   | Error FieldingPosition
   deriving (Eq, Show)
@@ -138,7 +138,7 @@ isAtBat p@Play{..} =
     CaughtStealing _ _ -> False
     WildPitch -> False
     PassedBall -> False
-    NoPlay _ -> False
+    NoPlay -> False
     StolenBase _ -> False
     RoutinePlay _ _ -> not $ isSacrifice p
     _ -> True

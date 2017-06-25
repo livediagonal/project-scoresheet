@@ -20,7 +20,7 @@ main = do
 spec :: Spec
 spec = describe "Play" $ do
 
-  describe "parsePlay" $
+  describe "parsePlay" $ do
 
     it "should successfully parse non-RBI wild pitch" $ do
       let
@@ -29,6 +29,15 @@ spec = describe "Play" $ do
         Left err -> fail err
         Right pr -> do
           pr `shouldBe` Play [WildPitch] [] [PlayMovement ThirdBase HomePlate True]
+          numRBI pr `shouldBe` 0
+
+    it "should successfully simple annotated double play" $ do
+      let
+        res = ("54(1)3/GDP" :: Text) ~> parsePlay
+      case res of
+        Left err -> fail err
+        Right pr -> do
+          pr `shouldBe` Play [RoutinePlay [ThirdBaseman,SecondBaseman] (Just FirstBase),RoutinePlay [FirstBaseman] Nothing] [OtherDescriptor "GDP"] []
           numRBI pr `shouldBe` 0
 
   describe "parsePlayAction" $ do
