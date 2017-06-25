@@ -5,6 +5,7 @@ import ClassyPrelude
 import Test.Hspec.Attoparsec
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.BoxScore
+import ProjectScoresheet.BoxScore.Batting
 import ProjectScoresheet.Game (gamesFromFilePath)
 import ProjectScoresheet.Play
 import ProjectScoresheet.Retrosheet.Parser
@@ -131,7 +132,7 @@ spec = describe "Play" $ do
 
     it "should return correct stats" $
       smokeScores >>= (\[bs1, bs2, bs3, _] -> do
-        boxScoreStats bs1 `shouldBe` HashMap.fromList
+        battingStats (boxScoreBatting bs1) `shouldBe` HashMap.fromList
           [ ("kimbc001",BattingLine {battingLinePlayerId = "kimbc001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
           , ("bogax001",BattingLine {battingLinePlayerId = "bogax001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 1, battingLineWalks = 1, battingLineStrikeouts = 1, battingLineLOB = 0})
           , ("ortid001",BattingLine {battingLinePlayerId = "ortid001", battingLineAtBats = 5, battingLineRuns = 0, battingLineHits = 2, battingLineRBI = 1, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 2})
@@ -164,7 +165,7 @@ spec = describe "Play" $ do
           , ("bradj001",BattingLine {battingLinePlayerId = "bradj001", battingLineAtBats = 4, battingLineRuns = 0, battingLineHits = 1, battingLineRBI = 2, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 1})
           , ("bracb001",BattingLine {battingLinePlayerId = "bracb001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
           ]
-        boxScoreStats bs2 `shouldBe` HashMap.fromList
+        battingStats (boxScoreBatting bs2) `shouldBe` HashMap.fromList
           [ ("laynt001",BattingLine {battingLinePlayerId = "laynt001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
           , ("bogax001",BattingLine {battingLinePlayerId = "bogax001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 1})
           , ("ortid001",BattingLine {battingLinePlayerId = "ortid001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 2, battingLineRBI = 3, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
@@ -194,7 +195,7 @@ spec = describe "Play" $ do
           , ("hardj003",BattingLine {battingLinePlayerId = "hardj003", battingLineAtBats = 4, battingLineRuns = 2, battingLineHits = 2, battingLineRBI = 5, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 1})
           , ("bradj001",BattingLine {battingLinePlayerId = "bradj001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 1, battingLineLOB = 1})
           ]
-        boxScoreStats bs3 `shouldBe` HashMap.fromList
+        battingStats (boxScoreBatting bs3) `shouldBe` HashMap.fromList
           [ ("kimbc001",BattingLine {battingLinePlayerId = "kimbc001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
           , ("laynt001",BattingLine {battingLinePlayerId = "laynt001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
           , ("bogax001",BattingLine {battingLinePlayerId = "bogax001", battingLineAtBats = 4, battingLineRuns = 0, battingLineHits = 2, battingLineRBI = 2, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 2})
