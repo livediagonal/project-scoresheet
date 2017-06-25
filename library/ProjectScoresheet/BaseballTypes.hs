@@ -6,9 +6,10 @@
 module ProjectScoresheet.BaseballTypes where
 
 import ClassyPrelude
-import Closed
 import Data.Csv
 import qualified Data.HashMap.Strict as HashMap
+
+import Closed
 
 data InningHalf = TopInningHalf | BottomInningHalf deriving (Eq, Show)
 
@@ -46,8 +47,8 @@ fieldPositionFromId fpId = toEnum (fpId - 1)
 type FieldingPositionId = Closed 1 12
 type FieldingLineup = HashMap FieldingPositionId Text
 
-emptyFieldingLineup :: FieldingLineup
-emptyFieldingLineup = HashMap.empty
+initialFieldingLineup :: FieldingLineup
+initialFieldingLineup = HashMap.empty
 
 addToFieldingLineup :: Text -> FieldingPositionId -> FieldingLineup -> FieldingLineup
 addToFieldingLineup playerId fieldingId fieldingLineup = HashMap.insert fieldingId playerId fieldingLineup
@@ -55,8 +56,8 @@ addToFieldingLineup playerId fieldingId fieldingLineup = HashMap.insert fielding
 type BattingOrderPosition = Closed 0 9
 type BattingOrder = HashMap BattingOrderPosition Text
 
-emptyBattingOrder :: BattingOrder
-emptyBattingOrder = HashMap.empty
+initialBattingOrder :: BattingOrder
+initialBattingOrder = HashMap.empty
 
 addToBattingOrder :: Text -> BattingOrderPosition -> BattingOrder -> BattingOrder
 addToBattingOrder _ 0 battingOrder = battingOrder

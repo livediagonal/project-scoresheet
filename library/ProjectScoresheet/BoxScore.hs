@@ -7,13 +7,16 @@
 
 module ProjectScoresheet.BoxScore where
 
-import ClassyPrelude hiding (tail)
+import ClassyPrelude
 import Control.Lens
-import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Retrosheet.Events
-import ProjectScoresheet.Game
-import ProjectScoresheet.Play
 import qualified Data.HashMap.Strict as HashMap
+
+import ProjectScoresheet.BaseballTypes
+import ProjectScoresheet.Game
+import ProjectScoresheet.Game.GameEvent
+import ProjectScoresheet.Game.FrameState
+import ProjectScoresheet.Play
+import ProjectScoresheet.Retrosheet.Events
 
 data InningLine
   = InningLine
@@ -64,10 +67,10 @@ initialBoxScore = BoxScore HashMap.empty initialBattingOrderMap initialBattingOr
 generateBoxScore :: Game -> BoxScore
 generateBoxScore = foldl' (flip updateBoxScore) initialBoxScore . gameEvents
 
-updateBoxScore :: EventWithState -> BoxScore -> BoxScore
-updateBoxScore (EventWithState (StartEventType startEvent) _) bs = processStartEvent startEvent bs
-updateBoxScore (EventWithState (SubEventType subEvent) _) bs = processSubEvent subEvent bs
-updateBoxScore (EventWithState (PlayEventType pe) ctx) bs = processPlayEvent pe ctx bs
+updateBoxScore :: GameEvent -> BoxScore -> BoxScore
+updateBoxScore (GameEvent (StartEventType startEvent) _ _) bs = processStartEvent startEvent bs
+updateBoxScore (GameEvent (SubEventType subEvent) _ _) bs = processSubEvent subEvent bs
+updateBoxScore (GameEvent (PlayEventType pe) _ ctx) bs = processPlayEvent pe ctx bs
 updateBoxScore _ bss = bss
 
 processInfoEvent :: InfoEvent -> Game -> Game

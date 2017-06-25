@@ -11,6 +11,7 @@ module ProjectScoresheet.Retrosheet.Events where
 
 import ClassyPrelude
 import Control.Lens
+
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Play
 

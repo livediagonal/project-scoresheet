@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module ProjectScoresheet.Main where
+module Main where
 
 import ClassyPrelude hiding (head)
 import Data.List (head)
-import ProjectScoresheet.Game
+
 import ProjectScoresheet.BoxScore
+import ProjectScoresheet.Game
 
 main :: IO ()
 main = do

@@ -12,6 +12,7 @@ module ProjectScoresheet.Play where
 
 import ClassyPrelude hiding (try)
 import Control.Lens
+
 import ProjectScoresheet.BaseballTypes
 
 data Play
