@@ -15,7 +15,6 @@ import Control.Lens
 
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
-import ProjectScoresheet.Play
 
 data GameState
   = GameState
@@ -33,9 +32,9 @@ initialGameState :: GameState
 initialGameState = GameState 0 TopInningHalf initialFieldingLineup initialFieldingLineup initialBattingOrder initialBattingOrder
 
 updateGameState :: Event -> GameState -> GameState
-updateGameState (StartEventType startEvent) = processStartEvent startEvent
-updateGameState (PlayEventType playEvent) = processPlayEvent playEvent
-updateGameState (SubEventType subEvent) = processSubEvent subEvent
+updateGameState (StartEventType event) = processStartEvent event
+updateGameState (PlayEventType event) = processPlayEvent event
+updateGameState (SubEventType event) = processSubEvent event
 updateGameState _ = id
 
 processPlayEvent :: PlayEvent -> GameState -> GameState
