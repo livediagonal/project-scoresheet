@@ -12,6 +12,7 @@ import Control.Lens
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Game
+import ProjectScoresheet.Game.GameEvent
 import ProjectScoresheet.Game.FrameState
 import ProjectScoresheet.Play
 import qualified Data.HashMap.Strict as HashMap

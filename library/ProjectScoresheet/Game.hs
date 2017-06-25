@@ -11,8 +11,7 @@ import Control.Lens
 import Data.List (last)
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Retrosheet.Parser
-import ProjectScoresheet.Game.GameState
-import ProjectScoresheet.Game.FrameState
+import ProjectScoresheet.Game.GameEvent
 
 data Game
   = Game
@@ -23,20 +22,10 @@ data Game
   , gameEvents :: ![GameEvent]
   } deriving (Eq, Show)
 
-data GameEvent = 
-  GameEvent 
-  { gameEventEvent :: Event
-  , gameEventGameState :: GameState
-  , gameEventFrameState :: FrameState 
-  } deriving (Eq, Show)
-
 makeClassy_ ''Game
 
 initialGame :: Event -> Game
 initialGame event = Game Nothing Nothing Nothing Nothing [initialGameEvent event]
-
-initialGameEvent :: Event -> GameEvent
-initialGameEvent event = GameEvent event initialGameState initialFrameState
 
 gamesFromFilePath :: String -> IO [Game]
 gamesFromFilePath file = do
@@ -49,10 +38,8 @@ generateGames event (g:rest) = addEventToGame event g : rest
 generateGames _ games = games
 
 addEventToGame :: Event -> Game -> Game
-addEventToGame event g@Game{..} = 
+addEventToGame event g = 
   let
-    previousGameEvent = last gameEvents
-    nextGameState = updateGameState (gameEventEvent previousGameEvent) (gameEventGameState previousGameEvent)
-    nextFrameState = updateFrameState (gameEventEvent previousGameEvent) (gameEventFrameState previousGameEvent)
-  in
-    g & _gameEvents %~ (++ [traceShow nextGameState (GameEvent event nextGameState nextFrameState)])
+    previousGameEvent = last $ gameEvents g
+  in 
+    g & _gameEvents %~ (++ [nextGameEvent event previousGameEvent])
