@@ -5,12 +5,12 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module ProjectScoresheet.Roster
-( rosterFromFile
-) where
+  ( rosterFromFile
+  ) where
 
 import ClassyPrelude
+import qualified Data.ByteString.Lazy as ByteString
 import Data.Csv
-import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HashMap
 
 data Handedness = LeftHanded | RightHanded | BothHanded deriving (Eq, Show)
@@ -41,7 +41,7 @@ addEntryToRoster re@RosterEntry{..} = HashMap.insert rosterEntryPlayerId re
 
 rosterFromFile :: String -> IO Roster
 rosterFromFile file = do
-  csvRosterEntries <- BL.readFile file
+  csvRosterEntries <- ByteString.readFile file
   case (decode NoHeader csvRosterEntries :: Either String (Vector RosterEntry)) of
     Left err -> fail err
     Right v -> return $ foldl' (flip addEntryToRoster) HashMap.empty v

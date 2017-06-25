@@ -7,15 +7,16 @@
 
 module ProjectScoresheet.BoxScore where
 
-import ClassyPrelude hiding (tail)
+import ClassyPrelude
 import Control.Lens
+import qualified Data.HashMap.Strict as HashMap
+
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Game
 import ProjectScoresheet.Game.GameEvent
 import ProjectScoresheet.Game.FrameState
 import ProjectScoresheet.Play
-import qualified Data.HashMap.Strict as HashMap
+import ProjectScoresheet.Retrosheet.Events
 
 data InningLine
   = InningLine

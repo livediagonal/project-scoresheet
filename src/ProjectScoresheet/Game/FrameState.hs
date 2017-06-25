@@ -5,16 +5,17 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module ProjectScoresheet.Game.FrameState
-( FrameState(..)
-, initialFrameState
-, updateFrameState
-) where
+  ( FrameState(..)
+  , initialFrameState
+  , updateFrameState
+  ) where
 
-import ClassyPrelude hiding (toLower, last)
+import ClassyPrelude
 import Control.Lens
+
 import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Play
+import ProjectScoresheet.Retrosheet.Events
 
 data FrameState
   = FrameState
@@ -69,4 +70,3 @@ playerOnBase batterId base FrameState{..} =
 applyAction :: PlayAction -> FrameState -> FrameState
 applyAction (Outs outs) gs = gs & _frameStateOuts %~ (+ batterOuts outs)
 applyAction _ gs = gs
-

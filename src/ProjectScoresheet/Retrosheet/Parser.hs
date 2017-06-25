@@ -10,14 +10,15 @@ module ProjectScoresheet.Retrosheet.Parser where
 
 import ClassyPrelude hiding (try)
 import Control.Lens
-import Data.Char (digitToInt, isDigit)
 import Data.Attoparsec.Text
+import qualified Data.ByteString.Lazy as BL
+import Data.Char (digitToInt, isDigit)
 import Data.Csv hiding (Parser)
+import qualified Data.Vector as V
+
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Play
 import ProjectScoresheet.Retrosheet.Events
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.Vector as V
 
 instance FromRecord IdEvent
 instance FromRecord UnknownEvent

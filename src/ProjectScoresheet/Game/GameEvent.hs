@@ -2,12 +2,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module ProjectScoresheet.Game.GameEvent
-( GameEvent(..)
-, initialGameEvent
-, nextGameEvent
-) where
+  ( GameEvent(..)
+  , initialGameEvent
+  , nextGameEvent
+  ) where
 
-import ClassyPrelude hiding (toLower, last)
+import ClassyPrelude
+
 import ProjectScoresheet.Game.GameState
 import ProjectScoresheet.Game.FrameState
 import ProjectScoresheet.Retrosheet.Events

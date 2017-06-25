@@ -6,9 +6,10 @@
 module ProjectScoresheet.BaseballTypes where
 
 import ClassyPrelude
-import Closed
 import Data.Csv
 import qualified Data.HashMap.Strict as HashMap
+
+import Closed
 
 data InningHalf = TopInningHalf | BottomInningHalf deriving (Eq, Show)
 

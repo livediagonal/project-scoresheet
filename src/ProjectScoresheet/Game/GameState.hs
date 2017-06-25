@@ -5,13 +5,14 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module ProjectScoresheet.Game.GameState
-( GameState
-, initialGameState
-, updateGameState
-) where
+  ( GameState
+  , initialGameState
+  , updateGameState
+  ) where
 
-import ClassyPrelude hiding (toLower, last)
+import ClassyPrelude
 import Control.Lens
+
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Play

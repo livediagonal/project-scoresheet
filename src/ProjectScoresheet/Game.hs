@@ -6,12 +6,13 @@
 
 module ProjectScoresheet.Game where
 
-import ClassyPrelude hiding (toLower, last)
+import ClassyPrelude hiding (last)
 import Control.Lens
 import Data.List (last)
+
+import ProjectScoresheet.Game.GameEvent
 import ProjectScoresheet.Retrosheet.Events
 import ProjectScoresheet.Retrosheet.Parser
-import ProjectScoresheet.Game.GameEvent
 
 data Game
   = Game
