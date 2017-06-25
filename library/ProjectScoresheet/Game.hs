@@ -93,14 +93,10 @@ applyRunnerMovement batterId gs (PlayMovement startBase endBase True) = gs
   & frameState %~ addPlayerToBase (playerOnBase batterId startBase gs) endBase
   & frameState %~ removePlayerFromBase startBase
 
-applyAction :: PlayAction -> FrameState -> FrameState
-applyAction (Outs outs) gs = gs & _frameStateOuts %~ (+ batterOuts outs)
-applyAction _ gs = gs
-
 updateFrameState :: Event -> FrameState -> FrameState
-updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (Play action _ movements))) =
+updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (Play actions _ movements))) =
   frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
-  & frameState %~ applyAction action
+  & _frameStateOuts %~ (if any isBatterOutOnAction actions then (+1) else id)
   & frameState %~ \state' ->
     if frameStateOuts state' == 3
     then initialFrameState

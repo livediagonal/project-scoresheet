@@ -99,8 +99,10 @@ processPlayEvent pe@PlayEvent{..} gs score = score
   & boxScore %~ addRuns playEventPlayerId playEventResult gs
 
 isOut :: PlayEvent -> Bool
-isOut PlayEvent{..} = case playAction playEventResult of
-  Outs _ -> True
+isOut PlayEvent{..} = flip any (playActions playEventResult) $ \a -> case a of
+  Strikeout _ -> True
+  FieldersChoice _ -> True
+  RoutinePlay _ _ -> True
   _ -> False
 
 numNotLeftOnBase :: Play -> Int
@@ -129,9 +131,10 @@ addRunForMovement _ _ _ score = score
 addRuns :: Text -> Play -> FrameState -> BoxScore -> BoxScore
 addRuns player Play{..} state score =
   let
-    scoreWithRun = case playAction of
-      Hit HomePlate _ -> addRunToPlayer player score
-      _ -> score
+    hitRun = flip any playActions $ \a -> case a of
+      Hit HomePlate _ -> True
+      _ -> False
+    scoreWithRun = if hitRun then addRunToPlayer player score else score
   in
     foldr (addRunForMovement player state) scoreWithRun playMovements
 

@@ -28,7 +28,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right pr -> do
-          pr `shouldBe` Play WildPitch [] [PlayMovement ThirdBase HomePlate True]
+          pr `shouldBe` Play [WildPitch] [] [PlayMovement ThirdBase HomePlate True]
           numRBI pr `shouldBe` 0
 
   describe "parsePlayAction" $ do
@@ -43,10 +43,10 @@ spec = describe "Play" $ do
       "HP" `shouldParseAsPlay` HitByPitch
 
     it "should successfully parse Strikeout" $
-      "K" `shouldParseAsPlay` Outs [Strikeout Nothing]
+      "K" `shouldParseAsPlay` Strikeout Nothing
 
     it "should successfully parse dropped Strikeout" $
-      "K23" `shouldParseAsPlay` Outs [Strikeout Nothing]
+      "K23" `shouldParseAsPlay` Strikeout Nothing
 
     it "should successfully parse basic StolenBase" $
       "SB3" `shouldParseAsPlay` StolenBase ThirdBase
@@ -73,16 +73,24 @@ spec = describe "Play" $ do
       "HR7" `shouldParseAsPlay` Hit HomePlate (Just LeftFielder)
 
     it "should successfully parse fielders choice" $
-      "FC6" `shouldParseAsPlay` Outs [FieldersChoice [ShortStop]]
+      "FC6" `shouldParseAsPlay` FieldersChoice [ShortStop]
 
     it "should successfully parse routine out" $
-      "53" `shouldParseAsPlay` Outs [RoutinePlay [ThirdBaseman, FirstBaseman] Nothing]
+      "53" `shouldParseAsPlay` RoutinePlay [ThirdBaseman, FirstBaseman] Nothing
 
     it "should successfully parse annotated routine out" $
-      "46(1)" `shouldParseAsPlay` Outs [RoutinePlay [SecondBaseman, ShortStop] (Just FirstBase)]
+      "46(1)" `shouldParseAsPlay` RoutinePlay [SecondBaseman, ShortStop] (Just FirstBase)
+
+  describe "parsePlayActions" $ do
+
+    let
+      shouldParseAsPlays :: Text -> [PlayAction] -> Expectation
+      shouldParseAsPlays t pa = do
+        t ~> many parsePlayAction `shouldParse` pa
+        leftover (t ~?> many parsePlayAction) `shouldSatisfy` \str -> fromMaybe "" str == ""
 
     it "should successfully parse routine double play" $
-      "46(1)3" `shouldParseAsPlay` Outs [RoutinePlay [SecondBaseman, ShortStop] (Just FirstBase), RoutinePlay [FirstBaseman] Nothing]
+      "46(1)3" `shouldParseAsPlays` [RoutinePlay [SecondBaseman, ShortStop] (Just FirstBase), RoutinePlay [FirstBaseman] Nothing]
 
   describe "parsePlayMovements" $ do
     let
@@ -113,7 +121,7 @@ spec = describe "Play" $ do
     let smokeScores = map generateBoxScore <$> gamesFromFilePath "testgame.txt"
 
     it "should return correct stats" $
-      smokeScores >>= (\[bs1, bs2, bs3] -> do
+      smokeScores >>= (\[bs1, bs2, bs3, _] -> do
         boxScoreStats bs1 `shouldBe` HashMap.fromList
           [ ("kimbc001",BattingLine {battingLinePlayerId = "kimbc001", battingLineAtBats = 0, battingLineRuns = 0, battingLineHits = 0, battingLineRBI = 0, battingLineWalks = 0, battingLineStrikeouts = 0, battingLineLOB = 0})
           , ("bogax001",BattingLine {battingLinePlayerId = "bogax001", battingLineAtBats = 4, battingLineRuns = 1, battingLineHits = 1, battingLineRBI = 1, battingLineWalks = 1, battingLineStrikeouts = 1, battingLineLOB = 0})

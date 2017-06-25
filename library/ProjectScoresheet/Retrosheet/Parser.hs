@@ -51,20 +51,22 @@ instance FromField Play where
       Right r -> pure r
 
 parsePlay :: Parser Play
-parsePlay = Play <$> parsePlayAction <*> many parsePlayDescriptor <*> many parsePlayMovement
+parsePlay = Play <$> some parsePlayAction <*> many parsePlayDescriptor <*> many parsePlayMovement
 
 parsePlayAction :: Parser PlayAction
 parsePlayAction =
   try parseStolenBase <|>
   try parseHit <|>
-  try parseOuts <|>
+  try parseStrikeout <|>
+  try parseFieldersChoice <|>
+  try (RoutinePlay <$> parseFieldingPositions <*> optional parseOutRunnerBase) <|>
   try parseCaughtStealing <|>
   try parseWildPitch <|>
+  try parsePassedBall <|>
   try parseWalk <|>
   try parseNoPlay <|>
   try parseHitByPitch <|>
-  try parseError <|>
-  try parseOther
+  try parseError
 
 parseStolenBase :: Parser PlayAction
 parseStolenBase = string "SB" *> (StolenBase <$> parseNumericBase)
@@ -78,16 +80,7 @@ parseParenthetical delegate = char '(' *> delegate <* char ')'
 parseHit :: Parser PlayAction
 parseHit = Hit <$> parseBase <*> optional parseFieldingPosition
 
-parseOuts :: Parser PlayAction
-parseOuts = Outs <$> some parseOut
-
-parseOut :: Parser Out
-parseOut =
-  try parseStrikeout <|>
-  try parseFieldersChoice <|>
-  try (RoutinePlay <$> parseFieldingPositions <*> optional parseOutRunnerBase)
-
-parseFieldersChoice :: Parser Out
+parseFieldersChoice :: Parser PlayAction
 parseFieldersChoice = string "FC" *> map FieldersChoice parseFieldingPositions
 
 parseOutRunnerBase :: Parser Base
@@ -115,6 +108,10 @@ parseWildPitch :: Parser PlayAction
 parseWildPitch =
   try (string "WP" *> pure WildPitch)
 
+parsePassedBall :: Parser PlayAction
+parsePassedBall =
+  try (string "PB" *> pure PassedBall)
+
 parseWalk :: Parser PlayAction
 parseWalk =
   try (char 'W' *> pure (Walk False)) <|>
@@ -127,7 +124,7 @@ parsePlayActionTokenWithQualifier token result = string token *> (result <$> opt
 parseQualifier :: Parser Text
 parseQualifier = char '+' *> (pack <$> many (satisfy (not . \c -> c == '/' || c == '.')))
 
-parseStrikeout :: Parser Out
+parseStrikeout :: Parser PlayAction
 parseStrikeout =
   try (string "K23" *> pure (Strikeout Nothing)) <|>
   parsePlayActionTokenWithQualifier "K" Strikeout
@@ -142,9 +139,6 @@ parseError :: Parser PlayAction
 parseError = do
   void $ char 'E'
   Error <$> try parseFieldingPosition
-
-parseOther :: Parser PlayAction
-parseOther = Other . pack <$> many (satisfy (not . \c -> c == '/' || c == '.'))
 
 parsePlayDescriptor :: Parser PlayDescriptor
 parsePlayDescriptor = do

@@ -16,35 +16,31 @@ import ProjectScoresheet.BaseballTypes
 
 data Play
   = Play
-  { playAction :: !PlayAction
+  { playActions :: ![PlayAction]
   , playDescriptors :: ![PlayDescriptor]
   , playMovements :: ![PlayMovement]
   } deriving (Eq, Show, Generic)
 
 data PlayAction
-  = Outs [Out]
+  = RoutinePlay [FieldingPosition] (Maybe Base)
+  | FieldersChoice [FieldingPosition]
+  | Strikeout (Maybe Text)
   | Hit Base (Maybe FieldingPosition)
   | StolenBase Base
   | CaughtStealing Base (Maybe [FieldingPosition])
   | WildPitch
+  | PassedBall
   | Walk Bool
   | NoPlay (Maybe Text)
-  | Other Text
   | HitByPitch
   | Error FieldingPosition
-  deriving (Eq, Show)
-
-data Out
-  = RoutinePlay [FieldingPosition] (Maybe Base)
-  | FieldersChoice [FieldingPosition]
-  | Strikeout (Maybe Text)
   deriving (Eq, Show)
 
 data PlayDescriptor
   = ForceOut
   | SacrificeFly
   | SacrificeBunt
-  | OtherDescriptor Text
+  | OtherDescriptor !Text
   deriving (Eq, Show)
 
 data PlayMovement = PlayMovement Base Base Bool deriving (Eq, Show)
@@ -74,46 +70,42 @@ isBatterOutOnMovement :: PlayMovement -> Bool
 isBatterOutOnMovement (PlayMovement HomePlate _ False) = True
 isBatterOutOnMovement _ = False
 
+isBatterOutOnAction :: PlayAction -> Bool
+isBatterOutOnAction (Strikeout _) = True
+isBatterOutOnAction (RoutinePlay _ Nothing) = True
+isBatterOutOnAction _ = False
+
 isBatterOut :: Play -> Bool
 isBatterOut Play{..} =
-  any isBatterOutOnMovement playMovements
+  any isBatterOutOnAction playActions || any isBatterOutOnMovement playMovements
 
 saturatePlayMovements :: Play -> Play
-saturatePlayMovements pr@Play{..} =
+saturatePlayMovements p@Play{..} =
   let
-    pr' = case playAction of
-      Walk _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
-      HitByPitch -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
-      Hit base _ -> over _playMovements (if isBatterOut pr then id else addPlayMovement (PlayMovement HomePlate base True)) pr
-      StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True)) pr
-      CaughtStealing base _ -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base False)) pr
-      Outs outs -> foldr saturateMovementsOnOut pr outs
-        & _playMovements %~ if not (isBatterOutOnOuts outs) then addPlayMovement (PlayMovement HomePlate FirstBase True) else id
-      _ -> pr
+    applyPlayAction pa = case pa of
+      Walk _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True))
+      HitByPitch -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True))
+      Hit base _ -> over _playMovements (if isBatterOut p then id else addPlayMovement (PlayMovement HomePlate base True))
+      StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True))
+      CaughtStealing base _ -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base False))
+      FieldersChoice _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True))
+      RoutinePlay _ (Just startingBase) -> over _playMovements (addPlayMovement (PlayMovement startingBase HomePlate False))
+      _ -> id
   in
-    case isForceOut pr' of
-      True -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr'
-      False -> pr'
+    foldr applyPlayAction p playActions
+    & play %~ advanceBatterIfNotOut
 
-batterOuts :: [Out] -> Int
-batterOuts outs = length $ filter (\o -> case o of Strikeout _ -> True; RoutinePlay _ Nothing -> True; _ -> False) outs
-
-isBatterOutOnOuts :: [Out] -> Bool
-isBatterOutOnOuts = any isBatterOutOnOut
-
-isBatterOutOnOut :: Out -> Bool
-isBatterOutOnOut (Strikeout _) = True
-isBatterOutOnOut (RoutinePlay _ Nothing) = True
-isBatterOutOnOut _ = False
-
-saturateMovementsOnOut :: Out -> Play -> Play
-saturateMovementsOnOut (FieldersChoice _) pr = over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True)) pr
-saturateMovementsOnOut (RoutinePlay _ (Just startingBase)) pr = over _playMovements (addPlayMovement (PlayMovement startingBase HomePlate False)) pr
-saturateMovementsOnOut _ pr = pr
+advanceBatterIfNotOut :: Play -> Play
+advanceBatterIfNotOut p =
+  if isAtBat p
+  then if isBatterOut p && not (isForceOut p)
+    then p
+    else p & _playMovements %~ addPlayMovement (PlayMovement HomePlate FirstBase True)
+  else p
 
 isHit :: Play -> Bool
 isHit Play{..} =
-  case playAction of
+  flip any playActions $ \a -> case a of
     Hit _ _ -> True
     _ -> False
 
@@ -126,45 +118,39 @@ fromBool False = 0
 fromBool True = 1
 
 numRBI :: Play -> Int
-numRBI pa@Play{..} =
-  if isWildPitch pa
+numRBI p@Play{..} =
+  if isWildPitch p || isPassedBall p
   then 0
   else length $ filter isRBI playMovements
 
 isHomeRun :: Play -> Bool
 isHomeRun Play{..} =
-  case playAction of
+  flip any playActions $ \a -> case a of
     Hit HomePlate _ -> True
     _ -> False
 
 isAtBat :: Play -> Bool
-isAtBat pa@Play{..} =
-  case playAction of
+isAtBat p@Play{..} =
+  flip any playActions $ \a -> case a of
     Walk _ -> False
     HitByPitch -> False
     CaughtStealing _ _ -> False
     WildPitch -> False
+    PassedBall -> False
     NoPlay _ -> False
-    Other _ -> False
     StolenBase _ -> False
-    Outs _ -> not $ isSacrifice pa
+    RoutinePlay _ _ -> not $ isSacrifice p
     _ -> True
 
 isWalk :: Play -> Bool
 isWalk Play{..} =
-  case playAction of
+  flip any playActions $ \a -> case a of
     Walk _ -> True
     _ -> False
 
 isStrikeout :: Play -> Bool
 isStrikeout Play{..} =
-  case playAction of
-    Outs outs -> any isStrikeoutOut outs
-    _ -> False
-
-isStrikeoutOut :: Out -> Bool
-isStrikeoutOut out =
-  case out of
+  flip any playActions $ \a -> case a of
     Strikeout _ -> True
     _ -> False
 
@@ -178,6 +164,12 @@ isSacrificeDescriptor _ = False
 
 isWildPitch :: Play -> Bool
 isWildPitch Play{..} =
-  case playAction of
+  flip any playActions $ \a -> case a of
     WildPitch -> True
+    _ -> False
+
+isPassedBall :: Play -> Bool
+isPassedBall Play{..} =
+  flip any playActions $ \a -> case a of
+    PassedBall -> True
     _ -> False
