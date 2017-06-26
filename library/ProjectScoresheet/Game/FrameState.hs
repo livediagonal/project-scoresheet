@@ -32,17 +32,23 @@ makeClassy_ ''FrameState
 initialFrameState :: FrameState
 initialFrameState = FrameState 0 Nothing Nothing Nothing Nothing Nothing
 
+debugFrameState :: FrameState -> FrameState
+debugFrameState fs@FrameState{..} = trace
+  ("Num outs: " ++ show frameStateOuts ++ ", First: " ++ show frameStateRunnerOnFirstId ++ ", Second: " ++ show frameStateRunnerOnSecondId ++ ", Third: " ++ show frameStateRunnerOnThirdId) fs
+
 updateFrameState :: Event -> FrameState -> FrameState
-updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ (Play actions _ movements))) =
-  frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
-  & _frameStateOuts %~ (if any isBatterOutOnAction actions then (+1) else id)
+updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ p@(Play actions _ movements))) fs =
+  trace (show playerId ++ "-" ++ show actions) (debugFrameState fs)
+  & frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
+  & _frameStateOuts %~ (if isBatterOut p then (+1) else id)
   & frameState %~ \state' ->
     if frameStateOuts state' == 3
     then initialFrameState
     else state'
-updateFrameState _ = id
+updateFrameState _ fs = fs
 
 applyRunnerMovement :: Text -> FrameState -> PlayMovement -> FrameState
+applyRunnerMovement _ gs (PlayMovement HomePlate _ False) = gs -- Hack: need cleaner way of not double-counting batter outs
 applyRunnerMovement _ gs (PlayMovement startBase _ False) =
   removePlayerFromBase startBase gs
   & _frameStateOuts %~ (+1)

@@ -62,6 +62,7 @@ parsePlayAction =
   try parseRoutinePlay <|>
   try parseFieldersChoice <|>
   try parseCaughtStealing <|>
+  try parsePickoff <|>
   try parseWildPitch <|>
   try parsePassedBall <|>
   try parseWalk <|>
@@ -74,6 +75,9 @@ parseStolenBase = string "SB" *> (StolenBase <$> parseNumericBase)
 
 parseCaughtStealing :: Parser PlayAction
 parseCaughtStealing = string "CS" *> (CaughtStealing <$> parseNumericBase <*> optional (parseParenthetical parseFieldingPositions))
+
+parsePickoff :: Parser PlayAction
+parsePickoff = string "PO" *> (Pickoff <$> parseNumericBase <*> optional (parseParenthetical parseFieldingPositions))
 
 parseParenthetical :: Parser a -> Parser a
 parseParenthetical delegate = char '(' *> delegate <* char ')'
@@ -153,7 +157,9 @@ parseNumericBase =
 parseMovementAnnotation :: Parser ()
 parseMovementAnnotation = do
   void $ char '('
-  void $ try (string "NR") <|> pack <$> many (satisfy isDigit)
+  void $ try (void $ string "NR") <|> try (void $ string "UR") <|> do
+    void $ many (satisfy isDigit)
+    void $ optional (string "/TH")
   void $ char ')'
 
 parsePlayMovement :: Parser PlayMovement

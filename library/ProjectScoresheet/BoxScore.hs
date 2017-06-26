@@ -106,6 +106,7 @@ isOut PlayEvent{..} = flip any (playActions playEventResult) $ \a -> case a of
   Strikeout _ -> True
   FieldersChoice _ -> True
   RoutinePlay _ _ -> True
+  Pickoff _ _ -> True
   _ -> False
 
 numNotLeftOnBase :: Play -> Int

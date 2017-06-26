@@ -29,6 +29,7 @@ data PlayAction
   | Hit Base (Maybe FieldingPosition)
   | StolenBase Base
   | CaughtStealing Base (Maybe [FieldingPosition])
+  | Pickoff Base (Maybe [FieldingPosition])
   | WildPitch
   | PassedBall
   | Walk Bool
@@ -71,6 +72,10 @@ isBatterOutOnMovement :: PlayMovement -> Bool
 isBatterOutOnMovement (PlayMovement HomePlate _ False) = True
 isBatterOutOnMovement _ = False
 
+isBatterAdvancedOnMovement :: PlayMovement -> Bool
+isBatterAdvancedOnMovement (PlayMovement HomePlate _ True) = True
+isBatterAdvancedOnMovement _ = False
+
 isBatterOutOnAction :: PlayAction -> Bool
 isBatterOutOnAction (Strikeout _) = True
 isBatterOutOnAction (RoutinePlay _ Nothing) = True
@@ -78,7 +83,8 @@ isBatterOutOnAction _ = False
 
 isBatterOut :: Play -> Bool
 isBatterOut Play{..} =
-  any isBatterOutOnAction playActions || any isBatterOutOnMovement playMovements
+  (any isBatterOutOnAction playActions || any isBatterOutOnMovement playMovements) &&
+  not (any isBatterAdvancedOnMovement playMovements)
 
 saturatePlayMovements :: Play -> Play
 saturatePlayMovements p@Play{..} =
@@ -89,6 +95,7 @@ saturatePlayMovements p@Play{..} =
       Hit base _ -> over _playMovements (if isBatterOut p then id else addPlayMovement (PlayMovement HomePlate base True))
       StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True))
       CaughtStealing base _ -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base False))
+      Pickoff base _ -> over _playMovements (addPlayMovement (PlayMovement base base False))
       FieldersChoice _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True))
       RoutinePlay _ (Just startingBase) -> over _playMovements (addPlayMovement (PlayMovement startingBase HomePlate False))
       _ -> id
@@ -136,6 +143,7 @@ isAtBat p@Play{..} =
     Walk _ -> False
     HitByPitch -> False
     CaughtStealing _ _ -> False
+    Pickoff _ _ -> False
     WildPitch -> False
     PassedBall -> False
     NoPlay -> False

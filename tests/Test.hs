@@ -37,8 +37,47 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right pr -> do
-          pr `shouldBe` Play [RoutinePlay [ThirdBaseman,SecondBaseman] (Just FirstBase),RoutinePlay [FirstBaseman] Nothing] [OtherDescriptor "GDP"] []
+          pr `shouldBe` Play [RoutinePlay [ThirdBaseman,SecondBaseman] (Just FirstBase), RoutinePlay [FirstBaseman] Nothing] [OtherDescriptor "GDP"] []
           numRBI pr `shouldBe` 0
+
+    it "should successfully parse strikeout with passed ball and batter advance" $ do
+      let
+        res = ("K+PB.2-3;B-1" :: Text) ~> parsePlay
+      case res of
+        Left err -> fail err
+        Right p -> do
+          p `shouldBe` Play [Strikeout Nothing, PassedBall] [] [PlayMovement SecondBase ThirdBase True, PlayMovement HomePlate FirstBase True]
+          numRBI p `shouldBe` 0
+          isBatterOut p `shouldBe` False
+
+    it "should successfully parse double with unearned runs and failed batter advancement" $ do
+      let
+        res = ("D8/F+.3-H(UR);1-H(UR);BX3(843562/TH)" :: Text) ~> parsePlay
+      case res of
+        Left err -> fail err
+        Right p -> do
+          p `shouldBe` Play [Hit SecondBase (Just CenterFielder)] [OtherDescriptor "F+"] [PlayMovement ThirdBase HomePlate True, PlayMovement FirstBase HomePlate True, PlayMovement HomePlate ThirdBase False]
+          numRBI p `shouldBe` 2
+          isBatterOut p `shouldBe` True
+
+    it "should successfully parse failed stretch on single under review" $ do
+      let
+        res = ("S8/L/MREV.BX2(84)" :: Text) ~> parsePlay
+      case res of
+        Left err -> fail err
+        Right p -> do
+          p `shouldBe` Play [Hit FirstBase (Just CenterFielder)] [OtherDescriptor "L", OtherDescriptor "MREV"] [PlayMovement HomePlate SecondBase False]
+          isBatterOut p `shouldBe` True
+          isHit p `shouldBe` True
+
+    it "should successfully parse strikeout with pickoff" $ do
+      let
+        res = ("K+PO1(23)/DP" :: Text) ~> parsePlay
+      case res of
+        Left err -> fail err
+        Right p -> do
+          p `shouldBe` Play [Strikeout Nothing, Pickoff FirstBase (Just [Catcher, FirstBaseman])] [OtherDescriptor "DP"] []
+          isBatterOut p `shouldBe` True
 
   describe "parsePlayAction" $ do
 
@@ -124,6 +163,13 @@ spec = describe "Play" $ do
       ".3-H;2X3(65)" `shouldParseMovements`
         [ PlayMovement ThirdBase HomePlate True
         , PlayMovement SecondBase ThirdBase False
+        ]
+
+    it "should successfully parse out unearned advances on batter out" $
+      ".3-H(UR);1-H(UR);BX3(843562/TH)" `shouldParseMovements`
+        [ PlayMovement ThirdBase HomePlate True
+        , PlayMovement FirstBase HomePlate True
+        , PlayMovement HomePlate ThirdBase False
         ]
 
   describe "box score smoke test" $ do
