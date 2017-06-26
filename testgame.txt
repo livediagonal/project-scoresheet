@@ -648,3 +648,138 @@ data,er,porcr001,3
 data,er,tazaj001,0
 data,er,uehak001,0
 data,er,kimbc001,0
+id,BOS201604160
+version,2
+info,visteam,TOR
+info,hometeam,BOS
+info,site,BOS07
+info,date,2016/04/16
+info,number,0
+info,starttime,4:05PM
+info,daynight,day
+info,usedh,true
+info,umphome,herna901
+info,ump1b,barkl901
+info,ump2b,littw901
+info,ump3b,barrt901
+info,howscored,park
+info,pitches,pitches
+info,oscorer,scogc701
+info,temp,53
+info,winddir,fromcf
+info,windspeed,20
+info,fieldcond,unknown
+info,precip,unknown
+info,sky,cloudy
+info,timeofgame,163
+info,attendance,36267
+info,wp,pricd001
+info,lp,estrm001
+info,save,kimbc001
+start,pillk001,"Kevin Pillar",0,1,8
+start,donaj001,"Josh Donaldson",0,2,5
+start,bautj002,"Jose Bautista",0,3,9
+start,encae001,"Edwin Encarnacion",0,4,10
+start,tulot001,"Troy Tulowitzki",0,5,6
+start,colac001,"Chris Colabello",0,6,3
+start,martr004,"Russell Martin",0,7,2
+start,barnd001,"Darwin Barney",0,8,4
+start,carre001,"Ezequiel Carrera",0,9,7
+start,estrm001,"Marco Estrada",0,0,1
+start,bettm001,"Mookie Betts",1,1,9
+start,pedrd001,"Dustin Pedroia",1,2,4
+start,bogax001,"Xander Bogaerts",1,3,6
+start,ortid001,"David Ortiz",1,4,10
+start,ramih003,"Hanley Ramirez",1,5,3
+start,shawt001,"Travis Shaw",1,6,5
+start,holtb002,"Brock Holt",1,7,7
+start,vazqc001,"Christian Vazquez",1,8,2
+start,bradj001,"Jackie Bradley",1,9,8
+start,pricd001,"David Price",1,0,1
+play,1,0,pillk001,02,CFC,K
+play,1,0,donaj001,32,CBSBBX,T8/L+
+play,1,0,bautj002,01,FX,D8/F/MREV.3-H;BX3(85)
+com,"replay,1,bautj002,TOR,barrt901,BOS07,,N,M,TOR,A"
+com,"$when Jose Bautista was called out at 3B, Blue Jays"
+com,"manager John Gibbons challenged the ruling; the"
+com,"call was upheld by replay"
+play,1,0,encae001,22,BBTCS,K
+play,1,1,bettm001,22,CCBBC,K
+play,1,1,pedrd001,10,BX,9/L
+play,1,1,bogax001,12,FSBX,7/F
+play,2,0,tulot001,32,BBTSBX,7/F
+play,2,0,colac001,22,SFBBX,3/G-
+play,2,0,martr004,22,BBCCX,8/F
+play,2,1,ortid001,31,BBBCB,W
+play,2,1,ramih003,12,FC*BX,54(1)/FO/G
+play,2,1,shawt001,00,X,S9/L.1-2
+play,2,1,holtb002,02,CCS,K
+play,2,1,vazqc001,22,BFFF*BFS,K
+play,3,0,barnd001,12,CFBX,8/F
+play,3,0,carre001,32,BCBFBFFFX,43/G
+play,3,0,pillk001,22,BCSBS,K
+play,3,1,bradj001,00,X,S16/G+
+play,3,1,bettm001,21,BC*BX,3/P
+play,3,1,pedrd001,10,BX,S56/G.1-2
+play,3,1,bogax001,01,CX,HR/7/L.2-H;1-H
+play,3,1,ortid001,01,CX,53/G
+play,3,1,ramih003,02,FCX,D9/F
+play,3,1,shawt001,32,CS*BBBX,S7/G.2-H;B-2(TH)
+play,3,1,holtb002,01,CX,43/G
+play,4,0,donaj001,22,FBSFBC,K
+play,4,0,bautj002,32,BBBCFX,S7/L+
+play,4,0,encae001,01,CX,D8/F.1-H
+play,4,0,tulot001,00,X,53/G-
+play,4,0,colac001,00,X,4/P
+play,4,1,vazqc001,22,BFBCX,S7/G
+play,4,1,bradj001,11,BFX,1/G-.1-2
+play,4,1,bettm001,32,CBFBFBFX,8/F
+play,4,1,pedrd001,12,CBCX,3/P3F
+play,5,0,martr004,21,SBBX,S8/L
+play,5,0,barnd001,02,CSFFC,K
+play,5,0,carre001,01,LX,6/L
+play,5,0,pillk001,00,X,2/BP2F
+play,5,1,bogax001,21,BCBX,13/G
+play,5,1,ortid001,22,CFBFBX,5/P
+play,5,1,ramih003,11,BSX,9/F
+play,6,0,donaj001,11,TBX,S8/G
+play,6,0,bautj002,22,CB11SF1BS,K
+play,6,0,encae001,01,SX,7/F
+play,6,0,tulot001,12,BCCX,23/G-
+play,6,1,shawt001,11,BCX,6/P-
+play,6,1,holtb002,22,CBFBFX,S8/G+
+play,6,1,vazqc001,00,X,64(1)3/GDP
+play,7,0,colac001,22,SCBBS,K
+play,7,0,martr004,12,CLBFS,K
+play,7,0,barnd001,12,BSSC,K
+play,7,1,bradj001,00,,NP
+sub,floyg001,"Gavin Floyd",0,0,1
+play,7,1,bradj001,01,.CX,43/G
+play,7,1,bettm001,21,BBCX,8/F
+play,7,1,pedrd001,32,BBCBFB,W
+play,7,1,bogax001,00,X,9/F
+play,8,0,carre001,00,,NP
+sub,uehak001,"Koji Uehara",1,0,1
+play,8,0,carre001,11,.BCX,S5/BG
+play,8,0,pillk001,11,C1BX,64(1)3/GDP
+play,8,0,donaj001,12,CBFX,3/P
+play,8,1,ortid001,00,,NP
+sub,cecib001,"Brett Cecil",0,0,1
+play,8,1,ortid001,12,.CMBX,S8/L
+play,8,1,ramih003,01,CX,54(1)3/GDP/UREV
+com,"replay,8,ramih003,BOS,barrt901,BOS07,,Y,U,,C"
+com,"$when David Ortiz was called safe at 2B, crew chief"
+com,"Ted Barrett requested a review; the call was"
+com,"overturned by replay"
+play,8,1,shawt001,11,BSX,53/G
+play,9,0,bautj002,00,,NP
+sub,kimbc001,"Craig Kimbrel",1,0,1
+play,9,0,bautj002,32,.CBBBFFFC,K
+play,9,0,encae001,12,CBSS,K
+play,9,0,tulot001,22,SBBSFC,K
+data,er,estrm001,4
+data,er,floyg001,0
+data,er,cecib001,0
+data,er,pricd001,2
+data,er,uehak001,0
+data,er,kimbc001,0

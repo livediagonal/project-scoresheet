@@ -26,7 +26,7 @@ data PlayAction
   = RoutinePlay [FieldingPosition] (Maybe Base)
   | FieldersChoice [FieldingPosition]
   | Strikeout (Maybe Text)
-  | Hit Base (Maybe FieldingPosition)
+  | Hit Base (Maybe [FieldingPosition])
   | StolenBase Base
   | CaughtStealing Base (Maybe [FieldingPosition])
   | Pickoff Base (Maybe [FieldingPosition])

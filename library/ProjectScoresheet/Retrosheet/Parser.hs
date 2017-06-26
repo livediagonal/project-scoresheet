@@ -83,7 +83,7 @@ parseParenthetical :: Parser a -> Parser a
 parseParenthetical delegate = char '(' *> delegate <* char ')'
 
 parseHit :: Parser PlayAction
-parseHit = Hit <$> parseBase <*> optional parseFieldingPosition
+parseHit = Hit <$> parseBase <*> optional (some parseFieldingPosition)
 
 parseRoutinePlay :: Parser PlayAction
 parseRoutinePlay = RoutinePlay <$> parseFieldingPositions <*> optional parseOutRunnerBase
