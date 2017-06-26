@@ -8,6 +8,7 @@ module ProjectScoresheet.Game.FrameState
   ( FrameState(..)
   , initialFrameState
   , updateFrameState
+  , runnerOnBase
   ) where
 
 import ClassyPrelude
@@ -38,7 +39,7 @@ debugFrameState fs@FrameState{..} = trace
 
 updateFrameState :: Event -> FrameState -> FrameState
 updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ p@(Play actions _ movements))) fs =
-  trace (show playerId ++ "-" ++ show actions) (debugFrameState fs)
+  fs
   & frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
   & _frameStateOuts %~ (if isBatterOut p then (+1) else id)
   & frameState %~ \state' ->
@@ -46,6 +47,12 @@ updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ p@(Play actions _ mo
     then initialFrameState
     else state'
 updateFrameState _ fs = fs
+
+runnerOnBase :: Base -> FrameState -> Maybe Text
+runnerOnBase FirstBase = frameStateRunnerOnFirstId
+runnerOnBase SecondBase = frameStateRunnerOnSecondId
+runnerOnBase ThirdBase = frameStateRunnerOnThirdId
+runnerOnBase _ = const Nothing
 
 applyRunnerMovement :: Text -> FrameState -> PlayMovement -> FrameState
 applyRunnerMovement _ gs (PlayMovement HomePlate _ False) = gs -- Hack: need cleaner way of not double-counting batter outs

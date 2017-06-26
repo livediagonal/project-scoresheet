@@ -12,6 +12,7 @@ library
   exposed-modules:
       ProjectScoresheet.BaseballTypes
     , ProjectScoresheet.BoxScore
+    , ProjectScoresheet.BoxScore.Batting
     , ProjectScoresheet.Game
     , ProjectScoresheet.Game.FrameState
     , ProjectScoresheet.Game.GameEvent
