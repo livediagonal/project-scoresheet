@@ -20,12 +20,12 @@ import ProjectScoresheet.Retrosheet.Events
 
 data FrameState
   = FrameState
-  { frameStateOuts :: !Int
-  , frameStateBatterId :: !(Maybe Text)
-  , frameStatePitcherId :: !(Maybe Text)
-  , frameStateRunnerOnFirstId :: !(Maybe Text)
-  , frameStateRunnerOnSecondId :: !(Maybe Text)
-  , frameStateRunnerOnThirdId :: !(Maybe Text)
+   { frameStateOuts :: !Int
+   , frameStateBatterId :: !(Maybe Text)
+   , frameStatePitcherId :: !(Maybe Text)
+   , frameStateRunnerOnFirstId :: !(Maybe Text)
+   , frameStateRunnerOnSecondId :: !(Maybe Text)
+   , frameStateRunnerOnThirdId :: !(Maybe Text)
   } deriving (Eq, Show)
 
 makeClassy_ ''FrameState
@@ -33,12 +33,20 @@ makeClassy_ ''FrameState
 initialFrameState :: FrameState
 initialFrameState = FrameState 0 Nothing Nothing Nothing Nothing Nothing
 
+debugEventInFrame :: Event -> FrameState -> FrameState
+debugEventInFrame (PlayEventType (PlayEvent _ _ playerId _ _ (Play actions _ _))) fs =
+  trace (show playerId ++ " - " ++ show actions) (debugFrameState fs)
+debugEventInFrame _ fs = fs
+
 debugFrameState :: FrameState -> FrameState
-debugFrameState fs@FrameState{..} = trace
-  ("Num outs: " ++ show frameStateOuts ++ ", First: " ++ show frameStateRunnerOnFirstId ++ ", Second: " ++ show frameStateRunnerOnSecondId ++ ", Third: " ++ show frameStateRunnerOnThirdId) fs
+debugFrameState fs@FrameState{..} = trace (unlines $ ("Outs: " ++ show frameStateOuts) : catMaybes
+  [ (("1: " ++) . show) <$> frameStateRunnerOnFirstId
+  , (("2: " ++) . show) <$> frameStateRunnerOnSecondId
+  , (("3: " ++) . show) <$> frameStateRunnerOnThirdId
+  ]) fs
 
 updateFrameState :: Event -> FrameState -> FrameState
-updateFrameState (PlayEventType (PlayEvent _ _ playerId _ _ p@(Play actions _ movements))) fs =
+updateFrameState e@(PlayEventType (PlayEvent _ _ playerId _ _ p@(Play _ _ movements))) fs =
   fs
   & frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
   & _frameStateOuts %~ (if isBatterOut p then (+1) else id)

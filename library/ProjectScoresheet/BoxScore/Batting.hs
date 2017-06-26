@@ -50,7 +50,7 @@ initialBattingOrderMap :: BattingOrderMap
 initialBattingOrderMap = HashMap.fromList $ zip [minBound ..] $ repeat []
 
 updateBattingWithPlay :: PlayEvent -> FrameState -> Batting -> Batting
-updateBattingWithPlay pe@PlayEvent{..} gs b = b  
+updateBattingWithPlay pe@PlayEvent{..} gs b = b
   & batting %~ (if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId else id)
   & batting %~ (if isHit playEventResult then addHitToPlayer playEventPlayerId else id)
   & batting %~ (if isWalk playEventResult then addWalkToPlayer playEventPlayerId else id)
@@ -75,9 +75,10 @@ addPlayerToBatting homeOrAway player battingPosition bs =
 
 isOut :: PlayEvent -> Bool
 isOut PlayEvent{..} = flip any (playActions playEventResult) $ \a -> case a of
-  Strikeout _ -> True
+  Strikeout _ -> not $ any isBatterAdvancedOnMovement (playMovements playEventResult)
   FieldersChoice _ -> True
   RoutinePlay _ _ -> True
+  Error _ -> True
   _ -> False
 
 numNotLeftOnBase :: Play -> Int
