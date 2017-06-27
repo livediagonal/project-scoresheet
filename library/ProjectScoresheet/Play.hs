@@ -48,6 +48,9 @@ data PlayDescriptor
 
 data PlayMovement = PlayMovement Base Base Bool deriving (Eq, Show)
 
+instance Ord PlayMovement where
+  (PlayMovement sb1 _ _) `compare` (PlayMovement sb2 _ _) = sb1 `compare` sb2
+
 makeClassy_ ''Play
 
 addPlayMovement :: PlayMovement -> [PlayMovement] -> [PlayMovement]
@@ -103,6 +106,7 @@ saturatePlayMovements p@Play{..} =
   in
     foldr applyPlayAction p playActions
     & play %~ advanceBatterIfNotOut
+    & _playMovements %~ sortBy (flip compare)
 
 advanceBatterIfNotOut :: Play -> Play
 advanceBatterIfNotOut p =

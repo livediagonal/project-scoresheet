@@ -37,8 +37,8 @@ initialFrameState :: FrameState
 initialFrameState = FrameState 0 Nothing Nothing Nothing Nothing Nothing
 
 debugEventInFrame :: Event -> FrameState -> FrameState
-debugEventInFrame (PlayEventType (PlayEvent _ _ playerId _ _ (Play actions _ _))) fs =
-  trace (show playerId ++ " - " ++ show actions) (debugFrameState fs)
+debugEventInFrame (PlayEventType (PlayEvent _ _ playerId _ _ (Play actions _ movements))) fs =
+  trace (show playerId ++ " - " ++ show actions ++ " - " ++ show movements) (debugFrameState fs)
 debugEventInFrame _ fs = fs
 
 debugFrameState :: FrameState -> FrameState
