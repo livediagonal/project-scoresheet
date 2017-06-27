@@ -32,6 +32,7 @@ data PlayAction
   | Pickoff Base (Maybe [FieldingPosition])
   | WildPitch
   | PassedBall
+  | DefensiveIndifference
   | Walk Bool
   | NoPlay
   | HitByPitch
@@ -127,7 +128,7 @@ fromBool True = 1
 
 numRBI :: Play -> Int
 numRBI p@Play{..} =
-  if isWildPitch p || isPassedBall p
+  if isWildPitch p || isPassedBall p || isDefensiveIndifference p
   then 0
   else length $ filter isRBI playMovements
 
@@ -146,6 +147,7 @@ isAtBat p@Play{..} =
     Pickoff _ _ -> False
     WildPitch -> False
     PassedBall -> False
+    DefensiveIndifference -> False
     NoPlay -> False
     StolenBase _ -> False
     RoutinePlay _ _ -> not $ isSacrifice p
@@ -181,4 +183,10 @@ isPassedBall :: Play -> Bool
 isPassedBall Play{..} =
   flip any playActions $ \a -> case a of
     PassedBall -> True
+    _ -> False
+
+isDefensiveIndifference :: Play -> Bool
+isDefensiveIndifference Play{..} =
+  flip any playActions $ \a -> case a of
+    DefensiveIndifference -> True
     _ -> False

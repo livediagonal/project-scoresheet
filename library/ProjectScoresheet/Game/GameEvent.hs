@@ -33,4 +33,4 @@ nextGameEvent event previousGameEvent@GameEvent{..} =
   previousGameEvent &
   _gameEventEvent .~ event &
   _gameEventGameState %~ updateGameState gameEventEvent &
-  _gameEventFrameState %~ updateFrameState gameEventEvent
+  _gameEventFrameState %~ updateFrameState gameEventEvent (view _gameEventGameState previousGameEvent)

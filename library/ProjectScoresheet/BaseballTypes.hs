@@ -60,5 +60,4 @@ initialBattingOrder :: BattingOrder
 initialBattingOrder = HashMap.empty
 
 addToBattingOrder :: Text -> BattingOrderPosition -> BattingOrder -> BattingOrder
-addToBattingOrder _ 0 battingOrder = battingOrder
 addToBattingOrder playedId battingOrderPosition battingOrder = HashMap.insert battingOrderPosition playedId battingOrder

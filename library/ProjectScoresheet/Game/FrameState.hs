@@ -13,10 +13,13 @@ module ProjectScoresheet.Game.FrameState
 
 import ClassyPrelude
 import Control.Lens
+import Data.List (elemIndex)
 
 import ProjectScoresheet.BaseballTypes
+import ProjectScoresheet.Game.GameState
 import ProjectScoresheet.Play
 import ProjectScoresheet.Retrosheet.Events
+import qualified Data.HashMap.Strict as HashMap
 
 data FrameState
   = FrameState
@@ -45,8 +48,8 @@ debugFrameState fs@FrameState{..} = trace (unlines $ ("Outs: " ++ show frameStat
   , (("3: " ++) . show) <$> frameStateRunnerOnThirdId
   ]) fs
 
-updateFrameState :: Event -> FrameState -> FrameState
-updateFrameState e@(PlayEventType (PlayEvent _ _ playerId _ _ p@(Play _ _ movements))) fs =
+updateFrameState :: Event -> GameState -> FrameState -> FrameState
+updateFrameState e@(PlayEventType (PlayEvent _ _ playerId _ _ p@(Play _ _ movements))) gs fs =
   fs
   & frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
   & _frameStateOuts %~ (if isBatterOut p then (+1) else id)
@@ -54,7 +57,22 @@ updateFrameState e@(PlayEventType (PlayEvent _ _ playerId _ _ p@(Play _ _ moveme
     if frameStateOuts state' == 3
     then initialFrameState
     else state'
-updateFrameState _ fs = fs
+updateFrameState (SubEventType SubEvent{..}) GameState{..} fs@FrameState{..} =
+  let
+    replacedBatter :: Text
+    replacedBatter = case subEventPlayerHome of
+      Away -> gameStateAwayBattingOrder HashMap.! subEventBattingPosition
+      Home -> gameStateHomeBattingOrder HashMap.! subEventBattingPosition
+  in
+    fs
+    & over frameState (replaceRunner replacedBatter subEventPlayer)
+updateFrameState _ _ fs = fs
+
+replaceRunner :: Text -> Text -> FrameState -> FrameState
+replaceRunner originalRunner newRunner fs =
+  case baseForRunner originalRunner fs of
+    Nothing -> fs
+    Just base -> addPlayerToBase (Just newRunner) base fs
 
 runnerOnBase :: Base -> FrameState -> Maybe Text
 runnerOnBase FirstBase = frameStateRunnerOnFirstId
@@ -81,6 +99,14 @@ addPlayerToBase playerId base =
     SecondBase -> _frameStateRunnerOnSecondId .~ playerId
     ThirdBase -> _frameStateRunnerOnThirdId .~ playerId
     _ -> id
+
+baseForRunner :: Text -> FrameState -> Maybe Base
+baseForRunner playerId FrameState{..} =
+  case elemIndex (Just playerId) [frameStateRunnerOnFirstId, frameStateRunnerOnSecondId, frameStateRunnerOnThirdId] of
+    Just 0 -> Just FirstBase
+    Just 1 -> Just SecondBase
+    Just 2 -> Just ThirdBase
+    _ -> Nothing
 
 playerOnBase :: Text -> Base -> FrameState -> Maybe Text
 playerOnBase batterId base FrameState{..} =

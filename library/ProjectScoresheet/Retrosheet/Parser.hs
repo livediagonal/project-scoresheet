@@ -56,6 +56,7 @@ parsePlay = Play <$> parsePlayAction `sepBy1` optional (char '+') <*> many parse
 
 parsePlayAction :: Parser PlayAction
 parsePlayAction =
+  try parseDefensiveIndifference <|>
   try parseStolenBase <|>
   try parseHit <|>
   try parseStrikeout <|>
@@ -115,6 +116,10 @@ parseWildPitch =
 parsePassedBall :: Parser PlayAction
 parsePassedBall =
   try (string "PB" *> pure PassedBall)
+
+parseDefensiveIndifference :: Parser PlayAction
+parseDefensiveIndifference =
+  try (string "DI" *> pure DefensiveIndifference)
 
 parseWalk :: Parser PlayAction
 parseWalk =
