@@ -1251,3 +1251,161 @@ data,er,tazaj001,0
 data,er,kimbc001,0
 data,er,barnm001,1
 data,er,laynt001,0
+id,BOS201604200
+version,2
+info,visteam,TBA
+info,hometeam,BOS
+info,site,BOS07
+info,date,2016/04/20
+info,number,0
+info,starttime,7:09PM
+info,daynight,night
+info,usedh,true
+info,umphome,basnt901
+info,ump1b,hoyej901
+info,ump2b,fairc901
+info,ump3b,joycj901
+info,howscored,park
+info,pitches,pitches
+info,oscorer,shalm701
+info,temp,48
+info,winddir,fromrf
+info,windspeed,12
+info,fieldcond,unknown
+info,precip,unknown
+info,sky,cloudy
+info,timeofgame,182
+info,attendance,31689
+info,wp,porcr001
+info,lp,archc001
+info,save,
+start,forsl001,"Logan Forsythe",0,1,4
+start,morrl001,"Logan Morrison",0,2,3
+start,longe001,"Evan Longoria",0,3,5
+start,dickc002,"Corey Dickerson",0,4,10
+start,jennd002,"Desmond Jennings",0,5,7
+start,millb002,"Brad Miller",0,6,6
+start,souzs001,"Steven Souza",0,7,9
+start,kierk001,"Kevin Kiermaier",0,8,8
+start,congh001,"Hank Conger",0,9,2
+start,archc001,"Chris Archer",0,0,1
+start,bettm001,"Mookie Betts",1,1,9
+start,pedrd001,"Dustin Pedroia",1,2,4
+start,bogax001,"Xander Bogaerts",1,3,6
+start,ortid001,"David Ortiz",1,4,10
+start,ramih003,"Hanley Ramirez",1,5,3
+start,shawt001,"Travis Shaw",1,6,5
+start,holtb002,"Brock Holt",1,7,7
+start,vazqc001,"Christian Vazquez",1,8,2
+start,bradj001,"Jackie Bradley",1,9,8
+start,porcr001,"Rick Porcello",1,0,1
+play,1,0,forsl001,32,BFBBCT,K
+play,1,0,morrl001,12,CBCC,K
+play,1,0,longe001,12,SBSX,9/F
+play,1,1,bettm001,31,BBBCB,W
+play,1,1,pedrd001,22,C1F1*BBX,S8/L.1-2
+play,1,1,bogax001,02,CFX,S7/G.2-H;1-2
+play,1,1,ortid001,21,BF*BX,D8/L+.2-H;1-H
+play,1,1,ramih003,12,CF*BB,WP.2-3
+play,1,1,ramih003,22,CF*BB.S,K
+play,1,1,shawt001,32,*B*BF*BFFS,K
+play,1,1,holtb002,21,BC*BX,43/G
+play,2,0,dickc002,32,BBBCFFX,7/F
+play,2,0,jennd002,32,CBBSBS,K
+play,2,0,millb002,22,CBCBC,K
+play,2,1,vazqc001,12,BCFS,K
+play,2,1,bradj001,10,BX,D8/F
+play,2,1,bettm001,21,BF*BX,HR/7/F.2-H
+play,2,1,pedrd001,11,BCX,9/F
+play,2,1,bogax001,10,BX,53/G
+play,3,0,souzs001,00,X,S6/G
+play,3,0,kierk001,12,BFFX,53/G-/MREV.1-2
+com,"replay,3,kierk001,TOR,joycj901,BOS07,,Y,M,BOS,C"
+com,"$when Kevin Kiermaier was called safe at 1B, Red Sox"
+com,"manager John Farrell challenged the ruling; the call"
+com,"was overturned by replay"
+play,3,0,congh001,00,>C,SB3
+play,3,0,congh001,01,>C.X,5/P
+play,3,0,forsl001,32,CB+3FB*BS,K
+play,3,1,ortid001,02,FCS,K
+play,3,1,ramih003,00,X,43/G-
+play,3,1,shawt001,10,BX,S9/L
+play,3,1,holtb002,31,BBCBX,7/F
+play,4,0,morrl001,11,FBX,9/F
+play,4,0,longe001,10,BX,13/G
+play,4,0,dickc002,12,CSBX,D7/F
+play,4,0,jennd002,32,BBCBCB,W
+play,4,0,millb002,00,X,9/L
+play,4,1,vazqc001,12,BCSS,K
+play,4,1,bradj001,30,BBBB,W
+play,4,1,bettm001,32,1BBBC1C*B,W.1-2
+play,4,1,pedrd001,01,CX,5(2)3/GDP
+play,5,0,souzs001,00,X,63/G
+play,5,0,kierk001,32,BCBFBC,K
+play,5,0,congh001,22,CSBBS,K
+play,5,1,bogax001,21,BCBX,S7/G
+play,5,1,ortid001,00,>X,D9/L.1-H
+play,5,1,ramih003,02,CCFS,K
+play,5,1,shawt001,00,,NP
+sub,eveld001,"Dana Eveland",0,0,1
+play,5,1,shawt001,12,.CFBX,7/F
+play,5,1,holtb002,11,BCX,S6/G-.2-3
+play,5,1,vazqc001,01,C>C,SB2
+play,5,1,vazqc001,12,C>C.*BFS,K
+play,6,0,forsl001,00,,NP
+sub,younc004,"Chris Young",1,3,7
+play,6,0,forsl001,00,,NP
+sub,holtb002,"Brock Holt",1,7,6
+com,"Red Sox shortstop Xander Bogaerts left the game due to an injured leg"
+play,6,0,forsl001,32,..BBBCFFFX,T9/F
+play,6,0,morrl001,12,CFBFS,K
+play,6,0,longe001,10,.BX,53/G.3-H
+play,6,0,dickc002,21,BSBX,HR/89/F
+play,6,0,jennd002,20,BBX,53/G
+play,6,1,bradj001,00,H,HP
+play,6,1,bettm001,00,,NP
+sub,webbr001,"Ryan Webb",0,0,1
+play,6,1,bettm001,00,.1,PO1(13)
+play,6,1,bettm001,22,.1.CBCBX,S8/G
+play,6,1,pedrd001,02,CFF11>B,SB2
+play,6,1,pedrd001,12,CFF11>B.FS,K
+play,6,1,younc004,00,B,WP.2-3
+play,6,1,younc004,20,B.*BX,S7/L+.3-H
+play,6,1,ortid001,01,CX,41/G
+play,7,0,millb002,21,BCBX,43/G
+play,7,0,souzs001,22,BCBFS,K
+play,7,0,kierk001,10,BX,D8/F
+play,7,0,congh001,00,X,S9/L.2-H
+play,7,0,forsl001,21,CBBX,9/F
+play,7,1,ramih003,00,,NP
+sub,farqd001,"Danny Farquhar",0,0,1
+play,7,1,ramih003,00,.X,7/L
+play,7,1,shawt001,02,CSX,S9/F
+play,7,1,holtb002,22,BFS*BX,8/L+
+play,7,1,vazqc001,02,CFS,K
+play,8,0,morrl001,00,,NP
+sub,tazaj001,"Junichi Tazawa",1,0,1
+play,8,0,morrl001,30,.BBB*B,W
+play,8,0,longe001,10,BX,3/P
+play,8,0,dickc002,11,FB+1X,8/F
+play,8,0,jennd002,02,FFX,7/F
+play,8,1,bradj001,00,,NP
+sub,gelts001,"Steve Geltz",0,0,1
+play,8,1,bradj001,12,.SLFFBX,4/L
+play,8,1,bettm001,22,BBFCFX,8/F
+play,8,1,pedrd001,32,FBFFBFBX,63/G
+play,9,0,millb002,00,,NP
+sub,ramin002,"Noe Ramirez",1,0,1
+play,9,0,millb002,12,.FBSFS,K23
+play,9,0,souzs001,02,FCX,63/G
+play,9,0,kierk001,00,X,S9/G
+play,9,0,congh001,01,S>B,DI.1-2
+play,9,0,congh001,22,S>B.BSF>S,K
+data,er,archc001,6
+data,er,eveld001,0
+data,er,webbr001,1
+data,er,farqd001,0
+data,er,gelts001,0
+data,er,porcr001,3
+data,er,tazaj001,0
+data,er,ramin002,0

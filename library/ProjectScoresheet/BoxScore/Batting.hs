@@ -4,12 +4,15 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module ProjectScoresheet.BoxScore.Batting where
 
 import ClassyPrelude
 import Control.Lens
 import qualified Data.HashMap.Strict as HashMap
+import Generics.Deriving.Monoid hiding ((<>))
 
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Game.FrameState
@@ -35,10 +38,18 @@ data BattingLine
   , battingLineWalks :: !Int
   , battingLineStrikeouts :: !Int
   , battingLineLOB :: !Int
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic)
 
 makeClassy_ ''Batting
 makeClassy_ ''BattingLine
+
+instance Monoid Int where
+  mempty  = 0
+  mappend = (+)
+
+instance Monoid BattingLine where
+  mempty = initialBattingLine "Total"
+  mappend = mappenddefault
 
 initialBatting :: Batting
 initialBatting = Batting HashMap.empty initialBattingOrderMap initialBattingOrderMap
@@ -162,11 +173,21 @@ prettyPrintBattingOrderMap :: BattingOrderMap -> HashMap Text BattingLine -> Tex
 prettyPrintBattingOrderMap bom counts =
   let
     (_:hitters) = [(minBound :: BattingOrderPosition) ..]
+    battingLines = reverse $ map (counts HashMap.!) $ concatMap (bom HashMap.!) hitters
+    battingTotals = mconcat battingLines
+    playerLines = unlines $ map (\i ->
+        tshow (fromIntegral i :: Integer) <> ": "
+        <> prettyPrintBattingLines (reverse $ map (counts HashMap.!) (bom HashMap.! i))
+      ) hitters
   in
-    unlines $ map (\i ->
-      tshow (fromIntegral i :: Integer) <> ": "
-      <> prettyPrintBattingLines (reverse $ map (counts HashMap.!) (bom HashMap.! i))
-    ) hitters
+    playerLines <> prettyPrintBattingTotals battingTotals
+
+prettyPrintBattingTotals :: BattingLine -> Text
+prettyPrintBattingTotals bl =
+  unlines
+    [ "-----------------------------------"
+    , prettyPrintBattingLine (set _battingLinePlayerId "Total:  " bl)
+    ]
 
 prettyPrintBattingLines :: [BattingLine] -> Text
 prettyPrintBattingLines [] = ""
