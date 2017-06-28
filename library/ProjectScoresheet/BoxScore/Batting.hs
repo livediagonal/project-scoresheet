@@ -125,7 +125,7 @@ addPlayerToBatting homeOrAway player battingPosition bs =
       in
         bs
         & _battingStats . at player ?~ initialBattingLine player
-        & _battingOrder . at battingPosition %~ map (++ [player])
+        & _battingOrder . at battingPosition %~ map (player :)
 
 isOut :: PlayEvent -> Bool
 isOut PlayEvent{..} = flip any (playActions playEventResult) $ \a -> case a of
@@ -220,7 +220,7 @@ prettyPrintBattingOrderMap bom counts =
     battingTotals = mconcat battingLines
     playerLines = unlines $ map (\i ->
         tshow (fromIntegral i :: Integer) <> ": "
-        <> prettyPrintBattingLines (reverse $ map (counts HashMap.!) (bom HashMap.! i))
+        <> prettyPrintBattingLines (map (counts HashMap.!) (bom HashMap.! i))
       ) hitters
   in
     playerLines <> prettyPrintBattingTotals battingTotals
