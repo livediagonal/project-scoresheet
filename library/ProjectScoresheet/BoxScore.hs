@@ -11,6 +11,7 @@ import ClassyPrelude
 import Control.Lens
 
 import ProjectScoresheet.BoxScore.Batting
+import ProjectScoresheet.BoxScore.Pitching
 import ProjectScoresheet.Game
 import ProjectScoresheet.Game.FrameState
 import ProjectScoresheet.Game.GameEvent
@@ -18,12 +19,14 @@ import ProjectScoresheet.Retrosheet.Events
 
 data BoxScore
   = BoxScore
-  { boxScoreBatting :: Batting } deriving (Eq, Show)
+  { boxScoreBatting :: Batting
+  , boxScorePitching :: Pitching
+  } deriving (Eq, Show)
 
 makeClassy_ ''BoxScore
 
 initialBoxScore :: BoxScore
-initialBoxScore = BoxScore initialBatting
+initialBoxScore = BoxScore initialBatting initialPitching
 
 generateBoxScore :: Game -> BoxScore
 generateBoxScore = foldl' (flip updateBoxScore) initialBoxScore . gameEvents
@@ -45,16 +48,18 @@ processInfoEvent InfoEvent{..} = do
     _ -> id
 
 processStartEvent :: StartEvent -> BoxScore -> BoxScore
-processStartEvent StartEvent{..} bs = bs
-  & _boxScoreBatting %~ addPlayerToBatting startEventPlayerHome startEventPlayer startEventBattingPosition
+processStartEvent StartEvent{..} = 
+  over _boxScoreBatting (addPlayerToBatting startEventPlayerHome startEventPlayer startEventBattingPosition) .
+  over _boxScorePitching (addPlayerToPitching startEventPlayerHome startEventPlayer startEventFieldingPosition)
 
 processSubEvent :: SubEvent -> BoxScore -> BoxScore
-processSubEvent SubEvent{..} bs = bs
-  & _boxScoreBatting %~ addPlayerToBatting subEventPlayerHome subEventPlayer subEventBattingPosition
+processSubEvent SubEvent{..} = 
+  over _boxScoreBatting (addPlayerToBatting subEventPlayerHome subEventPlayer subEventBattingPosition) .
+  over _boxScorePitching (addPlayerToPitching subEventPlayerHome subEventPlayer subEventFieldingPosition)
 
 processPlayEvent :: PlayEvent -> FrameState -> BoxScore -> BoxScore
 processPlayEvent event state = _boxScoreBatting %~ updateBattingWithPlay event state
 
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =
-  prettyPrintBatting boxScoreBatting
+  prettyPrintBatting boxScoreBatting <> prettyPrintPitching boxScorePitching

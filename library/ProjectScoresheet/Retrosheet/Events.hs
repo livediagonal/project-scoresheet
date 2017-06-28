@@ -62,7 +62,7 @@ data StartEvent
   , startEventPlayerName :: !Text
   , startEventPlayerHome :: !HomeOrAway
   , startEventBattingPosition :: !BattingOrderPosition
-  , startEventFieldingPosition :: !FieldingPositionId
+  , startEventFieldingPosition :: !FieldingPosition
   } deriving (Eq, Show, Generic)
 
 data SubEvent
@@ -71,7 +71,7 @@ data SubEvent
   , subEventPlayerName :: !Text
   , subEventPlayerHome :: !HomeOrAway
   , subEventBattingPosition :: !BattingOrderPosition
-  , subEventFieldingPosition :: !FieldingPositionId
+  , subEventFieldingPosition :: !FieldingPosition
   } deriving (Eq, Show, Generic)
 
 data DataEvent

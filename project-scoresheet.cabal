@@ -13,6 +13,7 @@ library
       ProjectScoresheet.BaseballTypes
     , ProjectScoresheet.BoxScore
     , ProjectScoresheet.BoxScore.Batting
+    , ProjectScoresheet.BoxScore.Pitching
     , ProjectScoresheet.Game
     , ProjectScoresheet.Game.FrameState
     , ProjectScoresheet.Game.GameEvent
@@ -32,6 +33,7 @@ library
     , finite-typelits
     , fixed-vector
     , generic-deriving
+    , hashable
     , lens
     , template-haskell
     , text

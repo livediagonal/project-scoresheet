@@ -18,3 +18,4 @@ stack test
 ## Further Reading
 * [Retrosheet](http://www.retrosheet.org/)
 * [Chadwick](http://chadwick.sourceforge.net/doc/index.html)
+* [GD2](http://gd2.mlb.com/components/game/mlb)
