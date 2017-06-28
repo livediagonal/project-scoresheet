@@ -6,7 +6,14 @@ Open-source Haskell library for modeling baseball and working with [Retrosheet e
 
 ```
 stack build
-stack exec print-box-scores testgame.txt
+stack exec print-box-scores testgames.txt
+```
+
+## Loading batting stats into Postgres
+This assumes Postgres is already set up with user `postgres` for a local database
+`baseball`:
+```
+PGUSER=postgres PGPASSWORD=password PGHOST=localhost PGDATABASE=baseball ./scripts/create-batting-stats-table.sh testgames.txt blah
 ```
 
 ## Running the tests

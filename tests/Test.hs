@@ -177,7 +177,7 @@ spec = describe "Play" $ do
         ]
 
   describe "box score smoke test" $ do
-    let smokeScores = map generateBoxScore <$> gamesFromFilePath "testgame.txt"
+    let smokeScores = map generateBoxScore <$> gamesFromFilePath "testgames.txt"
 
     it "should return correct stats" $
       smokeScores >>= (\[bs1, bs2, bs3, bs4, bs5, bs6, bs7, bs8, _] -> do
