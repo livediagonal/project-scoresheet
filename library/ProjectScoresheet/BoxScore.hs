@@ -79,7 +79,8 @@ processSubEvent SubEvent{..} =
 
 processPlayEvent :: PlayEvent -> FrameState -> TeamBoxScore -> TeamBoxScore
 processPlayEvent event state = 
-  over _teamBoxScoreBatting (updateBattingWithPlay event state)
+  over _teamBoxScoreBatting (updateBattingWithPlay event state) .
+  over _teamBoxScorePitching (addPlayToPitching event state)
 
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} = 

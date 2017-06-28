@@ -9,6 +9,7 @@ module ProjectScoresheet.BoxScore.Pitching
   ( Pitching
   , initialPitching
   , addPlayerToPitching
+  , addPlayToPitching
   , prettyPrintPitching
   ) where
 
@@ -16,7 +17,9 @@ import ClassyPrelude
 import Control.Lens
 
 import ProjectScoresheet.BaseballTypes
+import ProjectScoresheet.Game.FrameState
 import ProjectScoresheet.Play
+import ProjectScoresheet.Retrosheet.Events
 
 data Pitching = Pitching { pitchingLines :: ![PitchingLine] } deriving (Eq, Show)
 
@@ -28,6 +31,7 @@ data PitchingLine
   } deriving (Eq, Show, Generic)
 
 makeClassy_ ''Pitching
+makeClassy_ ''PitchingLine
 
 initialPitching :: Pitching
 initialPitching = Pitching []
@@ -38,6 +42,9 @@ initialPitchingLine player = PitchingLine player 0 0
 addPlayerToPitching :: Text -> FieldingPosition -> Pitching -> Pitching
 addPlayerToPitching player Pitcher = over _pitchingLines (initialPitchingLine player :)
 addPlayerToPitching _ _ = id
+
+addPlayToPitching :: PlayEvent -> FrameState -> Pitching -> Pitching
+addPlayToPitching _ _ = id
 
 prettyPrintPitching :: Pitching -> Text
 prettyPrintPitching Pitching{..} = unlines
