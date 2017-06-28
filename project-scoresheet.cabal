@@ -51,6 +51,18 @@ executable print-box-scores
     , project-scoresheet
   default-language: Haskell2010
 
+executable batting-stats-csv
+  hs-source-dirs: examples
+  main-is: BattingStatsCsv.hs
+  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
+  build-depends:
+      base
+    , bytestring
+    , classy-prelude
+    , project-scoresheet
+    , string-class
+  default-language: Haskell2010
+
 test-suite test
   type: exitcode-stdio-1.0
   hs-source-dirs: tests

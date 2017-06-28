@@ -10,7 +10,9 @@
 module ProjectScoresheet.BoxScore.Batting where
 
 import ClassyPrelude hiding (replicate)
-import Control.Lens
+import Control.Lens hiding ((.=))
+import Data.Csv
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HashMap
 import Data.Text (replicate)
 import Generics.Deriving.Monoid hiding ((<>))
@@ -51,6 +53,46 @@ instance Monoid Int where
 instance Monoid BattingLine where
   mempty = initialBattingLine "Total"
   mappend = mappenddefault
+
+playerIdL, atBatsL, runsL, hitsL, rbiL, walksL, strikeoutsL, lobL :: ByteString
+playerIdL   = "PlayerID"
+atBatsL     = "AtBats"
+runsL       = "Runs"
+hitsL       = "Hits"
+rbiL        = "RBI"
+walksL      = "Walks"
+strikeoutsL = "Strikeouts"
+lobL        = "LOB"
+
+toBattingCsv :: Batting -> BL.ByteString
+toBattingCsv Batting{..} = encode $ HashMap.elems battingStats
+
+battingCsvHeader :: Header
+battingCsvHeader = header [ playerIdL, atBatsL, runsL, hitsL, rbiL, walksL, strikeoutsL, lobL ]
+
+instance ToNamedRecord BattingLine where
+  toNamedRecord BattingLine{..} = namedRecord
+    [ playerIdL   .= battingLinePlayerId
+    , atBatsL     .= battingLineAtBats
+    , runsL       .= battingLineRuns
+    , hitsL       .= battingLineHits
+    , rbiL        .= battingLineRBI
+    , walksL      .= battingLineWalks
+    , strikeoutsL .= battingLineStrikeouts
+    , lobL        .= battingLineLOB
+    ]
+
+instance ToRecord BattingLine where
+  toRecord BattingLine{..} = record
+    [ toField battingLinePlayerId
+    , toField battingLineAtBats
+    , toField battingLineRuns
+    , toField battingLineHits
+    , toField battingLineRBI
+    , toField battingLineWalks
+    , toField battingLineStrikeouts
+    , toField battingLineLOB
+    ]
 
 initialBatting :: Batting
 initialBatting = Batting HashMap.empty initialBattingOrderMap initialBattingOrderMap
