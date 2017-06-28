@@ -9,7 +9,6 @@ module ProjectScoresheet.BoxScore.Pitching where
 
 import ClassyPrelude
 import Control.Lens
-import qualified Data.HashMap.Strict as HashMap
 
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Play
