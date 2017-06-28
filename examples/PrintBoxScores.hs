@@ -6,8 +6,8 @@ module Main where
 import ClassyPrelude hiding (head)
 import Data.List (head)
 
-import ProjectScoresheet.BoxScore
-import ProjectScoresheet.Game
+import Baseball.BoxScore
+import Baseball.Game
 
 main :: IO ()
 main = do

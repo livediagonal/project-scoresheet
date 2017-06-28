@@ -7,13 +7,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module ProjectScoresheet.Retrosheet.Events where
+module Retrosheet.Events where
 
 import ClassyPrelude
 import Control.Lens
 
-import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Play
+import Baseball.BaseballTypes
+import Baseball.Play
 
 data Event
   = IdEventType IdEvent

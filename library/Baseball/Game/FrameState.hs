@@ -4,7 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.Game.FrameState
+module Baseball.Game.FrameState
   ( FrameState(..)
   , initialFrameState
   , updateFrameState
@@ -15,10 +15,10 @@ import ClassyPrelude
 import Control.Lens
 import Data.List (elemIndex)
 
-import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Game.GameState
-import ProjectScoresheet.Play
-import ProjectScoresheet.Retrosheet.Events
+import Baseball.BaseballTypes
+import Baseball.Game.GameState
+import Baseball.Play
+import Retrosheet.Events
 import qualified Data.HashMap.Strict as HashMap
 
 data FrameState

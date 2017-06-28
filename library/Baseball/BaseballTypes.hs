@@ -4,7 +4,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module ProjectScoresheet.BaseballTypes where
+module Baseball.BaseballTypes where
 
 import ClassyPrelude
 import Data.Csv

@@ -6,9 +6,10 @@ module Main where
 import ClassyPrelude hiding (head, putStr)
 import Data.List (head)
 import Data.String.Class (putStr)
-import ProjectScoresheet.BoxScore
-import ProjectScoresheet.BoxScore.Batting
-import ProjectScoresheet.Game
+
+import Baseball.BoxScore
+import Baseball.BoxScore.Batting
+import Baseball.Game
 
 main :: IO ()
 main = do

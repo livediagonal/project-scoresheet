@@ -6,7 +6,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module ProjectScoresheet.Retrosheet.Parser where
+module Retrosheet.Parser where
 
 import ClassyPrelude hiding (try)
 import Control.Lens
@@ -16,9 +16,10 @@ import Data.Char (digitToInt, isDigit)
 import Data.Csv hiding (Parser)
 import qualified Data.Vector as V
 
-import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Play
-import ProjectScoresheet.Retrosheet.Events
+import Baseball.BaseballTypes
+import Baseball.Play
+
+import Retrosheet.Events
 
 instance FromRecord IdEvent
 instance FromRecord UnknownEvent

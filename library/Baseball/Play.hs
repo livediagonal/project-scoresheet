@@ -8,12 +8,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.Play where
+module Baseball.Play where
 
 import ClassyPrelude hiding (try)
 import Control.Lens
 
-import ProjectScoresheet.BaseballTypes
+import Baseball.BaseballTypes
 
 data Play
   = Play

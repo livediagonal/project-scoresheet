@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.Roster
+module Baseball.Roster
   ( rosterFromFile
   ) where
 

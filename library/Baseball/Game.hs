@@ -4,15 +4,15 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.Game where
+module Baseball.Game where
 
 import ClassyPrelude hiding (last)
 import Control.Lens
 import Data.List (last)
 
-import ProjectScoresheet.Game.GameEvent
-import ProjectScoresheet.Retrosheet.Events
-import ProjectScoresheet.Retrosheet.Parser
+import Baseball.Game.GameEvent
+import Retrosheet.Events
+import Retrosheet.Parser
 
 data Game
   = Game

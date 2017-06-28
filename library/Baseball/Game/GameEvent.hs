@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.Game.GameEvent
+module Baseball.Game.GameEvent
   ( GameEvent(..)
   , initialGameEvent
   , nextGameEvent
@@ -12,9 +12,9 @@ module ProjectScoresheet.Game.GameEvent
 import ClassyPrelude
 import Control.Lens
 
-import ProjectScoresheet.Game.GameState
-import ProjectScoresheet.Game.FrameState
-import ProjectScoresheet.Retrosheet.Events
+import Baseball.Game.GameState
+import Baseball.Game.FrameState
+import Retrosheet.Events
 
 data GameEvent =
   GameEvent

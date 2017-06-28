@@ -5,18 +5,18 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module ProjectScoresheet.BoxScore where
+module Baseball.BoxScore where
 
 import ClassyPrelude
 import Control.Lens
 
-import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.BoxScore.Batting
-import ProjectScoresheet.BoxScore.Pitching
-import ProjectScoresheet.Game
-import ProjectScoresheet.Game.FrameState
-import ProjectScoresheet.Game.GameEvent
-import ProjectScoresheet.Retrosheet.Events
+import Baseball.BaseballTypes
+import Baseball.BoxScore.Batting
+import Baseball.BoxScore.Pitching
+import Baseball.Game
+import Baseball.Game.FrameState
+import Baseball.Game.GameEvent
+import Retrosheet.Events
 
 data BoxScore
   = BoxScore

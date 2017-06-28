@@ -10,18 +10,18 @@ cabal-version:  >= 1.10
 library
   hs-source-dirs: library
   exposed-modules:
-      ProjectScoresheet.BaseballTypes
-    , ProjectScoresheet.BoxScore
-    , ProjectScoresheet.BoxScore.Batting
-    , ProjectScoresheet.BoxScore.Pitching
-    , ProjectScoresheet.Game
-    , ProjectScoresheet.Game.FrameState
-    , ProjectScoresheet.Game.GameEvent
-    , ProjectScoresheet.Game.GameState
-    , ProjectScoresheet.Retrosheet.Events
-    , ProjectScoresheet.Retrosheet.Parser
-    , ProjectScoresheet.Play
-    , ProjectScoresheet.Roster
+      Baseball.BaseballTypes
+    , Baseball.BoxScore
+    , Baseball.BoxScore.Batting
+    , Baseball.BoxScore.Pitching
+    , Baseball.Game
+    , Baseball.Game.FrameState
+    , Baseball.Game.GameEvent
+    , Baseball.Game.GameState
+    , Retrosheet.Events
+    , Retrosheet.Parser
+    , Baseball.Play
+    , Baseball.Roster
   ghc-options: -Wall
   build-depends:
       attoparsec

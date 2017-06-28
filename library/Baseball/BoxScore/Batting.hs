@@ -7,7 +7,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module ProjectScoresheet.BoxScore.Batting where
+module Baseball.BoxScore.Batting where
 
 import ClassyPrelude hiding (replicate)
 import Control.Lens hiding ((.=))
@@ -17,10 +17,10 @@ import qualified Data.HashMap.Strict as HashMap
 import Data.Text (replicate)
 import Generics.Deriving.Monoid hiding ((<>))
 
-import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Game.FrameState
-import ProjectScoresheet.Play
-import ProjectScoresheet.Retrosheet.Events
+import Baseball.BaseballTypes
+import Baseball.Game.FrameState
+import Baseball.Play
+import Retrosheet.Events
 
 type BattingOrderMap = HashMap BattingOrderPosition [Text]
 

@@ -4,7 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module ProjectScoresheet.Game.GameState
+module Baseball.Game.GameState
   ( GameState(..)
   , initialGameState
   , updateGameState
@@ -13,8 +13,8 @@ module ProjectScoresheet.Game.GameState
 import ClassyPrelude
 import Control.Lens
 
-import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Retrosheet.Events
+import Baseball.BaseballTypes
+import Retrosheet.Events
 
 data GameState
   = GameState

@@ -5,7 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module ProjectScoresheet.BoxScore.Pitching 
+module Baseball.BoxScore.Pitching 
   ( Pitching
   , initialPitching
   , addPlayerToPitching
@@ -16,10 +16,10 @@ module ProjectScoresheet.BoxScore.Pitching
 import ClassyPrelude
 import Control.Lens
 
-import ProjectScoresheet.BaseballTypes
-import ProjectScoresheet.Game.FrameState
-import ProjectScoresheet.Play
-import ProjectScoresheet.Retrosheet.Events
+import Baseball.BaseballTypes
+import Baseball.Game.FrameState
+import Baseball.Play
+import Retrosheet.Events
 
 data Pitching = Pitching { pitchingLines :: ![PitchingLine] } deriving (Eq, Show)
 
