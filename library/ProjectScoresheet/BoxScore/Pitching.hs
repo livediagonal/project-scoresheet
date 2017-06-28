@@ -5,7 +5,12 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module ProjectScoresheet.BoxScore.Pitching where
+module ProjectScoresheet.BoxScore.Pitching 
+  ( Pitching
+  , initialPitching
+  , addPlayerToPitching
+  , prettyPrintPitching
+  ) where
 
 import ClassyPrelude
 import Control.Lens
@@ -13,11 +18,7 @@ import Control.Lens
 import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.Play
 
-data Pitching
-  = Pitching
-  { pitchingHomeOrder :: ![PitchingLine]
-  , pitchingAwayOrder :: ![PitchingLine]
-  } deriving (Eq, Show)
+data Pitching = Pitching { pitchingLines :: ![PitchingLine] } deriving (Eq, Show)
 
 data PitchingLine
   = PitchingLine
@@ -29,26 +30,21 @@ data PitchingLine
 makeClassy_ ''Pitching
 
 initialPitching :: Pitching
-initialPitching = Pitching [] []
+initialPitching = Pitching []
 
 initialPitchingLine :: Text -> PitchingLine
 initialPitchingLine player = PitchingLine player 0 0
 
-addPlayerToPitching :: HomeOrAway -> Text -> FieldingPosition -> Pitching -> Pitching
-addPlayerToPitching Home player Pitcher = over _pitchingHomeOrder (initialPitchingLine player :)
-addPlayerToPitching Away player Pitcher = over _pitchingAwayOrder (initialPitchingLine player :)
-addPlayerToPitching _ _ _ = id
+addPlayerToPitching :: Text -> FieldingPosition -> Pitching -> Pitching
+addPlayerToPitching player Pitcher = over _pitchingLines (initialPitchingLine player :)
+addPlayerToPitching _ _ = id
 
 prettyPrintPitching :: Pitching -> Text
 prettyPrintPitching Pitching{..} = unlines
   [ "-------------------------------------------"
-  , "Home Pitchers   IP   H   R   ER   W  SO  HR"
+  , "Pitchers        IP   H   R   ER   W  SO  HR"
   , "-------------------------------------------"
-  , prettyPrintPitchingLines pitchingHomeOrder
-  , "-------------------------------------------"
-  , "Away Pitchers   IP   H   R   ER   W  SO  HR"
-  , "-------------------------------------------"
-  , prettyPrintPitchingLines pitchingAwayOrder
+  , prettyPrintPitchingLines pitchingLines
   ]
 
 prettyPrintPitchingLines :: [PitchingLine] -> Text

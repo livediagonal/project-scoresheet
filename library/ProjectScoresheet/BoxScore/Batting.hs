@@ -27,8 +27,7 @@ type BattingOrderMap = HashMap BattingOrderPosition [Text]
 data Batting
   = Batting
   { battingStats :: !(HashMap Text BattingLine)
-  , battingHomeOrder :: !BattingOrderMap
-  , battingAwayOrder :: !BattingOrderMap
+  , battingOrder :: !BattingOrderMap
   } deriving (Eq, Show)
 
 data BattingLine
@@ -95,7 +94,7 @@ instance ToRecord BattingLine where
     ]
 
 initialBatting :: Batting
-initialBatting = Batting HashMap.empty initialBattingOrderMap initialBattingOrderMap
+initialBatting = Batting HashMap.empty initialBattingOrderMap
 
 initialBattingLine :: Text -> BattingLine
 initialBattingLine playerId = BattingLine playerId 0 0 0 0 0 0 0
@@ -113,19 +112,14 @@ updateBattingWithPlay pe@PlayEvent{..} gs b = b
   & batting %~ addRBIToPlayer playEventPlayerId (numRBI playEventResult)
   & batting %~ addRuns playEventPlayerId playEventResult gs
 
-addPlayerToBatting :: HomeOrAway -> Text -> BattingOrderPosition -> Batting -> Batting
-addPlayerToBatting homeOrAway player battingPosition bs =
+addPlayerToBatting :: Text -> BattingOrderPosition -> Batting -> Batting
+addPlayerToBatting player battingPosition bs =
   case bs ^. _battingStats . at player of
     Just _ -> bs
     Nothing ->
-      let
-        _battingOrder = case homeOrAway of
-          Away -> _battingAwayOrder
-          Home -> _battingHomeOrder
-      in
-        bs
-        & _battingStats . at player ?~ initialBattingLine player
-        & _battingOrder . at battingPosition %~ map (player :)
+      bs
+      & _battingStats . at player ?~ initialBattingLine player
+      & _battingOrder . at battingPosition %~ map (player :)
 
 isOut :: PlayEvent -> Bool
 isOut PlayEvent{..} = flip any (playActions playEventResult) $ \a -> case a of
@@ -203,13 +197,9 @@ prettyPrintBatting :: Batting -> Text
 prettyPrintBatting Batting{..} =
   unlines
     [ "-------------------------------------------"
-    , "Home Batters     AB   R   H RBI  BB  SO LOB"
+    , "Batters          AB   R   H RBI  BB  SO LOB"
     , "-------------------------------------------"
-    , prettyPrintBattingOrderMap battingHomeOrder battingStats
-    , "-------------------------------------------"
-    , "Away Batters     AB   R   H RBI  BB  SO LOB"
-    , "-------------------------------------------"
-    , prettyPrintBattingOrderMap battingAwayOrder battingStats
+    , prettyPrintBattingOrderMap battingOrder battingStats
     ]
 
 prettyPrintBattingOrderMap :: BattingOrderMap -> HashMap Text BattingLine -> Text

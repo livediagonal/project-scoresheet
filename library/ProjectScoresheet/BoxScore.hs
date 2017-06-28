@@ -10,6 +10,7 @@ module ProjectScoresheet.BoxScore where
 import ClassyPrelude
 import Control.Lens
 
+import ProjectScoresheet.BaseballTypes
 import ProjectScoresheet.BoxScore.Batting
 import ProjectScoresheet.BoxScore.Pitching
 import ProjectScoresheet.Game
@@ -19,14 +20,16 @@ import ProjectScoresheet.Retrosheet.Events
 
 data BoxScore
   = BoxScore
-  { boxScoreBatting :: Batting
-  , boxScorePitching :: Pitching
+  { boxScoreHomeBatting :: Batting
+  , boxScoreAwayBatting :: Batting
+  , boxScoreHomePitching :: Pitching
+  , boxScoreAwayPitching :: Pitching
   } deriving (Eq, Show)
 
 makeClassy_ ''BoxScore
 
 initialBoxScore :: BoxScore
-initialBoxScore = BoxScore initialBatting initialPitching
+initialBoxScore = BoxScore initialBatting initialBatting initialPitching initialPitching
 
 generateBoxScore :: Game -> BoxScore
 generateBoxScore = foldl' (flip updateBoxScore) initialBoxScore . gameEvents
@@ -48,18 +51,42 @@ processInfoEvent InfoEvent{..} = do
     _ -> id
 
 processStartEvent :: StartEvent -> BoxScore -> BoxScore
-processStartEvent StartEvent{..} = 
-  over _boxScoreBatting (addPlayerToBatting startEventPlayerHome startEventPlayer startEventBattingPosition) .
-  over _boxScorePitching (addPlayerToPitching startEventPlayerHome startEventPlayer startEventFieldingPosition)
+processStartEvent StartEvent{..} =
+  let
+    _batting = case startEventPlayerHome of
+      Away -> _boxScoreAwayBatting
+      Home -> _boxScoreHomeBatting
+    _pitching = case startEventPlayerHome of
+      Away -> _boxScoreAwayPitching
+      Home -> _boxScoreHomePitching
+  in
+    over _batting (addPlayerToBatting startEventPlayer startEventBattingPosition) .
+    over _pitching (addPlayerToPitching startEventPlayer startEventFieldingPosition)
 
 processSubEvent :: SubEvent -> BoxScore -> BoxScore
 processSubEvent SubEvent{..} = 
-  over _boxScoreBatting (addPlayerToBatting subEventPlayerHome subEventPlayer subEventBattingPosition) .
-  over _boxScorePitching (addPlayerToPitching subEventPlayerHome subEventPlayer subEventFieldingPosition)
+  let
+    _batting = case subEventPlayerHome of
+      Away -> _boxScoreAwayBatting
+      Home -> _boxScoreHomeBatting
+    _pitching = case subEventPlayerHome of
+      Away -> _boxScoreAwayPitching
+      Home -> _boxScoreHomePitching
+  in
+    over _batting (addPlayerToBatting subEventPlayer subEventBattingPosition) .
+    over _pitching (addPlayerToPitching subEventPlayer subEventFieldingPosition)
 
 processPlayEvent :: PlayEvent -> FrameState -> BoxScore -> BoxScore
-processPlayEvent event state = _boxScoreBatting %~ updateBattingWithPlay event state
+processPlayEvent event state = 
+  case playEventHomeOrAway event of
+    Away -> _boxScoreAwayBatting %~ updateBattingWithPlay event state
+    Home -> _boxScoreHomeBatting %~ updateBattingWithPlay event state
 
 prettyPrintBoxScore :: BoxScore -> Text
-prettyPrintBoxScore BoxScore{..} =
-  prettyPrintBatting boxScoreBatting <> prettyPrintPitching boxScorePitching
+prettyPrintBoxScore BoxScore{..} = 
+  "Away\n"
+  <> prettyPrintBatting boxScoreAwayBatting
+  <> prettyPrintPitching boxScoreAwayPitching
+  <> "Home\n"
+  <> prettyPrintBatting boxScoreHomeBatting 
+  <> prettyPrintPitching boxScoreHomePitching

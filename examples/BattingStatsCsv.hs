@@ -13,4 +13,4 @@ import ProjectScoresheet.Game
 main :: IO ()
 main = do
   eventFile <- unpack . head <$> getArgs
-  gamesFromFilePath eventFile >>= mapM_ (putStr . toBattingCsv . boxScoreBatting . generateBoxScore)
+  gamesFromFilePath eventFile >>= mapM_ (putStr . toBattingCsv . boxScoreHomeBatting . generateBoxScore)
