@@ -9,11 +9,12 @@
 
 module ProjectScoresheet.BoxScore.Batting where
 
-import ClassyPrelude
+import ClassyPrelude hiding (replicate)
 import Control.Lens hiding ((.=))
 import Data.Csv
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HashMap
+import Data.Text (replicate)
 import Generics.Deriving.Monoid hiding ((<>))
 
 import ProjectScoresheet.BaseballTypes
@@ -201,13 +202,13 @@ addStrikeoutToPlayer player = addOneToPlayer player _battingLineStrikeouts
 prettyPrintBatting :: Batting -> Text
 prettyPrintBatting Batting{..} =
   unlines
-    [ "------------------------------------"
-    , "Home Batters    AB R H RBI BB SO LOB"
-    , "------------------------------------"
+    [ "-------------------------------------------"
+    , "Home Batters     AB   R   H RBI  BB  SO LOB"
+    , "-------------------------------------------"
     , prettyPrintBattingOrderMap battingHomeOrder battingStats
-    , "------------------------------------"
-    , "Away Batters    AB R H RBI BB SO LOB"
-    , "------------------------------------"
+    , "-------------------------------------------"
+    , "Away Batters     AB   R   H RBI  BB  SO LOB"
+    , "-------------------------------------------"
     , prettyPrintBattingOrderMap battingAwayOrder battingStats
     ]
 
@@ -227,8 +228,8 @@ prettyPrintBattingOrderMap bom counts =
 prettyPrintBattingTotals :: BattingLine -> Text
 prettyPrintBattingTotals bl =
   unlines
-    [ "-----------------------------------"
-    , prettyPrintBattingLine (set _battingLinePlayerId "Total:  " bl)
+    [ "-------------------------------------------"
+    , prettyPrintBattingLine (set _battingLinePlayerId "Total:     " bl)
     ]
 
 prettyPrintBattingLines :: [BattingLine] -> Text
@@ -238,11 +239,14 @@ prettyPrintBattingLines (x:xs) = prettyPrintBattingLines xs <> "\n   " <> pretty
 
 prettyPrintBattingLine :: BattingLine -> Text
 prettyPrintBattingLine BattingLine{..} = battingLinePlayerId
-  <> "      "
-  <> tshow battingLineAtBats
-  <> " " <> tshow battingLineRuns
-  <> " " <> tshow battingLineHits
-  <> "   " <> tshow battingLineRBI
-  <> "  " <> tshow battingLineWalks
-  <> "  " <> tshow battingLineStrikeouts
-  <> "  " <> tshow battingLineLOB
+  <> "    "
+  <> prettyColumn (tshow battingLineAtBats)
+  <> prettyColumn (tshow battingLineRuns)
+  <> prettyColumn (tshow battingLineHits)
+  <> prettyColumn (tshow battingLineRBI)
+  <> prettyColumn (tshow battingLineWalks)
+  <> prettyColumn (tshow battingLineStrikeouts)
+  <> prettyColumn (tshow battingLineLOB)
+
+prettyColumn :: Text -> Text
+prettyColumn t = (replicate (4 - length t) " ") <>  t
