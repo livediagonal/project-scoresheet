@@ -20,25 +20,42 @@ import ProjectScoresheet.Retrosheet.Events
 
 data BoxScore
   = BoxScore
-  { boxScoreHomeBatting :: Batting
-  , boxScoreAwayBatting :: Batting
-  , boxScoreHomePitching :: Pitching
-  , boxScoreAwayPitching :: Pitching
-  } deriving (Eq, Show)
+  { boxScoreHomeTeam :: TeamBoxScore
+  , boxScoreAwayTeam :: TeamBoxScore
+  }
+
+data TeamBoxScore
+  = TeamBoxScore
+  { teamBoxScoreBatting :: Batting
+  , teamBoxScorePitching :: Pitching
+  }
 
 makeClassy_ ''BoxScore
+makeClassy_ ''TeamBoxScore
 
 initialBoxScore :: BoxScore
-initialBoxScore = BoxScore initialBatting initialBatting initialPitching initialPitching
+initialBoxScore = BoxScore initialTeamBoxScore initialTeamBoxScore
+
+initialTeamBoxScore :: TeamBoxScore
+initialTeamBoxScore = TeamBoxScore initialBatting initialPitching
 
 generateBoxScore :: Game -> BoxScore
 generateBoxScore = foldl' (flip updateBoxScore) initialBoxScore . gameEvents
 
 updateBoxScore :: GameEvent -> BoxScore -> BoxScore
-updateBoxScore (GameEvent (StartEventType startEvent) _ _) bs = processStartEvent startEvent bs
-updateBoxScore (GameEvent (SubEventType subEvent) _ _) bs = processSubEvent subEvent bs
-updateBoxScore (GameEvent (PlayEventType pe) _ fs) bs = processPlayEvent pe fs bs
-updateBoxScore _ bss = bss
+updateBoxScore (GameEvent (StartEventType event) _ _) = 
+  case startEventPlayerHome event of
+    Away -> over _boxScoreAwayTeam (processStartEvent event)
+    Home -> over _boxScoreHomeTeam (processStartEvent event)
+updateBoxScore (GameEvent (SubEventType event) _ _) = 
+  case subEventPlayerHome event of
+    Away -> over _boxScoreAwayTeam (processSubEvent event)
+    Home -> over _boxScoreHomeTeam (processSubEvent event)
+updateBoxScore (GameEvent (PlayEventType event) _ fs) =
+  case playEventHomeOrAway event of
+    Away -> over _boxScoreAwayTeam (processPlayEvent event fs)
+    Home -> over _boxScoreHomeTeam (processPlayEvent event fs)
+updateBoxScore _ = id
 
 processInfoEvent :: InfoEvent -> Game -> Game
 processInfoEvent InfoEvent{..} = do
@@ -50,43 +67,25 @@ processInfoEvent InfoEvent{..} = do
     "starttime" -> _gameStartTime .~ info
     _ -> id
 
-processStartEvent :: StartEvent -> BoxScore -> BoxScore
+processStartEvent :: StartEvent -> TeamBoxScore -> TeamBoxScore
 processStartEvent StartEvent{..} =
-  let
-    _batting = case startEventPlayerHome of
-      Away -> _boxScoreAwayBatting
-      Home -> _boxScoreHomeBatting
-    _pitching = case startEventPlayerHome of
-      Away -> _boxScoreAwayPitching
-      Home -> _boxScoreHomePitching
-  in
-    over _batting (addPlayerToBatting startEventPlayer startEventBattingPosition) .
-    over _pitching (addPlayerToPitching startEventPlayer startEventFieldingPosition)
+  over _teamBoxScoreBatting (addPlayerToBatting startEventPlayer startEventBattingPosition) .
+  over _teamBoxScorePitching (addPlayerToPitching startEventPlayer startEventFieldingPosition)
 
-processSubEvent :: SubEvent -> BoxScore -> BoxScore
+processSubEvent :: SubEvent -> TeamBoxScore -> TeamBoxScore
 processSubEvent SubEvent{..} = 
-  let
-    _batting = case subEventPlayerHome of
-      Away -> _boxScoreAwayBatting
-      Home -> _boxScoreHomeBatting
-    _pitching = case subEventPlayerHome of
-      Away -> _boxScoreAwayPitching
-      Home -> _boxScoreHomePitching
-  in
-    over _batting (addPlayerToBatting subEventPlayer subEventBattingPosition) .
-    over _pitching (addPlayerToPitching subEventPlayer subEventFieldingPosition)
+    over _teamBoxScoreBatting (addPlayerToBatting subEventPlayer subEventBattingPosition) .
+    over _teamBoxScorePitching (addPlayerToPitching subEventPlayer subEventFieldingPosition)
 
-processPlayEvent :: PlayEvent -> FrameState -> BoxScore -> BoxScore
+processPlayEvent :: PlayEvent -> FrameState -> TeamBoxScore -> TeamBoxScore
 processPlayEvent event state = 
-  case playEventHomeOrAway event of
-    Away -> _boxScoreAwayBatting %~ updateBattingWithPlay event state
-    Home -> _boxScoreHomeBatting %~ updateBattingWithPlay event state
+  over _teamBoxScoreBatting (updateBattingWithPlay event state)
 
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} = 
-  "Away\n"
-  <> prettyPrintBatting boxScoreAwayBatting
-  <> prettyPrintPitching boxScoreAwayPitching
-  <> "Home\n"
-  <> prettyPrintBatting boxScoreHomeBatting 
-  <> prettyPrintPitching boxScoreHomePitching
+  "Away\n" <> prettyPrintTeamBoxScore boxScoreAwayTeam <>
+  "Home\n" <> prettyPrintTeamBoxScore boxScoreHomeTeam
+
+prettyPrintTeamBoxScore :: TeamBoxScore -> Text
+prettyPrintTeamBoxScore TeamBoxScore{..} = prettyPrintBatting teamBoxScoreBatting
+  <> prettyPrintPitching teamBoxScorePitching
