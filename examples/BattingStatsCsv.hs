@@ -14,4 +14,4 @@ import Baseball.Game
 main :: IO ()
 main = do
   eventFile <- unpack . head <$> getArgs
-  gamesFromFilePath eventFile >>= mapM_ (putStr . toBattingCsv . teamBoxScoreBatting . boxScoreHomeTeam  . generateBoxScore)
+  gamesFromFilePath eventFile >>= mapM_ (putStr . toBattingCsv . teamStatisticsBatting . boxScoreHomeTeam  . generateBoxScore)
