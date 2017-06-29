@@ -102,16 +102,6 @@ initialBattingLine playerId = BattingLine playerId 0 0 0 0 0 0 0
 initialBattingOrderMap :: BattingOrderMap
 initialBattingOrderMap = HashMap.fromList $ zip [minBound ..] $ repeat []
 
-updateBattingWithPlay :: PlayEvent -> FrameState -> Batting -> Batting
-updateBattingWithPlay pe@PlayEvent{..} gs b = b
-  & batting %~ (if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId else id)
-  & batting %~ (if isHit playEventResult then addHitToPlayer playEventPlayerId else id)
-  & batting %~ (if isWalk playEventResult then addWalkToPlayer playEventPlayerId else id)
-  & batting %~ (if isStrikeout playEventResult then addStrikeoutToPlayer playEventPlayerId else id)
-  & batting %~ (if isAtBat playEventResult && isOut pe then addLOB playEventPlayerId playEventResult gs else id)
-  & batting %~ addRBIToPlayer playEventPlayerId (numRBI playEventResult)
-  & batting %~ addRuns playEventPlayerId playEventResult gs
-
 addPlayerToBatting :: Text -> BattingOrderPosition -> Batting -> Batting
 addPlayerToBatting player battingPosition bs =
   case bs ^. _battingStats . at player of
@@ -120,6 +110,16 @@ addPlayerToBatting player battingPosition bs =
       bs
       & _battingStats . at player ?~ initialBattingLine player
       & _battingOrder . at battingPosition %~ map (player :)
+
+addPlayToBatting :: PlayEvent -> FrameState -> Batting -> Batting
+addPlayToBatting pe@PlayEvent{..} gs b = b
+  & batting %~ (if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId else id)
+  & batting %~ (if isHit playEventResult then addHitToPlayer playEventPlayerId else id)
+  & batting %~ (if isWalk playEventResult then addWalkToPlayer playEventPlayerId else id)
+  & batting %~ (if isStrikeout playEventResult then addStrikeoutToPlayer playEventPlayerId else id)
+  & batting %~ (if isAtBat playEventResult && isOut pe then addLOB playEventPlayerId playEventResult gs else id)
+  & batting %~ addRBIToPlayer playEventPlayerId (numRBI playEventResult)
+  & batting %~ addRuns playEventPlayerId playEventResult gs
 
 isOut :: PlayEvent -> Bool
 isOut PlayEvent{..} = flip any (playActions playEventResult) $ \a -> case a of

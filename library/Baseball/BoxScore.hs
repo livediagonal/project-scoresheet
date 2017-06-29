@@ -40,22 +40,22 @@ initialTeamBoxScore :: TeamBoxScore
 initialTeamBoxScore = TeamBoxScore initialBatting initialPitching
 
 generateBoxScore :: Game -> BoxScore
-generateBoxScore = foldl' (flip updateBoxScore) initialBoxScore . gameEvents
+generateBoxScore = foldl' (flip addEventToBoxScore) initialBoxScore . gameEvents
 
-updateBoxScore :: GameEvent -> BoxScore -> BoxScore
-updateBoxScore (GameEvent (StartEventType event) _ _) = 
+addEventToBoxScore :: GameEvent -> BoxScore -> BoxScore
+addEventToBoxScore (GameEvent (StartEventType event) _ _) = 
   case startEventPlayerHome event of
     Away -> over _boxScoreAwayTeam (processStartEvent event)
     Home -> over _boxScoreHomeTeam (processStartEvent event)
-updateBoxScore (GameEvent (SubEventType event) _ _) = 
+addEventToBoxScore (GameEvent (SubEventType event) _ _) = 
   case subEventPlayerHome event of
     Away -> over _boxScoreAwayTeam (processSubEvent event)
     Home -> over _boxScoreHomeTeam (processSubEvent event)
-updateBoxScore (GameEvent (PlayEventType event) _ fs) =
+addEventToBoxScore (GameEvent (PlayEventType event) _ fs) =
   case playEventHomeOrAway event of
     Away -> over _boxScoreAwayTeam (processPlayEvent event fs)
     Home -> over _boxScoreHomeTeam (processPlayEvent event fs)
-updateBoxScore _ = id
+addEventToBoxScore _ = id
 
 processInfoEvent :: InfoEvent -> Game -> Game
 processInfoEvent InfoEvent{..} = do
@@ -79,7 +79,7 @@ processSubEvent SubEvent{..} =
 
 processPlayEvent :: PlayEvent -> FrameState -> TeamBoxScore -> TeamBoxScore
 processPlayEvent event state = 
-  over _teamBoxScoreBatting (updateBattingWithPlay event state) .
+  over _teamBoxScoreBatting (addPlayToBatting event state) .
   over _teamBoxScorePitching (addPlayToPitching event state)
 
 prettyPrintBoxScore :: BoxScore -> Text
