@@ -141,7 +141,7 @@ parseHitByPitch = string "HP" *> pure HitByPitch
 
 parseError :: Parser PlayAction
 parseError = do
-  void $ char 'E'
+  try (void $ string "FLE") <|> void (char 'E')
   Error <$> try parseFieldingPosition
 
 parsePlayDescriptor :: Parser PlayDescriptor
