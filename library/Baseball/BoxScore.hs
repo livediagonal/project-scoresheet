@@ -57,33 +57,23 @@ addEventToBoxScore (GameEvent (PlayEventType event) _ fs) =
     Home -> over _boxScoreHomeTeam (processPlayEvent event fs)
 addEventToBoxScore _ = id
 
-processInfoEvent :: InfoEvent -> Game -> Game
-processInfoEvent InfoEvent{..} = do
-  let info = Just infoEventValue
-  case infoEventKey of
-    "visteam" -> _gameAwayTeam .~ info
-    "hometeam" -> _gameHomeTeam .~ info
-    "date" -> _gameDate .~ info
-    "starttime" -> _gameStartTime .~ info
-    _ -> id
-
 processStartEvent :: StartEvent -> TeamStatistics -> TeamStatistics
 processStartEvent StartEvent{..} =
   over _teamStatisticsBatting (addPlayerToBatting startEventPlayer startEventBattingPosition) .
   over _teamStatisticsPitching (addPlayerToPitching startEventPlayer startEventFieldingPosition)
 
 processSubEvent :: SubEvent -> TeamStatistics -> TeamStatistics
-processSubEvent SubEvent{..} = 
+processSubEvent SubEvent{..} =
     over _teamStatisticsBatting (addPlayerToBatting subEventPlayer subEventBattingPosition) .
     over _teamStatisticsPitching (addPlayerToPitching subEventPlayer subEventFieldingPosition)
 
 processPlayEvent :: PlayEvent -> FrameState -> TeamStatistics -> TeamStatistics
-processPlayEvent event state = 
+processPlayEvent event state =
   over _teamStatisticsBatting (addPlayToBatting event state) .
   over _teamStatisticsPitching (addPlayToPitching event state)
 
 prettyPrintBoxScore :: BoxScore -> Text
-prettyPrintBoxScore BoxScore{..} = 
+prettyPrintBoxScore BoxScore{..} =
   "Away\n" <> prettyPrintTeamStatistics boxScoreAwayTeam <>
   "Home\n" <> prettyPrintTeamStatistics boxScoreHomeTeam
 

@@ -25,6 +25,16 @@ data Game
 
 makeClassy_ ''Game
 
+processInfoEvent :: InfoEvent -> Game -> Game
+processInfoEvent InfoEvent{..} = do
+  let info = Just infoEventValue
+  case infoEventKey of
+    "visteam" -> _gameAwayTeam .~ info
+    "hometeam" -> _gameHomeTeam .~ info
+    "date" -> _gameDate .~ info
+    "starttime" -> _gameStartTime .~ info
+    _ -> id
+
 initialGame :: Event -> Game
 initialGame event = Game Nothing Nothing Nothing Nothing [initialGameEvent event]
 
@@ -35,6 +45,7 @@ gamesFromFilePath file = do
 
 generateGames :: Event -> [Game] -> [Game]
 generateGames event@(IdEventType _) games = initialGame event : games
+generateGames (InfoEventType info) (g:rest) = processInfoEvent info g : rest
 generateGames event (g:rest) = addEventToGame event g : rest
 generateGames _ games = games
 
@@ -44,3 +55,14 @@ addEventToGame event g =
     previousGameEvent = last $ gameEvents g
   in
     g & _gameEvents %~ (++ [nextGameEvent event previousGameEvent])
+
+prettyPrintGameInfo :: Game -> Text
+prettyPrintGameInfo Game{..} =
+  unlines $ catMaybes
+    [ do
+        home <- gameHomeTeam
+        away <- gameAwayTeam
+        pure $ away <> "@" <> home
+    , gameDate
+    , gameStartTime
+    ]

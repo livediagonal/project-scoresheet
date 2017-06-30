@@ -9,7 +9,12 @@ import Data.List (head)
 import Baseball.BoxScore
 import Baseball.Game
 
+printGameAndBoxScore :: Game -> IO ()
+printGameAndBoxScore game = do
+  putStrLn $ prettyPrintGameInfo game
+  putStrLn $ prettyPrintBoxScore $ generateBoxScore game
+
 main :: IO ()
 main = do
   eventFile <- unpack . head <$> getArgs
-  gamesFromFilePath eventFile >>= mapM_ (putStrLn . prettyPrintBoxScore . generateBoxScore)
+  gamesFromFilePath eventFile >>= mapM_ printGameAndBoxScore
