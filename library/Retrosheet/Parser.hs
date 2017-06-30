@@ -57,6 +57,7 @@ parsePlay = Play <$> parsePlayAction `sepBy1` optional (char '+') <*> many parse
 
 parsePlayAction :: Parser PlayAction
 parsePlayAction =
+  try parseBalk <|>
   try parseDefensiveIndifference <|>
   try parseStolenBase <|>
   try parseHit <|>
@@ -72,6 +73,9 @@ parsePlayAction =
   try parseHitByPitch <|>
   try parseError
 
+parseBalk :: Parser PlayAction
+parseBalk = string "BK" *> pure Balk
+
 parseStolenBase :: Parser PlayAction
 parseStolenBase = string "SB" *> (StolenBase <$> parseNumericBase)
 
@@ -79,7 +83,9 @@ parseCaughtStealing :: Parser PlayAction
 parseCaughtStealing = string "CS" *> (CaughtStealing <$> parseNumericBase <*> optional (parseParenthetical parseFieldingPositions))
 
 parsePickoff :: Parser PlayAction
-parsePickoff = string "PO" *> (Pickoff <$> parseNumericBase <*> optional (parseParenthetical parseFieldingPositions))
+parsePickoff = do
+  pickoff <- try (string "POCS" *> pure (Pickoff True)) <|> (string "PO" *> pure (Pickoff False))
+  pickoff <$> parseNumericBase <*> optional (parseParenthetical parseFieldingPositions)
 
 parseParenthetical :: Parser a -> Parser a
 parseParenthetical delegate = char '(' *> delegate <* char ')'
@@ -134,7 +140,8 @@ parseStrikeout =
   try (char 'K' *> pure (Strikeout Nothing))
 
 parseNoPlay :: Parser PlayAction
-parseNoPlay = string "NP" *> pure NoPlay
+parseNoPlay =
+  const NoPlay <$> (try (void $ string "NP") <|> void (string "OA"))
 
 parseHitByPitch :: Parser PlayAction
 parseHitByPitch = string "HP" *> pure HitByPitch

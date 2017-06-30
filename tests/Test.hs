@@ -78,7 +78,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right p -> do
-          p `shouldBe` Play [Strikeout Nothing, Pickoff FirstBase (Just [Catcher, FirstBaseman])] [OtherDescriptor "DP"] []
+          p `shouldBe` Play [Strikeout Nothing, Pickoff False FirstBase (Just [Catcher, FirstBaseman])] [OtherDescriptor "DP"] []
           isBatterOut p `shouldBe` True
 
   describe "parsePlayAction" $ do
