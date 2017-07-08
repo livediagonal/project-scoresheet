@@ -239,4 +239,4 @@ prettyPrintBattingLine BattingLine{..} = battingLinePlayerId
   <> prettyColumn (tshow battingLineLOB)
 
 prettyColumn :: Text -> Text
-prettyColumn t = (replicate (4 - length t) " ") <>  t
+prettyColumn t = replicate (4 - length t) " " <>  t

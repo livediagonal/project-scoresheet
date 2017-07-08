@@ -10,9 +10,9 @@ import Baseball.BoxScore
 import Baseball.Game
 
 printGameAndBoxScore :: Game -> IO ()
-printGameAndBoxScore game = do
-  putStrLn $ prettyPrintGameInfo game
-  putStrLn $ prettyPrintBoxScore $ generateBoxScore game
+printGameAndBoxScore g = do
+  putStrLn $ prettyPrintGameInfo g
+  putStrLn $ prettyPrintBoxScore $ generateBoxScore g
 
 main :: IO ()
 main = do
