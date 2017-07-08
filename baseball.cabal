@@ -65,6 +65,19 @@ executable batting-stats-csv
     , string-class
   default-language: Haskell2010
 
+executable bevent
+  hs-source-dirs: examples
+  main-is: Events.hs
+  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
+  build-depends:
+      base
+    , baseball
+    , bytestring
+    , classy-prelude
+    , optparse-applicative
+    , string-class
+  default-language: Haskell2010
+
 test-suite test
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
