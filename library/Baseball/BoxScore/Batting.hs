@@ -130,19 +130,19 @@ isOut Play{..} = flip any playActions $ \a -> case a of
 
 numNotLeftOnBase :: Play -> Int
 numNotLeftOnBase Play{..} =
-  length $ filter (\m -> case m of PlayMovement _ HomePlate True -> True; _ -> False) playMovements
+  length $ filter (\m -> case m of PlayMovement _ HomePlate True _ -> True; _ -> False) playMovements
 
 addLOB :: Text -> Play -> FrameState -> Batting -> Batting
 addLOB playerId pr FrameState{..} score =
   let
-    numOB = length $ catMaybes [frameStateRunnerOnFirstId, frameStateRunnerOnSecondId, frameStateRunnerOnThirdId]
+    numOB = length $ catMaybes [frameStateRunnerOnFirst, frameStateRunnerOnSecond, frameStateRunnerOnThird]
     numLOB = numOB - numNotLeftOnBase pr
   in
     addLOBToPlayer playerId numLOB score
 
 addRunForMovement :: Text ->  FrameState -> PlayMovement -> Batting -> Batting
-addRunForMovement _ state (PlayMovement startBase HomePlate True) score =
-  fromMaybe score $ map (`addRunToPlayer` score) $ runnerOnBase startBase state
+addRunForMovement _ state (PlayMovement startBase HomePlate True _) score =
+  fromMaybe score $ map ((`addRunToPlayer` score) . baseRunnerPlayerId) $ runnerOnBase startBase state
 addRunForMovement _ _ _ score = score
 
 addRuns :: Text -> Play -> FrameState -> Batting -> Batting

@@ -29,7 +29,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right pr -> do
-          pr `shouldBe` Play "" [WildPitch] [] [PlayMovement ThirdBase HomePlate True]
+          pr `shouldBe` Play "" [WildPitch] [] [PlayMovement ThirdBase HomePlate True [PlayMovementNoRBI]]
           numRBI pr `shouldBe` 0
 
     it "should successfully simple annotated double play" $ do
@@ -47,7 +47,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right p -> do
-          p `shouldBe` Play "" [Strikeout Nothing, PassedBall] [] [PlayMovement SecondBase ThirdBase True, PlayMovement HomePlate FirstBase True]
+          p `shouldBe` Play "" [Strikeout Nothing, PassedBall] [] [PlayMovement SecondBase ThirdBase True [], PlayMovement HomePlate FirstBase True []]
           numRBI p `shouldBe` 0
           isBatterOut p `shouldBe` False
 
@@ -57,7 +57,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right p -> do
-          p `shouldBe` Play ""[Hit SecondBase (Just [CenterFielder])] [OtherDescriptor "F+"] [PlayMovement ThirdBase HomePlate True, PlayMovement FirstBase HomePlate True, PlayMovement HomePlate ThirdBase False]
+          p `shouldBe` Play "" [Hit SecondBase (Just [CenterFielder])] [OtherDescriptor "F+"] [PlayMovement ThirdBase HomePlate True [PlayMovementUnearned], PlayMovement FirstBase HomePlate True [PlayMovementUnearned], PlayMovement HomePlate ThirdBase False [PlayMovementFieldingSequence False [CenterFielder, SecondBaseman, FirstBaseman, ThirdBaseman, ShortStop, Catcher]]]
           numRBI p `shouldBe` 2
           isBatterOut p `shouldBe` True
 
@@ -67,7 +67,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right p -> do
-          p `shouldBe` Play "" [Hit FirstBase (Just [CenterFielder])] [OtherDescriptor "L", OtherDescriptor "MREV"] [PlayMovement HomePlate SecondBase False]
+          p `shouldBe` Play "" [Hit FirstBase (Just [CenterFielder])] [OtherDescriptor "L", OtherDescriptor "MREV"] [PlayMovement HomePlate SecondBase False [PlayMovementFieldingSequence False [CenterFielder, SecondBaseman]]]
           isBatterOut p `shouldBe` True
           isHit p `shouldBe` True
 
@@ -152,28 +152,31 @@ spec = describe "Play" $ do
         leftover (t ~?> many parsePlayMovement) `shouldSatisfy` \str -> fromMaybe "" str == ""
 
     it "should successfully parse basic RBI" $
-      ".3-H" `shouldParseMovements` [PlayMovement ThirdBase HomePlate True]
+      ".3-H" `shouldParseMovements` [PlayMovement ThirdBase HomePlate True []]
 
     it "should successfully parse out at home" $
-      ".3XH" `shouldParseMovements` [PlayMovement ThirdBase HomePlate False]
+      ".3XH" `shouldParseMovements` [PlayMovement ThirdBase HomePlate False []]
 
     it "should successfully parse out with annotation" $
-      ";2X3(65)" `shouldParseMovements` [PlayMovement SecondBase ThirdBase False]
+      ";2X3(65)" `shouldParseMovements` [PlayMovement SecondBase ThirdBase False [PlayMovementFieldingSequence False [ShortStop, ThirdBaseman]]]
 
     it "should successfully parse non-RBI advance" $
-      ".3-H(NR)" `shouldParseMovements` [PlayMovement ThirdBase HomePlate True]
+      ".3-H(NR)" `shouldParseMovements` [PlayMovement ThirdBase HomePlate True [PlayMovementNoRBI]]
+
+    it "should successfully parse no-rbi error" $
+      ".2-H(E2/TH)(NR);B-2" `shouldParseMovements` [PlayMovement SecondBase HomePlate True [PlayMovementFieldingSequence True [Catcher], PlayMovementNoRBI], PlayMovement HomePlate SecondBase True []]
 
     it "should successfully parse out multiple movements" $
       ".3-H;2X3(65)" `shouldParseMovements`
-        [ PlayMovement ThirdBase HomePlate True
-        , PlayMovement SecondBase ThirdBase False
+        [ PlayMovement ThirdBase HomePlate True []
+        , PlayMovement SecondBase ThirdBase False [PlayMovementFieldingSequence False [ShortStop, ThirdBaseman]]
         ]
 
     it "should successfully parse out unearned advances on batter out" $
       ".3-H(UR);1-H(UR);BX3(843562/TH)" `shouldParseMovements`
-        [ PlayMovement ThirdBase HomePlate True
-        , PlayMovement FirstBase HomePlate True
-        , PlayMovement HomePlate ThirdBase False
+        [ PlayMovement ThirdBase HomePlate True [PlayMovementUnearned]
+        , PlayMovement FirstBase HomePlate True [PlayMovementUnearned]
+        , PlayMovement HomePlate ThirdBase False [PlayMovementFieldingSequence False [CenterFielder, SecondBaseman, FirstBaseman, ThirdBaseman, ShortStop, Catcher]]
         ]
 
   describe "box score smoke test" $ do

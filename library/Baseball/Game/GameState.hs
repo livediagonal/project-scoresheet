@@ -7,6 +7,7 @@
 module Baseball.Game.GameState
   ( GameState(..)
   , initialGameState
+  , currentPitcherId
   , updateGameState
   , advanceHalfInning
   , currentTeam
@@ -14,6 +15,7 @@ module Baseball.Game.GameState
 
 import ClassyPrelude
 import Control.Lens
+import Data.HashMap.Strict ((!))
 
 import Baseball.BaseballTypes
 import Baseball.Event
@@ -60,3 +62,9 @@ processSubstitution Substitution{..} =
     Home ->
       over _gameStateHomeBattingOrder (addToBattingOrder subPlayer subBattingPosition) .
       over _gameStateHomeLineup (addToFieldingLineup subPlayer subFieldingPosition)
+
+currentPitcherId :: GameState -> Text
+currentPitcherId GameState{..} =
+  case gameStateInningState of
+    TopInningHalf -> gameStateHomeLineup ! Pitcher
+    BottomInningHalf -> gameStateAwayLineup ! Pitcher

@@ -51,10 +51,10 @@ addEventToBoxScore (GameEvent (PlayEvent event) gs fs) =
   case currentTeam gs of
     Away ->
       over _boxScoreAwayTeam (over _teamStatisticsBatting (addPlayToBatting event fs)) .
-      over _boxScoreHomeTeam (over _teamStatisticsPitching (addPlayToPitching event gs))
+      over _boxScoreHomeTeam (over _teamStatisticsPitching (addPlayToPitching event gs fs))
     Home ->
       over _boxScoreHomeTeam (over _teamStatisticsBatting (addPlayToBatting event fs)) .
-      over _boxScoreAwayTeam (over _teamStatisticsPitching (addPlayToPitching event gs))
+      over _boxScoreAwayTeam (over _teamStatisticsPitching (addPlayToPitching event gs fs))
 
 processSubstitution :: Substitution -> TeamStatistics -> TeamStatistics
 processSubstitution Substitution{..} =
