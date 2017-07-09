@@ -207,6 +207,10 @@ isOutOnMovement :: PlayMovement -> Bool
 isOutOnMovement (PlayMovement _ _ False _) = True
 isOutOnMovement _ = False
 
+isRunnerMovement :: PlayMovement -> Bool
+isRunnerMovement (PlayMovement HomePlate _ _ _) = False
+isRunnerMovement _ = True
+
 if' :: Bool -> a -> a -> a
 if' True  x _ = x
 if' False _ y = y
@@ -219,7 +223,7 @@ numRuns :: Play -> Int
 numRuns p@Play{..} = length (filter isRunOnMovement playMovements) + (isHomeRun p ? 1 $ 0)
 
 numOuts :: Play -> Int
-numOuts p@Play{..} = length (filter isOutOnMovement playMovements) + (isBatterOut p ? 1 $ 0)
+numOuts p@Play{..} = length (filter (\move -> isOutOnMovement move && isRunnerMovement move) playMovements) + (isBatterOut p ? 1 $ 0)
 
 numRBI :: Play -> Int
 numRBI p@Play{..} =

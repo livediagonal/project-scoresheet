@@ -67,7 +67,7 @@ addPlayerToPitching player Pitcher p =
 addPlayerToPitching _ _ p = p
 
 addPlayToPitching :: Play -> GameState -> FrameState -> Pitching -> Pitching
-addPlayToPitching play gs@GameState{..} fs p =
+addPlayToPitching play gs fs p =
   let
     pitcherId = currentPitcherId gs
     batter = BaseRunner (playPlayer play) pitcherId
@@ -132,15 +132,17 @@ addRunsToPitchers fs batter Play{..} p = foldr (chargePitcherForMovement fs batt
 prettyPrintPitching :: Pitching -> Text
 prettyPrintPitching Pitching{..} = unlines
   [ "-------------------------------------------"
-  , "Pitchers        IP   H   R   ER   W  SO  HR"
+  , "Pitchers        IP   H   R  ER   W   SO  HR"
   , "-------------------------------------------"
   , prettyPrintPitchingLines pitchingStats
-  , "-------------------------------------------"
-  , prettyPrintPitchingLine $ set _pitchingLinePlayerId "Total:  " $ mconcat (InsOrdHashMap.elems pitchingStats)
   ]
 
 prettyPrintPitchingLines :: InsOrdHashMap Text PitchingLine -> Text
-prettyPrintPitchingLines pls = unlines $ map prettyPrintPitchingLine (InsOrdHashMap.elems pls)
+prettyPrintPitchingLines pls = unlines $
+  map prettyPrintPitchingLine (InsOrdHashMap.elems pls) ++
+  [ "-------------------------------------------"
+  , prettyPrintPitchingLine $ set _pitchingLinePlayerId "Total:  " $ mconcat (InsOrdHashMap.elems pls)
+  ]
 
 prettyPrintPitchingLine :: PitchingLine -> Text
 prettyPrintPitchingLine PitchingLine{..} = pitchingLinePlayerId

@@ -9,6 +9,8 @@ module Baseball.Game.FrameState
   , runnerOnBase
   , runnerOnBaseOrBatter
   , updateFrameState
+  , debugEventInFrame
+  , debugFrameState
   , FrameState(..)
   ) where
 
@@ -44,7 +46,7 @@ processPlay p@(Play playerId _ _ movements) gs fs =
     batter = BaseRunner playerId pitcherId
   in fs
     & frameState %~ \state -> foldl' (applyRunnerMovement batter) state movements
-    & _frameStateOuts %~ (if isBatterOut p then (+1) else id)
+    & _frameStateOuts +~ numOuts p
 
 processSubstitution :: Substitution -> GameState -> FrameState -> FrameState
 processSubstitution Substitution{..} GameState{..} fs@FrameState{..} =
@@ -68,7 +70,6 @@ applyRunnerMovement :: BaseRunner -> FrameState -> PlayMovement -> FrameState
 applyRunnerMovement _ gs (PlayMovement HomePlate _ False _) = gs -- Hack: need cleaner way of not double-counting batter outs
 applyRunnerMovement _ gs (PlayMovement startBase _ False _) =
   removeRunnerFromBase startBase gs
-  & _frameStateOuts %~ (+1)
 applyRunnerMovement batter gs (PlayMovement startBase endBase True _) = gs
   & frameState %~ addRunnerToBase (runnerOnBaseOrBatter batter startBase gs) endBase
   & frameState %~ removeRunnerFromBase startBase
@@ -100,14 +101,14 @@ runnerOnBaseOrBatter batter base FrameState{..} =
     ThirdBase -> frameStateRunnerOnThird
     HomePlate -> Just batter
 
--- debugEventInFrame :: Event -> FrameState -> FrameState
--- debugEventInFrame (PlayEvent playedid actions _ movements)) fs =
---   trace (show playerId ++ " - " ++ show actions ++ " - " ++ show movements) (debugFrameState fs)
--- debugEventInFrame _ fs = fs
+debugEventInFrame :: Event -> FrameState -> FrameState
+debugEventInFrame (PlayEvent (Play playerId actions _ movements)) fs =
+  trace (show playerId ++ " - " ++ show actions ++ " - " ++ show movements) (debugFrameState fs)
+debugEventInFrame _ fs = fs
 
--- debugFrameState :: FrameState -> FrameState
--- debugFrameState fs@FrameState{..} = trace (unlines $ ("Outs: " ++ show frameStateOuts) : catMaybes
---   [ (("1: " ++) . show) <$> frameStateRunnerOnFirstId
---   , (("2: " ++) . show) <$> frameStateRunnerOnSecondId
---   , (("3: " ++) . show) <$> frameStateRunnerOnThirdId
---   ]) fs
+debugFrameState :: FrameState -> FrameState
+debugFrameState fs@FrameState{..} = trace (unlines $ ("Outs: " ++ show frameStateOuts) : catMaybes
+  [ (("1: " ++) . show) <$> frameStateRunnerOnFirst
+  , (("2: " ++) . show) <$> frameStateRunnerOnSecond
+  , (("3: " ++) . show) <$> frameStateRunnerOnThird
+  ]) fs
