@@ -223,18 +223,18 @@ processInfoEvent InfoEvent{..} = do
     _ -> id
 
 processStartEvent :: StartEvent -> Game -> Game
-processStartEvent StartEvent{..} = 
+processStartEvent StartEvent{..} =
   let
     gameEvent = P.SubstitutionEvent (Substitution startEventPlayer startEventPlayerHome startEventBattingPosition startEventFieldingPosition)
   in
-    addEventToGame gameEvent 
+    addEventToGame gameEvent
 
 processSubEvent :: SubEvent -> Game -> Game
-processSubEvent SubEvent{..} = 
+processSubEvent SubEvent{..} =
   let
     gameEvent = P.SubstitutionEvent (Substitution subEventPlayer subEventPlayerHome subEventBattingPosition subEventFieldingPosition)
   in
-    addEventToGame gameEvent 
+    addEventToGame gameEvent
 
 processPlayEvent :: PlayEvent -> Game -> Game
 processPlayEvent PlayEvent{..} =
@@ -242,4 +242,4 @@ processPlayEvent PlayEvent{..} =
     updatedPlay = playEventResult {playPlayer = playEventPlayerId}
     gameEvent = P.PlayEvent updatedPlay
   in
-    addEventToGame gameEvent 
+    addEventToGame gameEvent

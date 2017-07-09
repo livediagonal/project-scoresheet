@@ -8,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Baseball.Event 
+module Baseball.Event
  ( Event(..)
  , Substitution(..)
  , Play(..)
@@ -52,9 +52,9 @@ import Control.Lens
 
 import Baseball.BaseballTypes
 
-data Event 
+data Event
   = PlayEvent Play
-  | SubstitutionEvent Substitution 
+  | SubstitutionEvent Substitution
   deriving (Eq)
 
 data Substitution

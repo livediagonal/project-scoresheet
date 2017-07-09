@@ -13,18 +13,18 @@ main = generateEvents =<< execParser opts
     opts = info (parser <**> helper)
       ( fullDesc <>
         progDesc "bevent generates files suitable for use by database programs.\nEach record describes one event." <>
-        header "Expanded event descriptor,  version 0 of 7/8/2017.\nType 'bevent -h' for help.\nCopyright 2017 Live Diagonal" 
+        header "Expanded event descriptor,  version 0 of 7/8/2017.\nType 'bevent -h' for help.\nCopyright 2017 Live Diagonal"
       )
 
 data Flag
-  =  Flag 
+  =  Flag
   { flagYear :: String
   }
 
 parser :: Parser Flag
 parser = Flag
-  <$> strOption 
+  <$> strOption
     ( long "year" <> short 'y' <> help "Year to process (for teamyyyy and aaayyyy.ros)." )
 
 generateEvents :: Flag -> IO ()
-generateEvents (Flag s) = putStrLn $ tshow s    
+generateEvents (Flag s) = putStrLn $ tshow s
