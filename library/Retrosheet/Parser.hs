@@ -74,6 +74,7 @@ parsePlayAction =
   try parseWalk <|>
   try parseNoPlay <|>
   try parseHitByPitch <|>
+  try parseErrorFoulFly <|>
   try parseError
 
 parseBalk :: Parser PlayAction
@@ -150,9 +151,12 @@ parseHitByPitch :: Parser PlayAction
 parseHitByPitch = string "HP" *> pure HitByPitch
 
 parseError :: Parser PlayAction
-parseError = do
-  try (void $ string "FLE") <|> void (char 'E')
-  Error <$> parseFieldingPosition
+parseError =
+  char 'E' *> map Error parseFieldingPosition
+
+parseErrorFoulFly :: Parser PlayAction
+parseErrorFoulFly =
+  string "FLE" *> map ErrorFoulFly parseFieldingPosition
 
 parsePlayDescriptor :: Parser PlayDescriptor
 parsePlayDescriptor = do

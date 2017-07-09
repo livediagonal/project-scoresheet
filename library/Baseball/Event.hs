@@ -85,6 +85,7 @@ data PlayAction
   | PassedBall
   | DefensiveIndifference
   | Error FieldingPosition
+  | ErrorFoulFly FieldingPosition
   | Walk Bool
   | NoPlay
   | Balk
@@ -164,7 +165,7 @@ saturatePlayMovements p@Play{..} =
       Walk _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
       HitByPitch -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
       Hit base _ -> over _playMovements (if isBatterOut p then id else addPlayMovement (PlayMovement HomePlate base True []))
-      StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True []))
+      StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True [PlayMovementNoRBI]))
       CaughtStealing base _ -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base False []))
       Pickoff _ base False _ -> over _playMovements (addPlayMovement (PlayMovement base base False []))
       FieldersChoice _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
@@ -248,6 +249,7 @@ isAtBat p@Play{..} =
     NoPlay -> False
     StolenBase _ -> False
     RoutinePlay _ _ -> not $ isSacrifice p
+    ErrorFoulFly _ -> False
     _ -> True
 
 isWalk :: Play -> Bool
