@@ -7,7 +7,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Baseball.BoxScore.Pitching
-  ( Pitching
+  ( Pitching(..)
+  , PitchingLine(..)
   , initialPitching
   , addPlayerToPitching
   , addPlayToPitching
