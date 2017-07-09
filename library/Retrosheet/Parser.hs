@@ -12,7 +12,7 @@ import ClassyPrelude hiding (try)
 import Control.Lens
 import Data.Attoparsec.Text
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (digitToInt, isDigit)
+import Data.Char (digitToInt)
 import Data.Csv hiding (Parser)
 import qualified Data.Vector as V
 
@@ -167,13 +167,16 @@ parseNumericBase =
   try (char '3' *> pure ThirdBase) <|>
   char 'H' *> pure HomePlate
 
-parseMovementAnnotation :: Parser ()
-parseMovementAnnotation = do
-  void $ char '('
-  void $ try (void $ string "NR") <|> try (void $ string "UR") <|> do
-    void $ many (satisfy isDigit)
-    void $ optional (string "/TH")
-  void $ char ')'
+parsePlayMovementFieldingSequence :: Parser PlayMovementDescriptor
+parsePlayMovementFieldingSequence =
+  try (char 'E' *> (PlayMovementFieldingSequence True <$> parseFieldingPositions) <* optional (string "/TH")) <|>
+  (PlayMovementFieldingSequence False <$> parseFieldingPositions) <* optional (string "/TH")
+
+parseMovementAnnotation :: Parser PlayMovementDescriptor
+parseMovementAnnotation =
+  try (parseParenthetical (string "NR") *> pure PlayMovementNoRBI) <|>
+  try (parseParenthetical (string "UR") *> pure PlayMovementUnearned) <|>
+  try (parseParenthetical parsePlayMovementFieldingSequence)
 
 parsePlayMovement :: Parser PlayMovement
 parsePlayMovement = do
@@ -181,8 +184,7 @@ parsePlayMovement = do
   startBase <- parseNumericBase
   isSuccess <- try (char 'X' *> pure False) <|> char '-' *> pure True
   endBase <- parseNumericBase
-  void $ optional parseMovementAnnotation
-  pure $ PlayMovement startBase endBase isSuccess
+  PlayMovement startBase endBase isSuccess <$> many parseMovementAnnotation
 
 retrosheetEventsFromFile :: String -> IO [Event]
 retrosheetEventsFromFile file = do

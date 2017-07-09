@@ -40,6 +40,7 @@ data PitchingLine
   , pitchingLineHits :: !Int
   , pitchingLineHomeRuns :: !Int
   , pitchingLineRuns :: !Int
+  , pitchingLineEarnedRuns :: !Int
   } deriving (Eq, Show, Generic)
 
 makeClassy_ ''Pitching
@@ -57,11 +58,12 @@ initialPitching :: Pitching
 initialPitching = Pitching InsOrdHashMap.empty
 
 initialPitchingLine :: Text -> PitchingLine
-initialPitchingLine player = PitchingLine player 0 0 0 0 0
+initialPitchingLine player = PitchingLine player 0 0 0 0 0 0
 
 addPlayerToPitching :: Text -> FieldingPosition -> Pitching -> Pitching
-addPlayerToPitching player Pitcher = _pitchingStats %~ (at player ?~ initialPitchingLine player)
-addPlayerToPitching _ _ = id
+addPlayerToPitching player Pitcher p =
+  InsOrdHashMap.member player (pitchingStats p) ? p $ p & _pitchingStats %~ (at player ?~ initialPitchingLine player)
+addPlayerToPitching _ _ p = p
 
 addPlayToPitching :: PlayEvent -> GameState -> FrameState -> Pitching -> Pitching
 addPlayToPitching PlayEvent{..} gs@GameState{..} fs p =
@@ -107,11 +109,15 @@ addWalkToPitcher pitcher = addOneToPitcher pitcher _pitchingLineWalks
 addRunToPitcher :: Text -> Pitching -> Pitching
 addRunToPitcher pitcher = addOneToPitcher pitcher _pitchingLineRuns
 
+addEarnedRunToPitcher :: Text -> Pitching -> Pitching
+addEarnedRunToPitcher pitcher = addOneToPitcher pitcher _pitchingLineEarnedRuns
+
 chargePitcherForMovement :: FrameState -> BaseRunner -> PlayMovement -> Pitching -> Pitching
-chargePitcherForMovement fs batter (PlayMovement startBase HomePlate True) =
+chargePitcherForMovement fs batter move@(PlayMovement startBase HomePlate True _) =
   let
     Just BaseRunner{..} = runnerOnBaseOrBatter batter startBase fs
   in
+    (isMovementEarned move ? addEarnedRunToPitcher baseRunnerResponsiblePitcherId $ id) .
     addRunToPitcher baseRunnerResponsiblePitcherId
 chargePitcherForMovement _ _ _ = id
 
@@ -136,7 +142,7 @@ prettyPrintPitchingLine PitchingLine{..} = pitchingLinePlayerId
   <> "          "
   <> prettyColumn (tshow pitchingLineHits)
   <> prettyColumn (tshow pitchingLineRuns)
-  <> "     "
+  <> prettyColumn (tshow pitchingLineEarnedRuns)
   <> prettyColumn (tshow pitchingLineWalks)
   <> prettyColumn (tshow pitchingLineStrikeouts)
   <> prettyColumn (tshow pitchingLineHomeRuns)

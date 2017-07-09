@@ -47,16 +47,28 @@ data PlayDescriptor
   | OtherDescriptor !Text
   deriving (Eq, Show)
 
-data PlayMovement = PlayMovement Base Base Bool deriving (Eq, Show)
+data PlayMovement
+  = PlayMovement
+  { playMovementStartBase :: Base
+  , playMovementEndBase :: Base
+  , playMovementIsSuccess :: Bool
+  , playMovementDescriptors :: [PlayMovementDescriptor]
+  } deriving (Eq, Show)
+
+data PlayMovementDescriptor
+  = PlayMovementNoRBI
+  | PlayMovementUnearned
+  | PlayMovementFieldingSequence Bool [FieldingPosition]
+  deriving (Eq, Show)
 
 instance Ord PlayMovement where
-  (PlayMovement sb1 _ _) `compare` (PlayMovement sb2 _ _) = sb1 `compare` sb2
+  (PlayMovement sb1 _ _ _) `compare` (PlayMovement sb2 _ _ _) = sb1 `compare` sb2
 
 makeClassy_ ''Play
 
 addPlayMovement :: PlayMovement -> [PlayMovement] -> [PlayMovement]
-addPlayMovement pm@(PlayMovement startBase _ _) pms =
-  case any (\(PlayMovement existingStartBase _ _) -> startBase == existingStartBase) pms of
+addPlayMovement pm@(PlayMovement startBase _ _ _) pms =
+  case any (\PlayMovement{..} -> playMovementStartBase == startBase) pms of
     True -> pms
     False -> pms ++ [pm]
 
@@ -73,12 +85,15 @@ isForceOutDescriptor _ = False
 isForceOut :: Play -> Bool
 isForceOut Play{..} = any isForceOutDescriptor playDescriptors
 
+isMovementEarned :: PlayMovement -> Bool
+isMovementEarned PlayMovement{..} = not $ any (\desc -> case desc of PlayMovementUnearned -> True; _ -> False) playMovementDescriptors
+
 isBatterOutOnMovement :: PlayMovement -> Bool
-isBatterOutOnMovement (PlayMovement HomePlate _ False) = True
+isBatterOutOnMovement (PlayMovement HomePlate _ False _) = True
 isBatterOutOnMovement _ = False
 
 isBatterAdvancedOnMovement :: PlayMovement -> Bool
-isBatterAdvancedOnMovement (PlayMovement HomePlate _ True) = True
+isBatterAdvancedOnMovement (PlayMovement HomePlate _ True _) = True
 isBatterAdvancedOnMovement _ = False
 
 isBatterOutOnAction :: PlayAction -> Bool
@@ -95,14 +110,14 @@ saturatePlayMovements :: Play -> Play
 saturatePlayMovements p@Play{..} =
   let
     applyPlayAction pa = case pa of
-      Walk _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True))
-      HitByPitch -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True))
-      Hit base _ -> over _playMovements (if isBatterOut p then id else addPlayMovement (PlayMovement HomePlate base True))
-      StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True))
-      CaughtStealing base _ -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base False))
-      Pickoff _ base _ -> over _playMovements (addPlayMovement (PlayMovement base base False))
-      FieldersChoice _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True))
-      RoutinePlay _ (Just startingBase) -> over _playMovements (addPlayMovement (PlayMovement startingBase HomePlate False))
+      Walk _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
+      HitByPitch -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
+      Hit base _ -> over _playMovements (if isBatterOut p then id else addPlayMovement (PlayMovement HomePlate base True []))
+      StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True []))
+      CaughtStealing base _ -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base False []))
+      Pickoff _ base _ -> over _playMovements (addPlayMovement (PlayMovement base base False []))
+      FieldersChoice _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
+      RoutinePlay _ (Just startingBase) -> over _playMovements (addPlayMovement (PlayMovement startingBase HomePlate False []))
       _ -> id
   in
     foldr applyPlayAction p playActions
@@ -114,7 +129,7 @@ advanceBatterIfNotOut p =
   if isAtBat p
   then if isBatterOut p && not (isForceOut p)
     then p
-    else p & _playMovements %~ addPlayMovement (PlayMovement HomePlate FirstBase True)
+    else p & _playMovements %~ addPlayMovement (PlayMovement HomePlate FirstBase True [])
   else p
 
 isHit :: Play -> Bool
@@ -124,7 +139,7 @@ isHit Play{..} =
     _ -> False
 
 isRBI :: PlayMovement -> Bool
-isRBI (PlayMovement _ HomePlate True) = True
+isRBI (PlayMovement _ HomePlate True _) = True
 isRBI _ = False
 
 fromBool :: Bool -> Int
@@ -132,7 +147,7 @@ fromBool False = 0
 fromBool True = 1
 
 isScoredRun :: PlayMovement -> Bool
-isScoredRun (PlayMovement _ HomePlate True) = True
+isScoredRun (PlayMovement _ HomePlate True _) = True
 isScoredRun _ = False
 
 if' :: Bool -> a -> a -> a

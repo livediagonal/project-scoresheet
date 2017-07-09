@@ -80,11 +80,11 @@ replaceRunner originalRunner newRunner fs =
     foldr updateRunner fs [_frameStateRunnerOnFirst, _frameStateRunnerOnSecond, _frameStateRunnerOnThird]
 
 applyRunnerMovement :: BaseRunner -> FrameState -> PlayMovement -> FrameState
-applyRunnerMovement _ gs (PlayMovement HomePlate _ False) = gs -- Hack: need cleaner way of not double-counting batter outs
-applyRunnerMovement _ gs (PlayMovement startBase _ False) =
+applyRunnerMovement _ gs (PlayMovement HomePlate _ False _) = gs -- Hack: need cleaner way of not double-counting batter outs
+applyRunnerMovement _ gs (PlayMovement startBase _ False _) =
   removeRunnerFromBase startBase gs
   & _frameStateOuts %~ (+1)
-applyRunnerMovement batter gs (PlayMovement startBase endBase True) = gs
+applyRunnerMovement batter gs (PlayMovement startBase endBase True _) = gs
   & frameState %~ addRunnerToBase (runnerOnBaseOrBatter batter startBase gs) endBase
   & frameState %~ removeRunnerFromBase startBase
 
