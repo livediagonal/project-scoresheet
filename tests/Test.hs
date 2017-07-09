@@ -10,8 +10,7 @@ import Test.Tasty.Hspec
 import Baseball.BaseballTypes
 import Baseball.BoxScore
 import Baseball.BoxScore.Batting
-import Baseball.Game (gamesFromFilePath)
-import Baseball.Play
+import Baseball.Event
 import Retrosheet.Parser
 
 main :: IO ()
@@ -30,7 +29,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right pr -> do
-          pr `shouldBe` Play [WildPitch] [] [PlayMovement ThirdBase HomePlate True]
+          pr `shouldBe` Play "" [WildPitch] [] [PlayMovement ThirdBase HomePlate True]
           numRBI pr `shouldBe` 0
 
     it "should successfully simple annotated double play" $ do
@@ -39,7 +38,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right pr -> do
-          pr `shouldBe` Play [RoutinePlay [ThirdBaseman,SecondBaseman] (Just FirstBase), RoutinePlay [FirstBaseman] Nothing] [OtherDescriptor "GDP"] []
+          pr `shouldBe` Play "" [RoutinePlay [ThirdBaseman,SecondBaseman] (Just FirstBase), RoutinePlay [FirstBaseman] Nothing] [OtherDescriptor "GDP"] []
           numRBI pr `shouldBe` 0
 
     it "should successfully parse strikeout with passed ball and batter advance" $ do
@@ -48,7 +47,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right p -> do
-          p `shouldBe` Play [Strikeout Nothing, PassedBall] [] [PlayMovement SecondBase ThirdBase True, PlayMovement HomePlate FirstBase True]
+          p `shouldBe` Play "" [Strikeout Nothing, PassedBall] [] [PlayMovement SecondBase ThirdBase True, PlayMovement HomePlate FirstBase True]
           numRBI p `shouldBe` 0
           isBatterOut p `shouldBe` False
 
@@ -58,7 +57,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right p -> do
-          p `shouldBe` Play [Hit SecondBase (Just [CenterFielder])] [OtherDescriptor "F+"] [PlayMovement ThirdBase HomePlate True, PlayMovement FirstBase HomePlate True, PlayMovement HomePlate ThirdBase False]
+          p `shouldBe` Play ""[Hit SecondBase (Just [CenterFielder])] [OtherDescriptor "F+"] [PlayMovement ThirdBase HomePlate True, PlayMovement FirstBase HomePlate True, PlayMovement HomePlate ThirdBase False]
           numRBI p `shouldBe` 2
           isBatterOut p `shouldBe` True
 
@@ -68,7 +67,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right p -> do
-          p `shouldBe` Play [Hit FirstBase (Just [CenterFielder])] [OtherDescriptor "L", OtherDescriptor "MREV"] [PlayMovement HomePlate SecondBase False]
+          p `shouldBe` Play "" [Hit FirstBase (Just [CenterFielder])] [OtherDescriptor "L", OtherDescriptor "MREV"] [PlayMovement HomePlate SecondBase False]
           isBatterOut p `shouldBe` True
           isHit p `shouldBe` True
 
@@ -78,7 +77,7 @@ spec = describe "Play" $ do
       case res of
         Left err -> fail err
         Right p -> do
-          p `shouldBe` Play [Strikeout Nothing, Pickoff False FirstBase (Just [Catcher, FirstBaseman])] [OtherDescriptor "DP"] []
+          p `shouldBe` Play "" [Strikeout Nothing, Pickoff False FirstBase (Just [Catcher, FirstBaseman])] [OtherDescriptor "DP"] []
           isBatterOut p `shouldBe` True
 
   describe "parsePlayAction" $ do

@@ -8,6 +8,7 @@ import Data.List (head)
 
 import Baseball.BoxScore
 import Baseball.Game
+import Retrosheet.Parser
 
 printGameAndBoxScore :: Game -> IO ()
 printGameAndBoxScore g = do

@@ -9,7 +9,7 @@ import Data.String.Class (putStr)
 
 import Baseball.BoxScore
 import Baseball.BoxScore.Batting
-import Baseball.Game
+import Retrosheet.Parser
 
 main :: IO ()
 main = do

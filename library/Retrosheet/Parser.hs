@@ -2,6 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -17,9 +18,11 @@ import Data.Csv hiding (Parser)
 import qualified Data.Vector as V
 
 import Baseball.BaseballTypes
-import Baseball.Play
+import Baseball.Game
+import Baseball.Event hiding ( Event(..) )
+import qualified Baseball.Event as P ( Event(..) )
 
-import Retrosheet.Events
+import Retrosheet.Event
 
 instance FromRecord IdEvent
 instance FromRecord UnknownEvent
@@ -53,7 +56,7 @@ instance FromField Play where
       Right r -> pure r
 
 parsePlay :: Parser Play
-parsePlay = Play <$> parsePlayAction `sepBy1` optional (char '+') <*> many parsePlayDescriptor <*> many parsePlayMovement
+parsePlay = Play <$> "" <*> parsePlayAction `sepBy1` optional (char '+') <*> many parsePlayDescriptor <*> many parsePlayMovement
 
 parsePlayAction :: Parser PlayAction
 parsePlayAction =
@@ -184,9 +187,57 @@ parsePlayMovement = do
   void $ optional parseMovementAnnotation
   pure $ PlayMovement startBase endBase isSuccess
 
+-- Sandbox --
+
+
+gamesFromFilePath :: String -> IO [Game]
+gamesFromFilePath file = do
+  events <- retrosheetEventsFromFile file
+  pure $ reverse (foldl' (flip generateGames) [] events)
+
 retrosheetEventsFromFile :: String -> IO [Event]
 retrosheetEventsFromFile file = do
   csvEvents <- BL.readFile file
   case (decode NoHeader csvEvents :: Either String (Vector Event)) of
     Left err -> fail err
     Right v -> pure $ toList v
+
+generateGames :: Event -> [Game] -> [Game]
+generateGames (IdEventType _) games = initialGame : games
+generateGames (InfoEventType event) (g:rest) = processInfoEvent event g : rest
+generateGames (StartEventType event) (g:rest) = processStartEvent event g : rest
+generateGames (SubEventType event) (g:rest) = processSubEvent event g : rest
+generateGames (PlayEventType event) (g:rest) = processPlayEvent event g : rest
+generateGames _ games = games
+
+processInfoEvent :: InfoEvent -> Game -> Game
+processInfoEvent InfoEvent{..} = do
+  let info = Just infoEventValue
+  case infoEventKey of
+    "visteam" -> _gameAwayTeam .~ info
+    "hometeam" -> _gameHomeTeam .~ info
+    "date" -> _gameDate .~ info
+    "starttime" -> _gameStartTime .~ info
+    _ -> id
+
+processStartEvent :: StartEvent -> Game -> Game
+processStartEvent StartEvent{..} = 
+  let
+    gameEvent = P.SubstitutionEvent (Substitution startEventPlayer startEventPlayerHome startEventBattingPosition startEventFieldingPosition)
+  in
+    addEventToGame gameEvent 
+
+processSubEvent :: SubEvent -> Game -> Game
+processSubEvent SubEvent{..} = 
+  let
+    gameEvent = P.SubstitutionEvent (Substitution subEventPlayer subEventPlayerHome subEventBattingPosition subEventFieldingPosition)
+  in
+    addEventToGame gameEvent 
+
+processPlayEvent :: PlayEvent -> Game -> Game
+processPlayEvent PlayEvent{..} =
+  let
+    updatedPlay = playEventResult {playPlayer = playEventPlayerId}
+    gameEvent = P.PlayEvent updatedPlay
+  in
+    addEventToGame gameEvent 

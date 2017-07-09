@@ -14,8 +14,7 @@ import Baseball.BaseballTypes
 import Baseball.Game
 import Baseball.Game.GameEvent
 import Baseball.Game.FrameState
-import Baseball.Play
-import Retrosheet.Events
+import Baseball.Event
 
 data InningLine
   = InningLine

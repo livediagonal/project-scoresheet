@@ -15,7 +15,8 @@ import Baseball.BoxScore.Batting
 import Baseball.BoxScore.Pitching
 import Baseball.Game
 import Baseball.Game.GameEvent
-import Retrosheet.Events
+import Baseball.Game.GameState
+import Baseball.Event
 
 data BoxScore
   = BoxScore
@@ -42,33 +43,23 @@ generateBoxScore :: Game -> BoxScore
 generateBoxScore = foldl' (flip addEventToBoxScore) initialBoxScore . gameEvents
 
 addEventToBoxScore :: GameEvent -> BoxScore -> BoxScore
-addEventToBoxScore (GameEvent (StartEventType event) _ _) =
-  case startEventPlayerHome event of
-    Away -> over _boxScoreAwayTeam (processStartEvent event)
-    Home -> over _boxScoreHomeTeam (processStartEvent event)
-addEventToBoxScore (GameEvent (SubEventType event) _ _) =
-  case subEventPlayerHome event of
-    Away -> over _boxScoreAwayTeam (processSubEvent event)
-    Home -> over _boxScoreHomeTeam (processSubEvent event)
-addEventToBoxScore (GameEvent (PlayEventType event) gs fs) =
-  case playEventHomeOrAway event of
+addEventToBoxScore (GameEvent (SubstitutionEvent event) _ _) =
+  case subTeam event of
+    Away -> over _boxScoreAwayTeam (processSubstitution event)
+    Home -> over _boxScoreHomeTeam (processSubstitution event)
+addEventToBoxScore (GameEvent (PlayEvent event) gs fs) =
+  case currentTeam gs of
     Away ->
       over _boxScoreAwayTeam (over _teamStatisticsBatting (addPlayToBatting event fs)) .
       over _boxScoreHomeTeam (over _teamStatisticsPitching (addPlayToPitching event gs))
     Home ->
       over _boxScoreHomeTeam (over _teamStatisticsBatting (addPlayToBatting event fs)) .
       over _boxScoreAwayTeam (over _teamStatisticsPitching (addPlayToPitching event gs))
-addEventToBoxScore _ = id
 
-processStartEvent :: StartEvent -> TeamStatistics -> TeamStatistics
-processStartEvent StartEvent{..} =
-  over _teamStatisticsBatting (addPlayerToBatting startEventPlayer startEventBattingPosition) .
-  over _teamStatisticsPitching (addPlayerToPitching startEventPlayer startEventFieldingPosition)
-
-processSubEvent :: SubEvent -> TeamStatistics -> TeamStatistics
-processSubEvent SubEvent{..} =
-    over _teamStatisticsBatting (addPlayerToBatting subEventPlayer subEventBattingPosition) .
-    over _teamStatisticsPitching (addPlayerToPitching subEventPlayer subEventFieldingPosition)
+processSubstitution :: Substitution -> TeamStatistics -> TeamStatistics
+processSubstitution Substitution{..} =
+  over _teamStatisticsBatting (addPlayerToBatting subPlayer subBattingPosition) .
+  over _teamStatisticsPitching (addPlayerToPitching subPlayer subFieldingPosition)
 
 prettyPrintBoxScore :: BoxScore -> Text
 prettyPrintBoxScore BoxScore{..} =

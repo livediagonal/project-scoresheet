@@ -8,13 +8,15 @@ module Baseball.Game.GameState
   ( GameState(..)
   , initialGameState
   , updateGameState
+  , advanceHalfInning
+  , currentTeam
   ) where
 
 import ClassyPrelude
 import Control.Lens
 
 import Baseball.BaseballTypes
-import Retrosheet.Events
+import Baseball.Event
 
 data GameState
   = GameState
@@ -32,32 +34,29 @@ initialGameState :: GameState
 initialGameState = GameState 0 TopInningHalf initialFieldingLineup initialFieldingLineup initialBattingOrder initialBattingOrder
 
 updateGameState :: Event -> GameState -> GameState
-updateGameState (StartEventType event) = processStartEvent event
-updateGameState (PlayEventType event) = processPlayEvent event
-updateGameState (SubEventType event) = processSubEvent event
+updateGameState (SubstitutionEvent sub) = processSubstitution sub
 updateGameState _ = id
 
-processPlayEvent :: PlayEvent -> GameState -> GameState
-processPlayEvent PlayEvent{..} =
-  set _gameStateInning playEventInning .
-  set _gameStateInningState (case playEventHomeOrAway of Away -> TopInningHalf; Home -> BottomInningHalf)
+currentTeam :: GameState -> HomeOrAway
+currentTeam GameState{..} = 
+  case gameStateInningState of
+    TopInningHalf -> Away
+    BottomInningHalf -> Home
 
-processStartEvent :: StartEvent -> GameState -> GameState
-processStartEvent StartEvent{..} =
-  case startEventPlayerHome of
-    Away ->
-      over _gameStateAwayBattingOrder (addToBattingOrder startEventPlayer startEventBattingPosition) .
-      over _gameStateAwayLineup (addToFieldingLineup startEventPlayer startEventFieldingPosition)
-    Home ->
-      over _gameStateHomeBattingOrder (addToBattingOrder startEventPlayer startEventBattingPosition) .
-      over _gameStateHomeLineup (addToFieldingLineup startEventPlayer startEventFieldingPosition)
+advanceHalfInning :: GameState -> GameState
+advanceHalfInning gs =
+  gs &
+  _gameStateInning %~ (+1) &
+  _gameStateInningState .~ case gameStateInningState gs of
+    TopInningHalf -> BottomInningHalf
+    BottomInningHalf -> TopInningHalf
 
-processSubEvent :: SubEvent -> GameState -> GameState
-processSubEvent SubEvent{..} =
-  case subEventPlayerHome of
+processSubstitution :: Substitution -> GameState -> GameState
+processSubstitution Substitution{..} =
+  case subTeam of
     Away ->
-      over _gameStateAwayBattingOrder (addToBattingOrder subEventPlayer subEventBattingPosition) .
-      over _gameStateAwayLineup (addToFieldingLineup subEventPlayer subEventFieldingPosition)
+      over _gameStateAwayBattingOrder (addToBattingOrder subPlayer subBattingPosition) .
+      over _gameStateAwayLineup (addToFieldingLineup subPlayer subFieldingPosition)
     Home ->
-      over _gameStateHomeBattingOrder (addToBattingOrder subEventPlayer subEventBattingPosition) .
-      over _gameStateHomeLineup (addToFieldingLineup subEventPlayer subEventFieldingPosition)
+      over _gameStateHomeBattingOrder (addToBattingOrder subPlayer subBattingPosition) .
+      over _gameStateHomeLineup (addToFieldingLineup subPlayer subFieldingPosition)

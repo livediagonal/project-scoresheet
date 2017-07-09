@@ -17,8 +17,7 @@ import Data.List (elemIndex)
 
 import Baseball.BaseballTypes
 import Baseball.Game.GameState
-import Baseball.Play
-import Retrosheet.Events
+import Baseball.Event
 import qualified Data.HashMap.Strict as HashMap
 
 data FrameState
@@ -35,38 +34,27 @@ makeClassy_ ''FrameState
 initialFrameState :: FrameState
 initialFrameState = FrameState 0 Nothing Nothing Nothing Nothing
 
-debugEventInFrame :: Event -> FrameState -> FrameState
-debugEventInFrame (PlayEventType (PlayEvent _ _ playerId _ _ (Play actions _ movements))) fs =
-  trace (show playerId ++ " - " ++ show actions ++ " - " ++ show movements) (debugFrameState fs)
-debugEventInFrame _ fs = fs
-
-debugFrameState :: FrameState -> FrameState
-debugFrameState fs@FrameState{..} = trace (unlines $ ("Outs: " ++ show frameStateOuts) : catMaybes
-  [ (("1: " ++) . show) <$> frameStateRunnerOnFirstId
-  , (("2: " ++) . show) <$> frameStateRunnerOnSecondId
-  , (("3: " ++) . show) <$> frameStateRunnerOnThirdId
-  ]) fs
-
 updateFrameState :: Event -> GameState -> FrameState -> FrameState
-updateFrameState e@(PlayEventType (PlayEvent _ _ playerId _ _ p@(Play _ _ movements))) gs fs =
+updateFrameState (SubstitutionEvent sub) gs fs = processSubstitution sub gs fs
+updateFrameState (PlayEvent play) gs fs = processPlay play gs fs
+
+processPlay :: Play -> GameState -> FrameState -> FrameState
+processPlay p@(Play playerId _ _ movements) _ fs =
   fs
   & _frameStateBatterId .~ Just playerId
   & frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
   & _frameStateOuts %~ (if isBatterOut p then (+1) else id)
-  & frameState %~ \state' ->
-    if frameStateOuts state' == 3
-    then initialFrameState
-    else state'
-updateFrameState (SubEventType SubEvent{..}) GameState{..} fs@FrameState{..} =
+
+processSubstitution :: Substitution -> GameState -> FrameState -> FrameState
+processSubstitution Substitution{..} GameState{..} fs@FrameState{..} =
   let
     replacedBatter :: Text
-    replacedBatter = case subEventPlayerHome of
-      Away -> gameStateAwayBattingOrder HashMap.! subEventBattingPosition
-      Home -> gameStateHomeBattingOrder HashMap.! subEventBattingPosition
+    replacedBatter = case subTeam of
+      Away -> gameStateAwayBattingOrder HashMap.! subBattingPosition
+      Home -> gameStateHomeBattingOrder HashMap.! subBattingPosition
   in
     fs
-    & over frameState (replaceRunner replacedBatter subEventPlayer)
-updateFrameState _ _ fs = fs
+    & over frameState (replaceRunner replacedBatter subPlayer)
 
 replaceRunner :: Text -> Text -> FrameState -> FrameState
 replaceRunner originalRunner newRunner fs =
@@ -115,3 +103,15 @@ playerOnBase batterId base FrameState{..} =
     SecondBase -> frameStateRunnerOnSecondId
     ThirdBase -> frameStateRunnerOnThirdId
     HomePlate -> Just batterId
+
+-- debugEventInFrame :: Event -> FrameState -> FrameState
+-- debugEventInFrame (PlayEvent playedid actions _ movements)) fs =
+--   trace (show playerId ++ " - " ++ show actions ++ " - " ++ show movements) (debugFrameState fs)
+-- debugEventInFrame _ fs = fs
+
+-- debugFrameState :: FrameState -> FrameState
+-- debugFrameState fs@FrameState{..} = trace (unlines $ ("Outs: " ++ show frameStateOuts) : catMaybes
+--   [ (("1: " ++) . show) <$> frameStateRunnerOnFirstId
+--   , (("2: " ++) . show) <$> frameStateRunnerOnSecondId
+--   , (("3: " ++) . show) <$> frameStateRunnerOnThirdId
+--   ]) fs

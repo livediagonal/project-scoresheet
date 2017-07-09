@@ -19,8 +19,7 @@ import Control.Lens
 
 import Baseball.BaseballTypes
 import Baseball.Game.GameState
-import Baseball.Play
-import Retrosheet.Events
+import Baseball.Event
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Data.Text (replicate)
 import qualified Data.HashMap.Strict as HashMap
@@ -62,18 +61,18 @@ addPlayerToPitching :: Text -> FieldingPosition -> Pitching -> Pitching
 addPlayerToPitching player Pitcher = _pitchingStats %~ (at player ?~ initialPitchingLine player)
 addPlayerToPitching _ _ = id
 
-addPlayToPitching :: PlayEvent -> GameState -> Pitching -> Pitching
-addPlayToPitching PlayEvent{..} GameState{..} p =
+addPlayToPitching :: Play -> GameState -> Pitching -> Pitching
+addPlayToPitching play gs@GameState{..} p =
   let
-    pitcherId = case playEventHomeOrAway of
+    pitcherId = case currentTeam gs of
       Away -> gameStateHomeLineup HashMap.! Pitcher
       Home -> gameStateAwayLineup HashMap.! Pitcher
   in
     p &
-    pitching %~ (if isHit playEventResult then addHitToPitcher pitcherId else id) &
-    pitching %~ (if isHomeRun playEventResult then addHomeRunToPitcher pitcherId else id) &
-    pitching %~ (if isStrikeout playEventResult then addStrikeoutToPitcher pitcherId else id) &
-    pitching %~ (if isWalk playEventResult then addWalkToPitcher pitcherId else id)
+    pitching %~ (if isHit play then addHitToPitcher pitcherId else id) &
+    pitching %~ (if isHomeRun play then addHomeRunToPitcher pitcherId else id) &
+    pitching %~ (if isStrikeout play then addStrikeoutToPitcher pitcherId else id) &
+    pitching %~ (if isWalk play then addWalkToPitcher pitcherId else id)
 
 addToPitcher
   :: Text

@@ -8,16 +8,60 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Baseball.Play where
+module Baseball.Event 
+ ( Event(..)
+ , Substitution(..)
+ , Play(..)
+ , PlayAction(..)
+ , PlayDescriptor(..)
+ , PlayMovement(..)
+ , addPlayMovement
+ , baseBefore
+ , saturatePlayMovements
+ , advanceBatterIfNotOut
+ , fromBool
+ , numRBI
+ , isForceOutDescriptor
+ , isForceOut
+ , isBatterOutOnMovement
+ , isBatterAdvancedOnMovement
+ , isBatterOutOnAction
+ , isBatterOut
+ , isHit
+ , isRBI
+ , isSacrifice
+ , isStrikeout
+ , isWalk
+ , isSacrificeDescriptor
+ , isWildPitch
+ , isPassedBall
+ , isHomeRun
+ , isDefensiveIndifference
+ , isAtBat
+ ) where
 
 import ClassyPrelude hiding (try)
 import Control.Lens
 
 import Baseball.BaseballTypes
 
+data Event 
+  = PlayEvent Play
+  | SubstitutionEvent Substitution 
+  deriving (Eq)
+
+data Substitution
+  = Substitution
+  { subPlayer :: !Text
+  , subTeam :: !HomeOrAway
+  , subBattingPosition :: !BattingOrderPosition
+  , subFieldingPosition :: !FieldingPosition
+  } deriving (Eq)
+
 data Play
   = Play
-  { playActions :: ![PlayAction]
+  { playPlayer :: !Text
+  , playActions :: ![PlayAction]
   , playDescriptors :: ![PlayDescriptor]
   , playMovements :: ![PlayMovement]
   } deriving (Eq, Show, Generic)

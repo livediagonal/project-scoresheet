@@ -14,14 +14,14 @@ library
     , Baseball.BoxScore
     , Baseball.BoxScore.Batting
     , Baseball.BoxScore.Pitching
+    , Baseball.Event
     , Baseball.Game
     , Baseball.Game.FrameState
     , Baseball.Game.GameEvent
     , Baseball.Game.GameState
-    , Retrosheet.Events
-    , Retrosheet.Parser
-    , Baseball.Play
     , Baseball.Roster
+    , Retrosheet.Event
+    , Retrosheet.Parser
   ghc-options: -Wall
   build-depends:
       attoparsec

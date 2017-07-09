@@ -19,8 +19,7 @@ import Generics.Deriving.Monoid hiding ((<>))
 
 import Baseball.BaseballTypes
 import Baseball.Game.FrameState
-import Baseball.Play
-import Retrosheet.Events
+import Baseball.Event
 
 type BattingOrderMap = HashMap BattingOrderPosition [Text]
 
@@ -111,19 +110,19 @@ addPlayerToBatting player battingPosition bs =
       & _battingStats . at player ?~ initialBattingLine player
       & _battingOrder . at battingPosition %~ map (player :)
 
-addPlayToBatting :: PlayEvent -> FrameState -> Batting -> Batting
-addPlayToBatting pe@PlayEvent{..} gs b = b
-  & batting %~ (if isAtBat playEventResult then addAtBatToPlayer playEventPlayerId else id)
-  & batting %~ (if isHit playEventResult then addHitToPlayer playEventPlayerId else id)
-  & batting %~ (if isWalk playEventResult then addWalkToPlayer playEventPlayerId else id)
-  & batting %~ (if isStrikeout playEventResult then addStrikeoutToPlayer playEventPlayerId else id)
-  & batting %~ (if isAtBat playEventResult && isOut pe then addLOB playEventPlayerId playEventResult gs else id)
-  & batting %~ addRBIToPlayer playEventPlayerId (numRBI playEventResult)
-  & batting %~ addRuns playEventPlayerId playEventResult gs
+addPlayToBatting :: Play -> FrameState -> Batting -> Batting
+addPlayToBatting play@Play{..} gs b = b
+  & batting %~ (if isAtBat play then addAtBatToPlayer playPlayer else id)
+  & batting %~ (if isHit play then addHitToPlayer playPlayer else id)
+  & batting %~ (if isWalk play then addWalkToPlayer playPlayer else id)
+  & batting %~ (if isStrikeout play then addStrikeoutToPlayer playPlayer else id)
+  & batting %~ (if isAtBat play && isOut play then addLOB playPlayer play gs else id)
+  & batting %~ addRBIToPlayer playPlayer (numRBI play)
+  & batting %~ addRuns playPlayer play gs
 
-isOut :: PlayEvent -> Bool
-isOut PlayEvent{..} = flip any (playActions playEventResult) $ \a -> case a of
-  Strikeout _ -> not $ any isBatterAdvancedOnMovement (playMovements playEventResult)
+isOut :: Play -> Bool
+isOut Play{..} = flip any playActions $ \a -> case a of
+  Strikeout _ -> not $ any isBatterAdvancedOnMovement playMovements
   FieldersChoice _ -> True
   RoutinePlay _ _ -> True
   Error _ -> True
