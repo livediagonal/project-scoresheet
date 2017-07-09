@@ -40,7 +40,7 @@ updateGameState (SubstitutionEvent sub) = processSubstitution sub
 updateGameState _ = id
 
 currentTeam :: GameState -> HomeOrAway
-currentTeam GameState{..} = 
+currentTeam GameState{..} =
   case gameStateInningState of
     TopInningHalf -> Away
     BottomInningHalf -> Home

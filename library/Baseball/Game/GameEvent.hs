@@ -16,7 +16,7 @@ import Baseball.Game.GameState
 import Baseball.Game.FrameState
 import Baseball.Event
 
-data GameEvent 
+data GameEvent
   = GameEvent
   { gameEventEvent :: !Event
   , gameEventGameState :: !GameState
