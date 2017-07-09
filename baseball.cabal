@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 
-name:           project-scoresheet
+name:           baseball
 version:        1.0.0
 build-type:     Simple
 cabal-version:  >= 1.10
@@ -49,8 +49,8 @@ executable print-box-scores
   ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
   build-depends:
       base
+    , baseball
     , classy-prelude
-    , project-scoresheet
   default-language: Haskell2010
 
 executable batting-stats-csv
@@ -59,9 +59,22 @@ executable batting-stats-csv
   ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
   build-depends:
       base
+    , baseball
     , bytestring
     , classy-prelude
-    , project-scoresheet
+    , string-class
+  default-language: Haskell2010
+
+executable bevent
+  hs-source-dirs: examples
+  main-is: Events.hs
+  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
+  build-depends:
+      base
+    , baseball
+    , bytestring
+    , classy-prelude
+    , optparse-applicative
     , string-class
   default-language: Haskell2010
 
@@ -72,8 +85,8 @@ test-suite test
   ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
   build-depends:
       base
+    , baseball
     , classy-prelude
-    , project-scoresheet
     , hspec-attoparsec
     , tasty
     , tasty-hspec
