@@ -1,0 +1,3 @@
+[submodule "resources/retrosheet"]
+	path = resources/retrosheet
+	url = git@github.com:chadwickbureau/retrosheet.git
