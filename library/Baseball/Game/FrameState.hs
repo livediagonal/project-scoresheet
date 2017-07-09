@@ -23,7 +23,6 @@ import qualified Data.HashMap.Strict as HashMap
 data FrameState
   = FrameState
    { frameStateOuts :: !Int
-   , frameStateBatterId :: !(Maybe Text)
    , frameStateRunnerOnFirst :: !(Maybe BaseRunner)
    , frameStateRunnerOnSecond :: !(Maybe BaseRunner)
    , frameStateRunnerOnThird :: !(Maybe BaseRunner)
@@ -32,7 +31,7 @@ data FrameState
 makeClassy_ ''FrameState
 
 initialFrameState :: FrameState
-initialFrameState = FrameState 0 Nothing Nothing Nothing Nothing
+initialFrameState = FrameState 0 Nothing Nothing Nothing
 
 updateFrameState :: Event -> GameState -> FrameState -> FrameState
 updateFrameState (SubstitutionEvent sub) gs fs = processSubstitution sub gs fs

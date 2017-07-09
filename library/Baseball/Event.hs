@@ -21,7 +21,6 @@ module Baseball.Event
  , saturatePlayMovements
  , advanceBatterIfNotOut
  , fromBool
- , numRBI
  , isForceOutDescriptor
  , isForceOut
  , isBatterOutOnMovement
@@ -40,7 +39,10 @@ module Baseball.Event
  , isDefensiveIndifference
  , isAtBat
  , isMovementEarned
- , isScoredRun
+ , isRunOnMovement
+ , numOuts
+ , numRBI
+ , numRuns
  , if'
  , (?)
  ) where
@@ -195,9 +197,13 @@ fromBool :: Bool -> Int
 fromBool False = 0
 fromBool True = 1
 
-isScoredRun :: PlayMovement -> Bool
-isScoredRun (PlayMovement _ HomePlate True _) = True
-isScoredRun _ = False
+isRunOnMovement :: PlayMovement -> Bool
+isRunOnMovement (PlayMovement _ HomePlate True _) = True
+isRunOnMovement _ = False
+
+isOutOnMovement :: PlayMovement -> Bool
+isOutOnMovement (PlayMovement _ _ False _) = True
+isOutOnMovement _ = False
 
 if' :: Bool -> a -> a -> a
 if' True  x _ = x
@@ -208,7 +214,10 @@ infixl 1 ?
 (?) = if'
 
 numRuns :: Play -> Int
-numRuns p@Play{..} = length (filter isScoredRun playMovements) + (isHomeRun p ? 1 $ 0)
+numRuns p@Play{..} = length (filter isRunOnMovement playMovements) + (isHomeRun p ? 1 $ 0)
+
+numOuts :: Play -> Int
+numOuts p@Play{..} = length (filter isOutOnMovement playMovements) + (isBatterOut p ? 1 $ 0)
 
 numRBI :: Play -> Int
 numRBI p@Play{..} =

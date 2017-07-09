@@ -40,6 +40,7 @@ data PitchingLine
   , pitchingLineHomeRuns :: !Int
   , pitchingLineRuns :: !Int
   , pitchingLineEarnedRuns :: !Int
+  , pitchingLineOutsPitched :: !Int
   } deriving (Eq, Show, Generic)
 
 makeClassy_ ''Pitching
@@ -57,7 +58,7 @@ initialPitching :: Pitching
 initialPitching = Pitching InsOrdHashMap.empty
 
 initialPitchingLine :: Text -> PitchingLine
-initialPitchingLine player = PitchingLine player 0 0 0 0 0 0
+initialPitchingLine player = PitchingLine player 0 0 0 0 0 0 0
 
 addPlayerToPitching :: Text -> FieldingPosition -> Pitching -> Pitching
 addPlayerToPitching player Pitcher p =
@@ -75,6 +76,7 @@ addPlayToPitching play gs@GameState{..} fs p =
     pitching %~ (if isHomeRun play then addHomeRunToPitcher pitcherId else id) &
     pitching %~ (if isStrikeout play then addStrikeoutToPitcher pitcherId else id) &
     pitching %~ (if isWalk play then addWalkToPitcher pitcherId else id) &
+    pitching %~ addOutsPitchedToPitcher pitcherId (numOuts play) &
     pitching %~ addRunsToPitchers fs batter play
 
 addToPitcher
@@ -120,6 +122,9 @@ chargePitcherForMovement fs batter move@(PlayMovement startBase HomePlate True _
     addRunToPitcher baseRunnerResponsiblePitcherId
 chargePitcherForMovement _ _ _ = id
 
+addOutsPitchedToPitcher :: Text -> Int -> Pitching -> Pitching
+addOutsPitchedToPitcher pitcher outs = addToPitcher pitcher outs _pitchingLineOutsPitched
+
 addRunsToPitchers :: FrameState -> BaseRunner -> Play -> Pitching -> Pitching
 addRunsToPitchers fs batter Play{..} p = foldr (chargePitcherForMovement fs batter) p playMovements
 
@@ -138,7 +143,8 @@ prettyPrintPitchingLines pls = unlines $ map prettyPrintPitchingLine (InsOrdHash
 
 prettyPrintPitchingLine :: PitchingLine -> Text
 prettyPrintPitchingLine PitchingLine{..} = pitchingLinePlayerId
-  <> "          "
+  <> "      "
+  <> prettyColumn (tshow (pitchingLineOutsPitched `div` 3) <> "." <> tshow (pitchingLineOutsPitched `mod` 3))
   <> prettyColumn (tshow pitchingLineHits)
   <> prettyColumn (tshow pitchingLineRuns)
   <> prettyColumn (tshow pitchingLineEarnedRuns)
