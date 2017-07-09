@@ -190,7 +190,7 @@ isHit Play{..} =
     _ -> False
 
 isRBI :: PlayMovement -> Bool
-isRBI (PlayMovement _ HomePlate True _) = True
+isRBI (PlayMovement _ HomePlate True descriptors) = not $ any (\d -> case d of PlayMovementNoRBI -> True; _ -> False) descriptors
 isRBI _ = False
 
 fromBool :: Bool -> Int
