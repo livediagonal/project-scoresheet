@@ -43,14 +43,27 @@ library
     , vector
   default-language: Haskell2010
 
-executable print-box-scores
+executable boxscore
   hs-source-dirs: examples
-  main-is: PrintBoxScores.hs
+  main-is: BoxScores.hs
   ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
   build-depends:
       base
     , baseball
     , classy-prelude
+    , optparse-applicative
+  default-language: Haskell2010
+
+executable event
+  hs-source-dirs: examples
+  main-is: Events.hs
+  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
+  build-depends:
+      base
+    , baseball
+    , classy-prelude
+    , optparse-applicative
+    , string-class
   default-language: Haskell2010
 
 executable batting-stats-csv
@@ -62,19 +75,6 @@ executable batting-stats-csv
     , baseball
     , bytestring
     , classy-prelude
-    , string-class
-  default-language: Haskell2010
-
-executable bevent
-  hs-source-dirs: examples
-  main-is: Events.hs
-  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
-  build-depends:
-      base
-    , baseball
-    , bytestring
-    , classy-prelude
-    , optparse-applicative
     , string-class
   default-language: Haskell2010
 

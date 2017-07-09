@@ -6,7 +6,8 @@ Open-source Haskell library for modeling baseball and working with [Retrosheet e
 
 ```
 stack build
-stack exec print-box-scores testgames.txt
+stack exec -- boxscore -y 2016 -t bos
+stack exec -- event -y 2016 -t bos
 ```
 
 ## Pulling in Retrosheet data
