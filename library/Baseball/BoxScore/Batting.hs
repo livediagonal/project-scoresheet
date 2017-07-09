@@ -11,8 +11,8 @@ module Baseball.BoxScore.Batting where
 
 import ClassyPrelude hiding (replicate)
 import Control.Lens hiding ((.=))
-import Data.Csv
 import qualified Data.ByteString.Lazy as BL
+import Data.Csv
 import qualified Data.HashMap.Strict as HashMap
 import Data.Text (replicate)
 import Generics.Deriving.Monoid hiding ((<>))

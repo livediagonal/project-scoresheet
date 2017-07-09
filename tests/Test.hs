@@ -83,7 +83,6 @@ spec = describe "Play" $ do
           isBatterOut p `shouldBe` True
 
   describe "parsePlayAction" $ do
-
     let
       shouldParseAsPlay :: Text -> PlayAction -> Expectation
       shouldParseAsPlay t pa = do

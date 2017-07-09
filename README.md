@@ -9,6 +9,12 @@ stack build
 stack exec print-box-scores testgames.txt
 ```
 
+## Pulling in Retrosheet data
+Chadwick Bureau maintains a git repository containing the Retrosheet data files. This repository is setup as a submodule.
+
+Run `git submodule init` to initialize the submodule,
+and `git submodule update` to populate or update the data.
+
 ## Loading batting stats into Postgres
 This assumes Postgres is already set up with user `postgres` for a local database
 `baseball`:

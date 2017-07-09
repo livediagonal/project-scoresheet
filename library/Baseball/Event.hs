@@ -16,6 +16,7 @@ module Baseball.Event
  , PlayDescriptor(..)
  , PlayMovement(..)
  , PlayMovementDescriptor(..)
+ , encode
  , addPlayMovement
  , baseBefore
  , saturatePlayMovements
@@ -49,6 +50,7 @@ module Baseball.Event
 
 import ClassyPrelude hiding (try)
 import Control.Lens
+import Data.Csv
 
 import Baseball.BaseballTypes
 
@@ -283,3 +285,14 @@ isDefensiveIndifference Play{..} =
   flip any playActions $ \a -> case a of
     DefensiveIndifference -> True
     _ -> False
+
+-- sandbox --
+
+instance ToRecord Event where
+  toRecord (PlayEvent Play{..}) = record
+    [ toField playPlayer
+    ]
+
+  toRecord (SubstitutionEvent Substitution{..}) = record
+    [ toField subPlayer
+    ]
