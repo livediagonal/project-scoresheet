@@ -52,4 +52,4 @@ rosterFilePath year team =
 
 printGameEvents :: Game -> IO ()
 printGameEvents Game{..} =
-  putStr $ (encode . map gameEventEvent) gameEvents
+  putStr $ toCsv gameEvents

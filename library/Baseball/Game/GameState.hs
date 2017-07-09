@@ -33,7 +33,7 @@ data GameState
 makeClassy_ ''GameState
 
 initialGameState :: GameState
-initialGameState = GameState 0 TopInningHalf initialFieldingLineup initialFieldingLineup initialBattingOrder initialBattingOrder
+initialGameState = GameState 1 TopInningHalf initialFieldingLineup initialFieldingLineup initialBattingOrder initialBattingOrder
 
 updateGameState :: Event -> GameState -> GameState
 updateGameState (SubstitutionEvent sub) = processSubstitution sub
@@ -47,11 +47,12 @@ currentTeam GameState{..} =
 
 advanceHalfInning :: GameState -> GameState
 advanceHalfInning gs =
-  gs &
-  _gameStateInning %~ (+1) &
-  _gameStateInningState .~ case gameStateInningState gs of
-    TopInningHalf -> BottomInningHalf
-    BottomInningHalf -> TopInningHalf
+  case gameStateInningState gs of
+    TopInningHalf -> gs &
+      _gameStateInningState .~ BottomInningHalf
+    BottomInningHalf -> gs &
+      _gameStateInning %~ (+1) &
+      _gameStateInningState .~ TopInningHalf
 
 processSubstitution :: Substitution -> GameState -> GameState
 processSubstitution Substitution{..} =

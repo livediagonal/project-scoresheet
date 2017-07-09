@@ -7,10 +7,13 @@ module Baseball.Game.GameEvent
   ( GameEvent(..)
   , initialGameEvent
   , nextGameEvent
+  , toCsv
   ) where
 
 import ClassyPrelude
 import Control.Lens
+import qualified Data.ByteString.Lazy as BL
+import Data.Csv
 
 import Baseball.Game.GameState
 import Baseball.Game.FrameState
@@ -44,3 +47,19 @@ nextGameEvent event previousGameEvent@GameEvent{..} =
         _gameEventEvent .~ event &
         _gameEventFrameState .~ updatedFrameState &
         _gameEventGameState %~ updateGameState gameEventEvent
+
+toCsv :: [GameEvent] -> BL.ByteString
+toCsv ges = encodeWith (defaultEncodeOptions {encQuoting = QuoteNone}) ges
+
+instance ToRecord GameEvent where
+  toRecord (GameEvent (PlayEvent play) gs fs) = record
+    [ toField (gameStateInning gs)
+    , toField (frameStateOuts fs)
+    , toField (show $ playPlayer play)
+    ]
+
+  toRecord (GameEvent (SubstitutionEvent Substitution{..}) gs fs) = record
+    [ toField (gameStateInning gs)
+    , toField (frameStateOuts fs)
+    , toField (show subPlayer)
+    ]
