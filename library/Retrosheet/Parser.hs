@@ -88,7 +88,7 @@ parseCaughtStealing = string "CS" *> (CaughtStealing <$> parseNumericBase <*> op
 parsePickoff :: Parser PlayAction
 parsePickoff = do
   pickoff <- try (string "POCS" *> pure (Pickoff True)) <|> (string "PO" *> pure (Pickoff False))
-  pickoff <$> parseNumericBase <*> optional (parseParenthetical parseFieldingPositions)
+  pickoff <$> parseNumericBase <*> map isJust (optional (parseParenthetical parseError)) <*> optional (parseParenthetical parseFieldingPositions)
 
 parseParenthetical :: Parser a -> Parser a
 parseParenthetical delegate = char '(' *> delegate <* char ')'
@@ -152,7 +152,7 @@ parseHitByPitch = string "HP" *> pure HitByPitch
 parseError :: Parser PlayAction
 parseError = do
   try (void $ string "FLE") <|> void (char 'E')
-  Error <$> try parseFieldingPosition
+  Error <$> parseFieldingPosition
 
 parsePlayDescriptor :: Parser PlayDescriptor
 parsePlayDescriptor = do

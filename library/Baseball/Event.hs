@@ -80,15 +80,15 @@ data PlayAction
   | Hit Base (Maybe [FieldingPosition])
   | StolenBase Base
   | CaughtStealing Base (Maybe [FieldingPosition])
-  | Pickoff Bool Base (Maybe [FieldingPosition])
+  | Pickoff Bool Base Bool (Maybe [FieldingPosition])
   | WildPitch
   | PassedBall
   | DefensiveIndifference
+  | Error FieldingPosition
   | Walk Bool
   | NoPlay
   | Balk
   | HitByPitch
-  | Error FieldingPosition
   deriving (Eq, Show)
 
 data PlayDescriptor
@@ -166,7 +166,7 @@ saturatePlayMovements p@Play{..} =
       Hit base _ -> over _playMovements (if isBatterOut p then id else addPlayMovement (PlayMovement HomePlate base True []))
       StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True []))
       CaughtStealing base _ -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base False []))
-      Pickoff _ base _ -> over _playMovements (addPlayMovement (PlayMovement base base False []))
+      Pickoff _ base False _ -> over _playMovements (addPlayMovement (PlayMovement base base False []))
       FieldersChoice _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
       RoutinePlay _ (Just startingBase) -> over _playMovements (addPlayMovement (PlayMovement startingBase HomePlate False []))
       _ -> id
