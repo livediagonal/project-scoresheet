@@ -67,7 +67,7 @@ addPlayerToPitching player Pitcher p =
 addPlayerToPitching _ _ p = p
 
 addPlayToPitching :: Play -> GameState -> FrameState -> Pitching -> Pitching
-addPlayToPitching play gs@GameState{..} fs p =
+addPlayToPitching play gs fs p =
   let
     pitcherId = currentPitcherId gs
     batter = BaseRunner (playPlayer play) pitcherId
@@ -117,7 +117,7 @@ addEarnedRunToPitcher pitcher = addOneToPitcher pitcher _pitchingLineEarnedRuns
 chargePitcherForMovement :: FrameState -> BaseRunner -> PlayMovement -> Pitching -> Pitching
 chargePitcherForMovement fs batter move@(PlayMovement startBase HomePlate True _) =
   let
-    Just BaseRunner{..} = runnerOnBaseOrBatter batter startBase fs
+    Just BaseRunner{..} = runnerOnBaseOrBatter batter (traceShowId startBase) (debugFrameState fs)
   in
     (isMovementEarned move ? addEarnedRunToPitcher baseRunnerResponsiblePitcherId $ id) .
     addRunToPitcher baseRunnerResponsiblePitcherId
