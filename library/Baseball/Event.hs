@@ -80,15 +80,16 @@ data PlayAction
   | Hit Base (Maybe [FieldingPosition])
   | StolenBase Base
   | CaughtStealing Base (Maybe [FieldingPosition])
-  | Pickoff Bool Base (Maybe [FieldingPosition])
+  | Pickoff Bool Base Bool (Maybe [FieldingPosition])
   | WildPitch
   | PassedBall
   | DefensiveIndifference
+  | Error FieldingPosition
+  | ErrorFoulFly FieldingPosition
   | Walk Bool
   | NoPlay
   | Balk
   | HitByPitch
-  | Error FieldingPosition
   deriving (Eq, Show)
 
 data PlayDescriptor
@@ -164,9 +165,9 @@ saturatePlayMovements p@Play{..} =
       Walk _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
       HitByPitch -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
       Hit base _ -> over _playMovements (if isBatterOut p then id else addPlayMovement (PlayMovement HomePlate base True []))
-      StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True []))
+      StolenBase base -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base True [PlayMovementNoRBI]))
       CaughtStealing base _ -> over _playMovements (addPlayMovement (PlayMovement (baseBefore base) base False []))
-      Pickoff _ base _ -> over _playMovements (addPlayMovement (PlayMovement base base False []))
+      Pickoff _ base False _ -> over _playMovements (addPlayMovement (PlayMovement base base False []))
       FieldersChoice _ -> over _playMovements (addPlayMovement (PlayMovement HomePlate FirstBase True []))
       RoutinePlay _ (Just startingBase) -> over _playMovements (addPlayMovement (PlayMovement startingBase HomePlate False []))
       _ -> id
@@ -190,7 +191,7 @@ isHit Play{..} =
     _ -> False
 
 isRBI :: PlayMovement -> Bool
-isRBI (PlayMovement _ HomePlate True _) = True
+isRBI (PlayMovement _ HomePlate True descriptors) = not $ any (\d -> case d of PlayMovementNoRBI -> True; _ -> False) descriptors
 isRBI _ = False
 
 fromBool :: Bool -> Int
@@ -248,6 +249,7 @@ isAtBat p@Play{..} =
     NoPlay -> False
     StolenBase _ -> False
     RoutinePlay _ _ -> not $ isSacrifice p
+    ErrorFoulFly _ -> False
     _ -> True
 
 isWalk :: Play -> Bool
