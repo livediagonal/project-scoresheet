@@ -5,15 +5,17 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Baseball.Game.FrameState
-  ( FrameState(..)
+  ( debugFrameState
+  , debugEventInFrame
   , initialFrameState
-  , updateFrameState
   , runnerOnBase
+  , runnerOnBaseOrBatter
+  , updateFrameState
+  , FrameState(..)
   ) where
 
 import ClassyPrelude
 import Control.Lens
-import Data.List (elemIndex)
 
 import Baseball.BaseballTypes
 import Baseball.Game.GameState
@@ -25,9 +27,9 @@ data FrameState
   = FrameState
    { frameStateOuts :: !Int
    , frameStateBatterId :: !(Maybe Text)
-   , frameStateRunnerOnFirstId :: !(Maybe Text)
-   , frameStateRunnerOnSecondId :: !(Maybe Text)
-   , frameStateRunnerOnThirdId :: !(Maybe Text)
+   , frameStateRunnerOnFirst :: !(Maybe BaseRunner)
+   , frameStateRunnerOnSecond :: !(Maybe BaseRunner)
+   , frameStateRunnerOnThird :: !(Maybe BaseRunner)
   } deriving (Eq, Show)
 
 makeClassy_ ''FrameState
@@ -42,21 +44,23 @@ debugEventInFrame _ fs = fs
 
 debugFrameState :: FrameState -> FrameState
 debugFrameState fs@FrameState{..} = trace (unlines $ ("Outs: " ++ show frameStateOuts) : catMaybes
-  [ (("1: " ++) . show) <$> frameStateRunnerOnFirstId
-  , (("2: " ++) . show) <$> frameStateRunnerOnSecondId
-  , (("3: " ++) . show) <$> frameStateRunnerOnThirdId
+  [ (("1: " ++) . show) <$> frameStateRunnerOnFirst
+  , (("2: " ++) . show) <$> frameStateRunnerOnSecond
+  , (("3: " ++) . show) <$> frameStateRunnerOnThird
   ]) fs
 
 updateFrameState :: Event -> GameState -> FrameState -> FrameState
-updateFrameState e@(PlayEventType (PlayEvent _ _ playerId _ _ p@(Play _ _ movements))) gs fs =
-  fs
-  & _frameStateBatterId .~ Just playerId
-  & frameState %~ \state -> foldl' (applyRunnerMovement playerId) state movements
-  & _frameStateOuts %~ (if isBatterOut p then (+1) else id)
-  & frameState %~ \state' ->
-    if frameStateOuts state' == 3
-    then initialFrameState
-    else state'
+updateFrameState (PlayEventType (PlayEvent _ homeOrAway playerId _ _ p@(Play _ _ movements))) gs fs =
+  let
+    pitcherId = pitcherIdWhenBatting gs homeOrAway
+    batter = BaseRunner playerId pitcherId
+  in fs
+    & frameState %~ \state -> foldl' (applyRunnerMovement batter) state movements
+    & _frameStateOuts %~ (if isBatterOut p then (+1) else id)
+    & frameState %~ \state' ->
+      if frameStateOuts state' == 3
+      then initialFrameState
+      else state'
 updateFrameState (SubEventType SubEvent{..}) GameState{..} fs@FrameState{..} =
   let
     replacedBatter :: Text
@@ -70,48 +74,43 @@ updateFrameState _ _ fs = fs
 
 replaceRunner :: Text -> Text -> FrameState -> FrameState
 replaceRunner originalRunner newRunner fs =
-  case baseForRunner originalRunner fs of
-    Nothing -> fs
-    Just base -> addPlayerToBase (Just newRunner) base fs
+  let
+    updateRunner runnerLens = over runnerLens (map (over _baseRunnerPlayerId (\runner -> runner == originalRunner ? newRunner $ runner)))
+  in
+    foldr updateRunner fs [_frameStateRunnerOnFirst, _frameStateRunnerOnSecond, _frameStateRunnerOnThird]
 
-runnerOnBase :: Base -> FrameState -> Maybe Text
-runnerOnBase FirstBase = frameStateRunnerOnFirstId
-runnerOnBase SecondBase = frameStateRunnerOnSecondId
-runnerOnBase ThirdBase = frameStateRunnerOnThirdId
-runnerOnBase _ = const Nothing
-
-applyRunnerMovement :: Text -> FrameState -> PlayMovement -> FrameState
+applyRunnerMovement :: BaseRunner -> FrameState -> PlayMovement -> FrameState
 applyRunnerMovement _ gs (PlayMovement HomePlate _ False) = gs -- Hack: need cleaner way of not double-counting batter outs
 applyRunnerMovement _ gs (PlayMovement startBase _ False) =
-  removePlayerFromBase startBase gs
+  removeRunnerFromBase startBase gs
   & _frameStateOuts %~ (+1)
-applyRunnerMovement batterId gs (PlayMovement startBase endBase True) = gs
-  & frameState %~ addPlayerToBase (playerOnBase batterId startBase gs) endBase
-  & frameState %~ removePlayerFromBase startBase
+applyRunnerMovement batter gs (PlayMovement startBase endBase True) = gs
+  & frameState %~ addRunnerToBase (runnerOnBaseOrBatter batter startBase gs) endBase
+  & frameState %~ removeRunnerFromBase startBase
 
-removePlayerFromBase :: Base -> FrameState -> FrameState
-removePlayerFromBase base = addPlayerToBase Nothing base
+removeRunnerFromBase :: Base -> FrameState -> FrameState
+removeRunnerFromBase base = addRunnerToBase Nothing base
 
-addPlayerToBase :: Maybe Text -> Base -> FrameState -> FrameState
-addPlayerToBase playerId base =
+addRunnerToBase :: Maybe BaseRunner -> Base -> FrameState -> FrameState
+addRunnerToBase mBaseRunner base =
   case base of
-    FirstBase -> _frameStateRunnerOnFirstId .~ playerId
-    SecondBase -> _frameStateRunnerOnSecondId .~ playerId
-    ThirdBase -> _frameStateRunnerOnThirdId .~ playerId
+    FirstBase -> _frameStateRunnerOnFirst .~ mBaseRunner
+    SecondBase -> _frameStateRunnerOnSecond .~ mBaseRunner
+    ThirdBase -> _frameStateRunnerOnThird .~ mBaseRunner
     _ -> id
 
-baseForRunner :: Text -> FrameState -> Maybe Base
-baseForRunner playerId FrameState{..} =
-  case elemIndex (Just playerId) [frameStateRunnerOnFirstId, frameStateRunnerOnSecondId, frameStateRunnerOnThirdId] of
-    Just 0 -> Just FirstBase
-    Just 1 -> Just SecondBase
-    Just 2 -> Just ThirdBase
-    _ -> Nothing
-
-playerOnBase :: Text -> Base -> FrameState -> Maybe Text
-playerOnBase batterId base FrameState{..} =
+runnerOnBase :: Base -> FrameState -> Maybe BaseRunner
+runnerOnBase base FrameState{..} =
   case base of
-    FirstBase -> frameStateRunnerOnFirstId
-    SecondBase -> frameStateRunnerOnSecondId
-    ThirdBase -> frameStateRunnerOnThirdId
-    HomePlate -> Just batterId
+    FirstBase -> frameStateRunnerOnFirst
+    SecondBase -> frameStateRunnerOnSecond
+    ThirdBase -> frameStateRunnerOnThird
+    HomePlate -> Nothing
+
+runnerOnBaseOrBatter :: BaseRunner -> Base -> FrameState -> Maybe BaseRunner
+runnerOnBaseOrBatter batter base FrameState{..} =
+  case base of
+    FirstBase -> frameStateRunnerOnFirst
+    SecondBase -> frameStateRunnerOnSecond
+    ThirdBase -> frameStateRunnerOnThird
+    HomePlate -> Just batter

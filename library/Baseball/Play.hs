@@ -131,6 +131,21 @@ fromBool :: Bool -> Int
 fromBool False = 0
 fromBool True = 1
 
+isScoredRun :: PlayMovement -> Bool
+isScoredRun (PlayMovement _ HomePlate True) = True
+isScoredRun _ = False
+
+if' :: Bool -> a -> a -> a
+if' True  x _ = x
+if' False _ y = y
+
+infixl 1 ?
+(?) :: Bool -> a -> a -> a
+(?) = if'
+
+numRuns :: Play -> Int
+numRuns p@Play{..} = length (filter isScoredRun playMovements) + (isHomeRun p ? 1 $ 0)
+
 numRBI :: Play -> Int
 numRBI p@Play{..} =
   if isWildPitch p || isPassedBall p || isDefensiveIndifference p

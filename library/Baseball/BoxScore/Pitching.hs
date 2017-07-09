@@ -18,12 +18,12 @@ import ClassyPrelude hiding (replicate)
 import Control.Lens
 
 import Baseball.BaseballTypes
+import Baseball.Game.FrameState
 import Baseball.Game.GameState
 import Baseball.Play
 import Retrosheet.Events
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Data.Text (replicate)
-import qualified Data.HashMap.Strict as HashMap
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Generics.Deriving.Monoid hiding ((<>))
 
@@ -39,6 +39,7 @@ data PitchingLine
   , pitchingLineWalks :: !Int
   , pitchingLineHits :: !Int
   , pitchingLineHomeRuns :: !Int
+  , pitchingLineRuns :: !Int
   } deriving (Eq, Show, Generic)
 
 makeClassy_ ''Pitching
@@ -56,24 +57,24 @@ initialPitching :: Pitching
 initialPitching = Pitching InsOrdHashMap.empty
 
 initialPitchingLine :: Text -> PitchingLine
-initialPitchingLine player = PitchingLine player 0 0 0 0
+initialPitchingLine player = PitchingLine player 0 0 0 0 0
 
 addPlayerToPitching :: Text -> FieldingPosition -> Pitching -> Pitching
 addPlayerToPitching player Pitcher = _pitchingStats %~ (at player ?~ initialPitchingLine player)
 addPlayerToPitching _ _ = id
 
-addPlayToPitching :: PlayEvent -> GameState -> Pitching -> Pitching
-addPlayToPitching PlayEvent{..} GameState{..} p =
+addPlayToPitching :: PlayEvent -> GameState -> FrameState -> Pitching -> Pitching
+addPlayToPitching PlayEvent{..} gs@GameState{..} fs p =
   let
-    pitcherId = case playEventHomeOrAway of
-      Away -> gameStateHomeLineup HashMap.! Pitcher
-      Home -> gameStateAwayLineup HashMap.! Pitcher
+    pitcherId = pitcherIdWhenBatting gs playEventHomeOrAway
+    batter = BaseRunner playEventPlayerId pitcherId
   in
     p &
     pitching %~ (if isHit playEventResult then addHitToPitcher pitcherId else id) &
     pitching %~ (if isHomeRun playEventResult then addHomeRunToPitcher pitcherId else id) &
     pitching %~ (if isStrikeout playEventResult then addStrikeoutToPitcher pitcherId else id) &
-    pitching %~ (if isWalk playEventResult then addWalkToPitcher pitcherId else id)
+    pitching %~ (if isWalk playEventResult then addWalkToPitcher pitcherId else id) &
+    pitching %~ addRunsToPitchers fs batter playEventResult
 
 addToPitcher
   :: Text
@@ -103,6 +104,20 @@ addStrikeoutToPitcher pitcher = addOneToPitcher pitcher _pitchingLineStrikeouts
 addWalkToPitcher :: Text -> Pitching -> Pitching
 addWalkToPitcher pitcher = addOneToPitcher pitcher _pitchingLineWalks
 
+addRunToPitcher :: Text -> Pitching -> Pitching
+addRunToPitcher pitcher = addOneToPitcher pitcher _pitchingLineRuns
+
+chargePitcherForMovement :: FrameState -> BaseRunner -> PlayMovement -> Pitching -> Pitching
+chargePitcherForMovement fs batter (PlayMovement startBase HomePlate True) =
+  let
+    Just BaseRunner{..} = runnerOnBaseOrBatter batter startBase fs
+  in
+    addRunToPitcher baseRunnerResponsiblePitcherId
+chargePitcherForMovement _ _ _ = id
+
+addRunsToPitchers :: FrameState -> BaseRunner -> Play -> Pitching -> Pitching
+addRunsToPitchers fs batter Play{..} p = foldr (chargePitcherForMovement fs batter) p playMovements
+
 prettyPrintPitching :: Pitching -> Text
 prettyPrintPitching Pitching{..} = unlines
   [ "-------------------------------------------"
@@ -120,7 +135,8 @@ prettyPrintPitchingLine :: PitchingLine -> Text
 prettyPrintPitchingLine PitchingLine{..} = pitchingLinePlayerId
   <> "          "
   <> prettyColumn (tshow pitchingLineHits)
-  <> "         "
+  <> prettyColumn (tshow pitchingLineRuns)
+  <> "     "
   <> prettyColumn (tshow pitchingLineWalks)
   <> prettyColumn (tshow pitchingLineStrikeouts)
   <> prettyColumn (tshow pitchingLineHomeRuns)

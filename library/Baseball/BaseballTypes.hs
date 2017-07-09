@@ -3,10 +3,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Baseball.BaseballTypes where
 
 import ClassyPrelude
+import Control.Lens
 import Data.Csv
 import Data.Hashable
 import qualified Data.HashMap.Strict as HashMap
@@ -23,6 +25,14 @@ data Base
   | SecondBase
   | ThirdBase
   deriving (Eq, Show, Enum, Ord)
+
+data BaseRunner
+  = BaseRunner
+  { baseRunnerPlayerId :: !Text
+  , baseRunnerResponsiblePitcherId :: !Text
+  } deriving (Eq, Show)
+
+makeClassy_ ''BaseRunner
 
 data FieldingPosition
   = Pitcher

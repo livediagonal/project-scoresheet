@@ -7,11 +7,13 @@
 module Baseball.Game.GameState
   ( GameState(..)
   , initialGameState
+  , pitcherIdWhenBatting
   , updateGameState
   ) where
 
 import ClassyPrelude
 import Control.Lens
+import Data.HashMap.Strict ((!))
 
 import Baseball.BaseballTypes
 import Retrosheet.Events
@@ -61,3 +63,9 @@ processSubEvent SubEvent{..} =
     Home ->
       over _gameStateHomeBattingOrder (addToBattingOrder subEventPlayer subEventBattingPosition) .
       over _gameStateHomeLineup (addToFieldingLineup subEventPlayer subEventFieldingPosition)
+
+pitcherIdWhenBatting :: GameState -> HomeOrAway -> Text
+pitcherIdWhenBatting GameState{..} battingSide =
+  case battingSide of
+    Away -> gameStateHomeLineup ! Pitcher
+    Home -> gameStateAwayLineup ! Pitcher
