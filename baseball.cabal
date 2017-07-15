@@ -22,6 +22,7 @@ library
     , Baseball.Roster
     , Retrosheet.Event
     , Retrosheet.Parser
+    , Retrosheet.Serializer
   ghc-options: -Wall
   build-depends:
       attoparsec

@@ -10,8 +10,8 @@ import Data.Semigroup ((<>))
 import Data.String.Class (putStr)
 
 import Baseball.Game
-import Baseball.Game.GameEvent
 import Retrosheet.Parser
+import Retrosheet.Serializer
 
 main :: IO ()
 main = generateEvents =<< execParser opts
