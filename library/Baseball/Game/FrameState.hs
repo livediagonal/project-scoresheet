@@ -42,7 +42,7 @@ updateFrameState (PlayEvent play) gs fs = processPlay play gs fs
 processPlay :: Play -> GameState -> FrameState -> FrameState
 processPlay p@(Play playerId _ _ movements) gs fs =
   let
-    pitcherId = currentPitcherId gs
+    pitcherId = playerAtPosition Pitcher gs
     batter = BaseRunner playerId pitcherId
   in fs
     & frameState %~ \state -> foldl' (applyRunnerMovement batter) state movements

@@ -4,17 +4,16 @@
 
 module Main where
 
-import ClassyPrelude hiding (putStr)
+import ClassyPrelude
 import Options.Applicative
 import Data.Semigroup ((<>))
-import Data.String.Class (putStr)
 
+import Baseball.BoxScore
 import Baseball.Game
 import Retrosheet.Parser
-import Retrosheet.Serializer
 
 main :: IO ()
-main = generateEvents =<< execParser opts
+main = generateBoxScores =<< execParser opts
   where
     opts = info (parser <**> helper)
       ( fullDesc <>
@@ -38,17 +37,14 @@ parser = Options
   <*> strOption
     ( long "team" <> short 't' <> help "Team to process")
 
-generateEvents :: Options -> IO ()
-generateEvents Options{..} = gamesFromFilePath (eventFilePath optionsYear optionsTeam) >>= mapM_ printGameEvents
+generateBoxScores :: Options -> IO ()
+generateBoxScores Options{..} = gamesFromFilePath (eventFilePath optionsYear optionsTeam) >>= mapM_ printGameAndBoxScore
+
+printGameAndBoxScore :: Game -> IO ()
+printGameAndBoxScore g = do
+  putStrLn $ prettyPrintGameInfo g
+  putStrLn $ prettyPrintBoxScore $ generateBoxScore g
 
 eventFilePath :: Year -> Team -> String
 eventFilePath year team =
   "resources/retrosheet/event/regular/" <> year <> toUpper team <> ".EVA"
-
-rosterFilePath :: Year -> Team -> String
-rosterFilePath year team =
-  "resources/retrosheet/event/regular/" <> toUpper team <> year <> ".ROS"
-
-printGameEvents :: Game -> IO ()
-printGameEvents Game{..} =
-  putStr $ toCsv gameEvents

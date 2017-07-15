@@ -69,7 +69,7 @@ addPlayerToPitching _ _ p = p
 addPlayToPitching :: Play -> GameState -> FrameState -> Pitching -> Pitching
 addPlayToPitching play gs fs p =
   let
-    pitcherId = currentPitcherId gs
+    pitcherId = playerAtPosition Pitcher gs
     batter = BaseRunner (playPlayer play) pitcherId
   in
     p &
