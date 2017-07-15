@@ -7,7 +7,7 @@
 module Baseball.Game.GameState
   ( GameState(..)
   , initialGameState
-  , currentPitcherId
+  , playerAtPosition
   , updateGameState
   , advanceHalfInning
   , currentTeam
@@ -45,6 +45,11 @@ currentTeam GameState{..} =
     TopInningHalf -> Away
     BottomInningHalf -> Home
 
+playerAtPosition :: FieldingPosition -> GameState -> Text
+playerAtPosition pos GameState{..} = case gameStateInningState of
+  TopInningHalf -> gameStateHomeLineup ! pos
+  BottomInningHalf -> gameStateAwayLineup ! pos
+
 advanceHalfInning :: GameState -> GameState
 advanceHalfInning gs =
   case gameStateInningState gs of
@@ -63,9 +68,3 @@ processSubstitution Substitution{..} =
     Home ->
       over _gameStateHomeBattingOrder (addToBattingOrder subPlayer subBattingPosition) .
       over _gameStateHomeLineup (addToFieldingLineup subPlayer subFieldingPosition)
-
-currentPitcherId :: GameState -> Text
-currentPitcherId GameState{..} =
-  case gameStateInningState of
-    TopInningHalf -> gameStateHomeLineup ! Pitcher
-    BottomInningHalf -> gameStateAwayLineup ! Pitcher
