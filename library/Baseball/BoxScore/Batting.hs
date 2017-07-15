@@ -125,7 +125,7 @@ isOut Play{..} = flip any playActions $ \a -> case a of
   Strikeout _ -> not $ any isBatterAdvancedOnMovement playMovements
   FieldersChoice _ -> True
   RoutinePlay _ _ -> True
-  Error _ -> True
+  Error _ _ -> True
   _ -> False
 
 numNotLeftOnBase :: Play -> Int

@@ -151,8 +151,9 @@ parseHitByPitch :: Parser PlayAction
 parseHitByPitch = string "HP" *> pure HitByPitch
 
 parseError :: Parser PlayAction
-parseError =
-  char 'E' *> map Error parseFieldingPosition
+parseError = do
+  mThrower <- optional parseFieldingPosition
+  char 'E' *> map (flip Error mThrower) parseFieldingPosition
 
 parseErrorFoulFly :: Parser PlayAction
 parseErrorFoulFly =

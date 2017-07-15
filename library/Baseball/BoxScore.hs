@@ -20,14 +20,14 @@ import Baseball.Event
 
 data BoxScore
   = BoxScore
-  { boxScoreHomeTeam :: TeamStatistics
-  , boxScoreAwayTeam :: TeamStatistics
+  { boxScoreHomeTeam :: !TeamStatistics
+  , boxScoreAwayTeam :: !TeamStatistics
   }
 
 data TeamStatistics
   = TeamStatistics
-  { teamStatisticsBatting :: Batting
-  , teamStatisticsPitching :: Pitching
+  { teamStatisticsBatting :: !Batting
+  , teamStatisticsPitching :: !Pitching
   }
 
 makeClassy_ ''BoxScore

@@ -84,7 +84,7 @@ data PlayAction
   | WildPitch
   | PassedBall
   | DefensiveIndifference
-  | Error FieldingPosition
+  | Error FieldingPosition (Maybe FieldingPosition)
   | ErrorFoulFly FieldingPosition
   | Walk Bool
   | NoPlay
