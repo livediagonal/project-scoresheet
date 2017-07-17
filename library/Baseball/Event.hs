@@ -55,7 +55,7 @@ import Baseball.BaseballTypes
 data Event
   = PlayEvent Play
   | SubstitutionEvent Substitution
-  deriving (Eq)
+  deriving (Eq, Show)
 
 data Substitution
   = Substitution
@@ -63,7 +63,7 @@ data Substitution
   , subTeam :: !HomeOrAway
   , subBattingPosition :: !BattingOrderPosition
   , subFieldingPosition :: !FieldingPosition
-  } deriving (Eq)
+  } deriving (Eq, Show)
 
 data Play
   = Play

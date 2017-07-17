@@ -30,9 +30,10 @@ initialGame = Game Nothing Nothing Nothing Nothing []
 addEventToGame :: Event -> Game -> Game
 addEventToGame event g =
   let
-    previousGameEvent =  case (length (gameEvents g) == 0) of
-      True -> initialGameEvent event
-      False -> last $ gameEvents g
+    previousGameEvent =
+      if null (gameEvents g)
+        then initialGameEvent event
+        else last $ gameEvents g
   in
     g & _gameEvents %~ (++ [nextGameEvent event previousGameEvent])
 

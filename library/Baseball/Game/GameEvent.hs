@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -7,6 +8,7 @@ module Baseball.Game.GameEvent
   ( GameEvent(..)
   , initialGameEvent
   , nextGameEvent
+  , prettyPrintGameEvent
   ) where
 
 import ClassyPrelude
@@ -45,18 +47,8 @@ nextGameEvent event previousGameEvent@GameEvent{..} =
         _gameEventFrameState .~ updatedFrameState &
         _gameEventGameState %~ updateGameState gameEventEvent
 
--- toCsv :: [GameEvent] -> BL.ByteString
--- toCsv ges = encodeWith (defaultEncodeOptions {encQuoting = QuoteNone}) ges
-
--- instance ToRecord GameEvent where
---   toRecord (GameEvent (PlayEvent play) gs fs) = record
---     [ toField (gameStateInning gs)
---     , toField (frameStateOuts fs)
---     , toField (show $ playPlayer play)
---     ]
-
---   toRecord (GameEvent (SubstitutionEvent Substitution{..}) gs fs) = record
---     [ toField (gameStateInning gs)
---     , toField (frameStateOuts fs)
---     , toField (show subPlayer)
---     ]
+prettyPrintGameEvent :: GameEvent -> Text
+prettyPrintGameEvent GameEvent{..} = unlines
+  [ prettyPrintFrameState gameEventFrameState
+  , "Last play: " ++ tshow gameEventEvent
+  ]

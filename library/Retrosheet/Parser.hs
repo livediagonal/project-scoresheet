@@ -211,11 +211,21 @@ retrosheetEventsFromFile file = do
 
 generateGames :: Event -> [Game] -> [Game]
 generateGames (IdEventType _) games = initialGame : games
-generateGames (InfoEventType event) (g:rest) = processInfoEvent event g : rest
-generateGames (StartEventType event) (g:rest) = processStartEvent event g : rest
-generateGames (SubEventType event) (g:rest) = processSubEvent event g : rest
-generateGames (PlayEventType event) (g:rest) = processPlayEvent event g : rest
+generateGames event (g:rest) = updateGame event g : rest
 generateGames _ games = games
+
+updateGame :: Event -> Game -> Game
+updateGame (InfoEventType event) = processInfoEvent event
+updateGame (StartEventType event) = processStartEvent event
+updateGame (SubEventType event) = processSubEvent event
+updateGame (PlayEventType event) = processPlayEvent event
+updateGame _ = id
+
+toSimpleEvent :: Event -> Maybe P.Event
+toSimpleEvent (StartEventType StartEvent{..}) = Just $ P.SubstitutionEvent (Substitution startEventPlayer startEventPlayerHome startEventBattingPosition startEventFieldingPosition)
+toSimpleEvent (SubEventType SubEvent{..}) = Just $ P.SubstitutionEvent (Substitution subEventPlayer subEventPlayerHome subEventBattingPosition subEventFieldingPosition)
+toSimpleEvent (PlayEventType PlayEvent{..}) = Just $ P.PlayEvent $ playEventResult {playPlayer = playEventPlayerId}
+toSimpleEvent _ = Nothing
 
 processInfoEvent :: InfoEvent -> Game -> Game
 processInfoEvent InfoEvent{..} = do

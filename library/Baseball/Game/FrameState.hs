@@ -9,8 +9,7 @@ module Baseball.Game.FrameState
   , runnerOnBase
   , runnerOnBaseOrBatter
   , updateFrameState
-  , debugEventInFrame
-  , debugFrameState
+  , prettyPrintFrameState
   , FrameState(..)
   ) where
 
@@ -101,14 +100,9 @@ runnerOnBaseOrBatter batter base FrameState{..} =
     ThirdBase -> frameStateRunnerOnThird
     HomePlate -> Just batter
 
-debugEventInFrame :: Event -> FrameState -> FrameState
-debugEventInFrame (PlayEvent (Play playerId actions _ movements)) fs =
-  trace (show playerId ++ " - " ++ show actions ++ " - " ++ show movements) (debugFrameState fs)
-debugEventInFrame _ fs = fs
-
-debugFrameState :: FrameState -> FrameState
-debugFrameState fs@FrameState{..} = trace (unlines $ ("Outs: " ++ show frameStateOuts) : catMaybes
-  [ (("1: " ++) . show) <$> frameStateRunnerOnFirst
-  , (("2: " ++) . show) <$> frameStateRunnerOnSecond
-  , (("3: " ++) . show) <$> frameStateRunnerOnThird
-  ]) fs
+prettyPrintFrameState :: FrameState -> Text
+prettyPrintFrameState FrameState{..} = unlines $ ("Outs: " ++ tshow frameStateOuts) : catMaybes
+  [ (("Runner on first: " ++) . tshow) <$> frameStateRunnerOnFirst
+  , (("Runner on second: " ++) . tshow) <$> frameStateRunnerOnSecond
+  , (("Runner on third: " ++) . tshow) <$> frameStateRunnerOnThird
+  ]
